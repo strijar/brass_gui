@@ -1,3 +1,3 @@
-# X6100 LVGL GUI
+# TRX Brass GUI
 
-This is part of an alternative firmware for X6100 using the LVGL library
+This is part of an firmware for TRX Brass
