@@ -1,1 +1,1 @@
-BUILDROOT="../../AetherX6100Buildroot/build"
+BUILDROOT="../../system/output_brass"

@@ -99,19 +99,19 @@ void pannel_hide() {
 }
 
 void pannel_visible() {
-    x6100_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = radio_current_mode();
     bool            on = false;
 
     switch (mode) {
-        case x6100_mode_cw:
-        case x6100_mode_cwr:
+        case radio_mode_cw:
+        case radio_mode_cwr:
             on = params.cw_decoder;
             break;
             
-        case x6100_mode_usb:
-        case x6100_mode_lsb:
-        case x6100_mode_usb_dig:
-        case x6100_mode_lsb_dig:
+        case radio_mode_usb:
+        case radio_mode_lsb:
+        case radio_mode_usb_dig:
+        case radio_mode_lsb_dig:
             on = rtty_get_state() != RTTY_OFF;
             break;
     }

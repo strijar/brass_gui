@@ -198,15 +198,15 @@ void mfk_update(int16_t diff, bool voice) {
             i = radio_change_key_mode(diff);
             
             switch (i) {
-                case x6100_key_manual:
+                case radio_key_manual:
                     str = "Manual";
                     break;
 
-                case x6100_key_auto_left:
+                case radio_key_auto_left:
                     str = "Auto-L";
                     break;
 
-                case x6100_key_auto_right:
+                case radio_key_auto_right:
                     str = "Auto-R";
                     break;
             }
@@ -223,11 +223,11 @@ void mfk_update(int16_t diff, bool voice) {
             i = radio_change_iambic_mode(diff);
             
             switch (i) {
-                case x6100_iambic_a:
+                case radio_iambic_a:
                     str = "A";
                     break;
 
-                case x6100_iambic_b:
+                case radio_iambic_b:
                     str = "B";
                     break;
             }

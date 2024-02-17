@@ -7,7 +7,6 @@
  */
 
 #include <stdlib.h>
-#include <aether_radio/x6100_control/low/flow.h>
 #include "lvgl/lvgl.h"
 
 #include "hkey.h"
@@ -72,7 +71,7 @@ void hkey_put(uint32_t key) {
             return;
 
         /* * */
-
+/*
         case X6100_HKEY_1:
             if (lv_group_get_editing(keyboard_group)) {
                 event.key = HKEY_1;
@@ -169,8 +168,6 @@ void hkey_put(uint32_t key) {
             hkey_key(HKEY_FINP);
             break;
 
-        /* * */
-
         case X6100_HKEY_SPCH:
             event.key = HKEY_SPCH;
             break;
@@ -218,12 +215,12 @@ void hkey_put(uint32_t key) {
         case X6100_HKEY_GENE:
             event.key = HKEY_GENE;
             break;
-
+*/
        default:
             event.key = HKEY_UNKNOWN;
             break;
     }
-    
+
     switch (event.state) {
         case HKEY_RELEASE:
         case HKEY_LONG_RELEASE:

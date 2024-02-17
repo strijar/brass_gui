@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <aether_radio/x6100_control/control.h>
 #include "ft8/constants.h"
 #include "bands.h"
 #include "radio.h"
@@ -39,10 +38,10 @@ typedef struct {
 typedef struct {
     uint64_t        freq;
     bool            shift;
-    x6100_att_t     att;
-    x6100_pre_t     pre;
-    x6100_mode_t    mode;
-    x6100_agc_t     agc;
+    radio_att_t     att;
+    radio_pre_t     pre;
+    radio_mode_t    mode;
+    radio_agc_t     agc;
     
     struct {
         bool    freq;
@@ -54,7 +53,7 @@ typedef struct {
 } params_vfo_t;
 
 typedef struct {
-    x6100_vfo_t     vfo;
+    radio_vfo_t     vfo;
 
     params_vfo_t    vfo_x[2];
 
@@ -193,7 +192,7 @@ typedef struct {
     bool                atu_loaded;
     uint8_t             ant;
     float               pwr;
-    x6100_mic_sel_t     mic;
+    radio_mic_sel_t     mic;
     uint8_t             hmic;
     uint8_t             imic;
     radio_charger_t     charger;
@@ -255,8 +254,8 @@ typedef struct {
     /* key */
     
     uint8_t             key_speed;
-    x6100_key_mode_t    key_mode;
-    x6100_iambic_mode_t iambic_mode;
+    radio_key_mode_t    key_mode;
+    radio_iambic_mode_t iambic_mode;
     uint16_t            key_tone;
     uint16_t            key_vol;
     bool                key_train;

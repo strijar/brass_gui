@@ -34,7 +34,6 @@ target_link_options(${PROJECT_NAME} PRIVATE -g -rdynamic)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 target_link_libraries(${PROJECT_NAME} PRIVATE lvgl lvgl::drivers)
-target_link_libraries(${PROJECT_NAME} PRIVATE aether_x6100_control)
 target_link_libraries(${PROJECT_NAME} PRIVATE liquid m)
 target_link_libraries(${PROJECT_NAME} PRIVATE sqlite3)
 target_link_libraries(${PROJECT_NAME} PRIVATE pulse pulse-simple)

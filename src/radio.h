@@ -9,16 +9,29 @@
 #pragma once
 
 #include <stdbool.h>
-#include <aether_radio/x6100_control/control.h>
 
 #include "lvgl/lvgl.h"
 
 #define RADIO_SAMPLES   (512)
 
 typedef enum {
+    RADIO_VFO_A = 0,
+    RADIO_VFO_B
+} radio_vfo_t;
+
+typedef enum {
+    radio_mode_lsb = 0,
+    radio_mode_lsb_dig = 1,
+    radio_mode_usb = 2,
+    radio_mode_usb_dig = 3,
+    radio_mode_cw = 4,
+    radio_mode_cwr = 5,
+    radio_mode_am = 6,
+    radio_mode_nfm = 7,
+
     /* Loop by keys */
 
-    RADIO_MODE_AM = 0,
+    RADIO_MODE_AM,
     RADIO_MODE_CW,
     RADIO_MODE_SSB,
 
@@ -27,6 +40,40 @@ typedef enum {
     RADIO_MODE_USB,
     RADIO_MODE_LSB
 } radio_mode_t;
+
+typedef enum {
+    radio_key_manual = 0,
+    radio_key_auto_left = 1,
+    radio_key_auto_right = 2
+} radio_key_mode_t;
+
+typedef enum {
+    radio_iambic_a = 0,
+    radio_iambic_b = 1
+} radio_iambic_mode_t;
+
+typedef enum {
+    radio_mic_builtin = 0,
+    radio_mic_handle,
+    radio_mic_auto
+} radio_mic_sel_t;
+
+typedef enum {
+    radio_agc_off = 0,
+    radio_agc_slow = 1,
+    radio_agc_fast = 2,
+    radio_agc_auto = 3
+} radio_agc_t;
+
+typedef enum {
+    radio_att_off = 0,
+    radio_att_on = 1
+} radio_att_t;
+
+typedef enum {
+    radio_pre_off = 0,
+    radio_pre_on = 1
+} radio_pre_t;
 
 typedef enum {
     RADIO_RX = 0,
@@ -55,13 +102,13 @@ void radio_set_freq(uint64_t freq);
 bool radio_check_freq(uint64_t freq, uint64_t *shift);
 uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq);
 
-void radio_set_mode(x6100_vfo_t vfo,  x6100_mode_t mode);
+void radio_set_mode(radio_vfo_t vfo,  radio_mode_t mode);
 void radio_change_mode(radio_mode_t select);
-void radio_restore_mode(x6100_mode_t mode);
-x6100_mode_t radio_current_mode();
+void radio_restore_mode(radio_mode_t mode);
+radio_mode_t radio_current_mode();
 
-x6100_vfo_t radio_set_vfo(x6100_vfo_t vfo);
-x6100_vfo_t radio_change_vfo();
+radio_vfo_t radio_set_vfo(radio_vfo_t vfo);
+radio_vfo_t radio_change_vfo();
 
 uint16_t radio_change_vol(int16_t df);
 uint16_t radio_change_rfg(int16_t df);
@@ -81,8 +128,8 @@ void radio_change_split();
 float radio_change_pwr(int16_t d);
 
 uint16_t radio_change_key_speed(int16_t d);
-x6100_key_mode_t radio_change_key_mode(int16_t d);
-x6100_iambic_mode_t radio_change_iambic_mode(int16_t d);
+radio_key_mode_t radio_change_key_mode(int16_t d);
+radio_iambic_mode_t radio_change_iambic_mode(int16_t d);
 uint16_t radio_change_key_tone(int16_t d);
 uint16_t radio_change_key_vol(int16_t d);
 bool radio_change_key_train(int16_t d);
@@ -90,7 +137,7 @@ uint16_t radio_change_qsk_time(int16_t d);
 uint8_t radio_change_key_ratio(int16_t d);
 radio_charger_t radio_change_charger(int16_t d);
 
-x6100_mic_sel_t radio_change_mic(int16_t d);
+radio_mic_sel_t radio_change_mic(int16_t d);
 uint8_t radio_change_hmic(int16_t d);
 uint8_t radio_change_imic(int16_t d);
 

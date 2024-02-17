@@ -11,7 +11,6 @@
 extern "C" {
 #include <unistd.h>
 #include <pthread.h>
-#include <aether_radio/x6100_control/control.h>
 #include <lvgl.h>
 
 #include "audio.h"

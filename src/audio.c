@@ -167,13 +167,4 @@ int16_t* audio_gain(int16_t *buf, size_t samples, uint16_t gain) {
 }
 
 void audio_play_en(bool on) {
-    if (on) {
-        x6100_control_hmic_set(0);
-        x6100_control_imic_set(0);
-        x6100_control_record_set(true);
-    } else {
-        x6100_control_record_set(false);
-        x6100_control_hmic_set(params.hmic);
-        x6100_control_imic_set(params.imic);
-    }
 }

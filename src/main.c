@@ -34,7 +34,7 @@
 #include "events.h"
 #include "gps.h"
 
-#define DISP_BUF_SIZE (128 * 1024)
+#define DISP_BUF_SIZE (800 * 480 * 3)
 
 rotary_t                    *vol;
 encoder_t                   *mfk;
@@ -48,7 +48,7 @@ int main(void) {
     lv_png_init();
     
     fbdev_init();
-    audio_init();
+//    audio_init();
     event_init();
     
     lv_disp_draw_buf_init(&disp_buf, buf, NULL, DISP_BUF_SIZE);
@@ -56,10 +56,8 @@ int main(void) {
     
     disp_drv.draw_buf   = &disp_buf;
     disp_drv.flush_cb   = fbdev_flush;
-    disp_drv.hor_res    = 480;
-    disp_drv.ver_res    = 800;
-    disp_drv.sw_rotate  = 1;
-    disp_drv.rotated    = LV_DISP_ROT_90;
+    disp_drv.hor_res    = 800;
+    disp_drv.ver_res    = 480;
     
     lv_disp_drv_register(&disp_drv);
 
@@ -71,7 +69,7 @@ int main(void) {
     lv_timer_set_period(timer, 15);
 
     keyboard_init();
-
+/*
     keypad_t *keypad = keypad_init("/dev/input/event0");
     keypad_t *power = keypad_init("/dev/input/event4");
 
@@ -85,12 +83,12 @@ int main(void) {
 
     vol->left[VOL_SELECT] = KEY_VOL_LEFT_SELECT;
     vol->right[VOL_SELECT] = KEY_VOL_RIGHT_SELECT;
-    
+*/
     params_init();
     styles_init();
     
     lv_obj_t *main_obj = main_screen();
-
+/*
     cw_init();
     dsp_init();
     rtty_init();
@@ -99,7 +97,7 @@ int main(void) {
     cat_init();
     pannel_visible();
     gps_init();
-
+*/
     uint64_t prev_time = get_time();
 
 #if 0    

@@ -116,11 +116,11 @@ void mem_save(uint16_t id) {
 
 static void freq_update() {
     uint64_t    f;
-    x6100_vfo_t vfo = params_band.vfo;
+    radio_vfo_t vfo = params_band.vfo;
     uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;
 
     if (params_band.split && radio_get_state() == RADIO_TX) {
-        vfo = (vfo == X6100_VFO_A) ? X6100_VFO_B : X6100_VFO_A;
+        vfo = (vfo == RADIO_VFO_A) ? RADIO_VFO_B : RADIO_VFO_A;
     }
     
     f = params_band.vfo_x[vfo].freq;
@@ -142,7 +142,7 @@ static void freq_update() {
 
     if (params_band.split) {
         uint16_t    mhz2, khz2, hz2;
-        uint64_t    f2 = params_band.vfo_x[(vfo == X6100_VFO_A) ? X6100_VFO_B : X6100_VFO_A].freq;
+        uint64_t    f2 = params_band.vfo_x[(vfo == RADIO_VFO_A) ? RADIO_VFO_B : RADIO_VFO_A].freq;
 
         split_freq(f2, &mhz2, &khz2, &hz2);
         
@@ -551,8 +551,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case KEYPAD_MSG:
             if (keypad->state == KEYPAD_RELEASE) {
                 switch (radio_current_mode()) {
-                    case x6100_mode_cw:
-                    case x6100_mode_cwr:
+                    case radio_mode_cw:
+                    case radio_mode_cwr:
                         apps_disable();
                         buttons_unload_page();
 
@@ -562,10 +562,10 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                         voice_say_text_fmt("CW messages window");
                         break;
                         
-                    case x6100_mode_lsb:
-                    case x6100_mode_usb:
-                    case x6100_mode_am:
-                    case x6100_mode_nfm:
+                    case radio_mode_lsb:
+                    case radio_mode_usb:
+                    case radio_mode_am:
+                    case radio_mode_nfm:
                         apps_disable();
                         buttons_unload_page();
 
@@ -616,8 +616,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             } else if (keypad->state == KEYPAD_LONG) {
                 params_band_vfo_clone();
                 radio_vfo_set();
-                msg_set_text_fmt("Clone VFO %s", params_band.vfo == X6100_VFO_A ? "A->B" : "B->A");
-                voice_say_text_fmt("V F O cloned %s", params_band.vfo == X6100_VFO_A ? "from A to B" : "from B to A");
+                msg_set_text_fmt("Clone VFO %s", params_band.vfo == RADIO_VFO_A ? "A->B" : "B->A");
+                voice_say_text_fmt("V F O cloned %s", params_band.vfo == RADIO_VFO_A ? "from A to B" : "from B to A");
             }
             break;
 
@@ -648,8 +648,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                     radio_set_ptt(true);
 
                     switch (radio_current_mode()) {
-                        case x6100_mode_cw:
-                        case x6100_mode_cwr:
+                        case radio_mode_cw:
+                        case radio_mode_cwr:
                             radio_set_morse_key(true);
                             break;
                     }
@@ -658,8 +658,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 case KEYPAD_RELEASE:
                 case KEYPAD_LONG_RELEASE:
                     switch (radio_current_mode()) {
-                        case x6100_mode_cw:
-                        case x6100_mode_cwr:
+                        case radio_mode_cw:
+                        case radio_mode_cwr:
                             radio_set_morse_key(false);
                             break;
                     }
@@ -1016,7 +1016,7 @@ void main_screen_lock_mode(bool lock) {
 }
 
 void main_screen_set_freq(uint64_t freq) {
-    x6100_vfo_t vfo = params_band.vfo;
+    radio_vfo_t vfo = params_band.vfo;
     uint64_t    prev_freq = params_band.vfo_x[vfo].freq;
     
     if (params_bands_find(freq, &params.freq_band)) {

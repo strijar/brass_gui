@@ -252,11 +252,11 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
     for (uint16_t i = 0; i < nsamples; i++)
         firhilbf_r2c_execute(audio_hilb, samples[i] / 32768.0f, &audio[i]);
 
-    x6100_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = radio_current_mode();
     
     if (rtty_get_state() == RTTY_RX) {
         rtty_put_audio_samples(nsamples, audio);
-    } else if (mode == x6100_mode_cw || mode == x6100_mode_cwr) {
+    } else if (mode == radio_mode_cw || mode == radio_mode_cwr) {
         cw_put_audio_samples(nsamples, audio);
     } else {
         dialog_audio_samples(nsamples, audio);

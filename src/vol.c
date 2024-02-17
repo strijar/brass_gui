@@ -94,15 +94,15 @@ void vol_update(int16_t diff, bool voice) {
             x = radio_change_mic(diff);
             
             switch (x) {
-                case x6100_mic_builtin:
+                case radio_mic_builtin:
                     s = "Built-In";
                     break;
 
-                case x6100_mic_handle:
+                case radio_mic_handle:
                     s = "Handle";
                     break;
                     
-                case x6100_mic_auto:
+                case radio_mic_auto:
                     s = "Auto";
                     break;
             }

@@ -53,7 +53,7 @@ params_t params = {
     .rfg                    = 63,
     .ant                    = 1,
     .pwr                    = 5.0f,
-    .mic                    = x6100_mic_auto,
+    .mic                    = radio_mic_auto,
     .hmic                   = 20,
     .imic                   = 30,
     .charger                = true,
@@ -86,8 +86,8 @@ params_t params = {
     .vox_gain               = 50,
 
     .key_speed              = 15,
-    .key_mode               = x6100_key_manual,
-    .iambic_mode            = x6100_iambic_a,
+    .key_mode               = radio_key_manual,
+    .iambic_mode            = radio_iambic_a,
     .key_tone               = 700,
     .key_vol                = 10,
     .key_train              = false,
@@ -145,22 +145,22 @@ params_t params = {
 };
 
 params_band_t params_band = {
-    .vfo                = X6100_VFO_A,
+    .vfo                = RADIO_VFO_A,
 
-    .vfo_x[X6100_VFO_A] = {
+    .vfo_x[RADIO_VFO_A] = {
         .freq           = 14000000,
-        .att            = x6100_att_off,
-        .pre            = x6100_pre_off,
-        .mode           = x6100_mode_usb,
-        .agc            = x6100_agc_fast
+        .att            = radio_att_off,
+        .pre            = radio_pre_off,
+        .mode           = radio_mode_usb,
+        .agc            = radio_agc_fast
     },
 
-    .vfo_x[X6100_VFO_B] = {
+    .vfo_x[RADIO_VFO_B] = {
         .freq           = 14100000,
-        .att            = x6100_att_off,
-        .pre            = x6100_pre_off,
-        .mode           = x6100_mode_usb,
-        .agc            = x6100_agc_fast
+        .att            = radio_att_off,
+        .pre            = radio_pre_off,
+        .mode           = radio_mode_usb,
+        .agc            = radio_agc_fast
     },
 
     .split              = false,
@@ -209,7 +209,7 @@ void params_mode_load() {
         return;
     }
 
-    x6100_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = radio_current_mode();
 
     sqlite3_bind_int(stmt, 1, mode);
 
@@ -231,7 +231,7 @@ void params_mode_load() {
 }
 
 static void params_mode_write_int(const char *name, int data, bool *durty) {
-    x6100_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = radio_current_mode();
 
     sqlite3_bind_int(write_mode_stmt, 1, mode);
     sqlite3_bind_text(write_mode_stmt, 2, name, strlen(name), 0);
@@ -305,29 +305,29 @@ static void params_mb_load(sqlite3_stmt *stmt) {
         if (strcmp(name, "vfo") == 0) {
             params_band.vfo = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_freq") == 0) {
-            params_band.vfo_x[X6100_VFO_A].freq = sqlite3_column_int64(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_A].freq = sqlite3_column_int64(stmt, 1);
         } else if (strcmp(name, "vfoa_att") == 0) {
-            params_band.vfo_x[X6100_VFO_A].att = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_A].att = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_pre") == 0) {
-            params_band.vfo_x[X6100_VFO_A].pre = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_A].pre = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_mode") == 0) {
-            params_band.vfo_x[X6100_VFO_A].mode = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_A].mode = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_agc") == 0) {
-            params_band.vfo_x[X6100_VFO_A].agc = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_A].agc = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfob_freq") == 0) {
-            params_band.vfo_x[X6100_VFO_B].freq = sqlite3_column_int64(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_B].freq = sqlite3_column_int64(stmt, 1);
             copy_freq = false;
         } else if (strcmp(name, "vfob_att") == 0) {
-            params_band.vfo_x[X6100_VFO_B].att = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_B].att = sqlite3_column_int(stmt, 1);
             copy_att = false;
         } else if (strcmp(name, "vfob_pre") == 0) {
-            params_band.vfo_x[X6100_VFO_B].pre = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_B].pre = sqlite3_column_int(stmt, 1);
             copy_pre = false;
         } else if (strcmp(name, "vfob_mode") == 0) {
-            params_band.vfo_x[X6100_VFO_B].mode = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_B].mode = sqlite3_column_int(stmt, 1);
             copy_mode = false;
         } else if (strcmp(name, "vfob_agc") == 0) {
-            params_band.vfo_x[X6100_VFO_B].agc = sqlite3_column_int(stmt, 1);
+            params_band.vfo_x[RADIO_VFO_B].agc = sqlite3_column_int(stmt, 1);
             copy_agc = false;
         } else if (strcmp(name, "grid_min") == 0) {
             params_band.grid_min = sqlite3_column_int(stmt, 1);
@@ -338,11 +338,11 @@ static void params_mb_load(sqlite3_stmt *stmt) {
         }
     }
 
-    if (copy_freq)  params_band.vfo_x[X6100_VFO_B].freq = params_band.vfo_x[X6100_VFO_A].freq;
-    if (copy_att)   params_band.vfo_x[X6100_VFO_B].att = params_band.vfo_x[X6100_VFO_A].att;
-    if (copy_pre)   params_band.vfo_x[X6100_VFO_B].pre = params_band.vfo_x[X6100_VFO_A].pre;
-    if (copy_mode)  params_band.vfo_x[X6100_VFO_B].mode = params_band.vfo_x[X6100_VFO_A].mode;
-    if (copy_agc)   params_band.vfo_x[X6100_VFO_B].agc = params_band.vfo_x[X6100_VFO_A].agc;
+    if (copy_freq)  params_band.vfo_x[RADIO_VFO_B].freq = params_band.vfo_x[RADIO_VFO_A].freq;
+    if (copy_att)   params_band.vfo_x[RADIO_VFO_B].att = params_band.vfo_x[RADIO_VFO_A].att;
+    if (copy_pre)   params_band.vfo_x[RADIO_VFO_B].pre = params_band.vfo_x[RADIO_VFO_A].pre;
+    if (copy_mode)  params_band.vfo_x[RADIO_VFO_B].mode = params_band.vfo_x[RADIO_VFO_A].mode;
+    if (copy_agc)   params_band.vfo_x[RADIO_VFO_B].agc = params_band.vfo_x[RADIO_VFO_A].agc;
 
     sqlite3_finalize(stmt);
     params_mode_load();
@@ -394,7 +394,7 @@ void params_memory_save(uint16_t id) {
 
     params_band.durty.vfo = true;
     
-    for (uint8_t i = X6100_VFO_A; i <= X6100_VFO_B; i++) {
+    for (uint8_t i = RADIO_VFO_A; i <= RADIO_VFO_B; i++) {
         params_band.vfo_x[i].durty.freq = true;
         params_band.vfo_x[i].durty.att = true;
         params_band.vfo_x[i].durty.pre = true;
@@ -413,35 +413,35 @@ static bool params_mb_save(uint16_t id) {
     if (params_band.durty.vfo)
         params_mb_write_int(id, "vfo", params_band.vfo, &params_band.durty.vfo);
     
-    if (params_band.vfo_x[X6100_VFO_A].durty.freq)
-        params_mb_write_int64(id, "vfoa_freq", params_band.vfo_x[X6100_VFO_A].freq, &params_band.vfo_x[X6100_VFO_A].durty.freq);
+    if (params_band.vfo_x[RADIO_VFO_A].durty.freq)
+        params_mb_write_int64(id, "vfoa_freq", params_band.vfo_x[RADIO_VFO_A].freq, &params_band.vfo_x[RADIO_VFO_A].durty.freq);
         
-    if (params_band.vfo_x[X6100_VFO_A].durty.att)
-        params_mb_write_int(id, "vfoa_att", params_band.vfo_x[X6100_VFO_A].att, &params_band.vfo_x[X6100_VFO_A].durty.att);
+    if (params_band.vfo_x[RADIO_VFO_A].durty.att)
+        params_mb_write_int(id, "vfoa_att", params_band.vfo_x[RADIO_VFO_A].att, &params_band.vfo_x[RADIO_VFO_A].durty.att);
         
-    if (params_band.vfo_x[X6100_VFO_A].durty.pre)
-        params_mb_write_int(id, "vfoa_pre", params_band.vfo_x[X6100_VFO_A].pre, &params_band.vfo_x[X6100_VFO_A].durty.pre);
+    if (params_band.vfo_x[RADIO_VFO_A].durty.pre)
+        params_mb_write_int(id, "vfoa_pre", params_band.vfo_x[RADIO_VFO_A].pre, &params_band.vfo_x[RADIO_VFO_A].durty.pre);
         
-    if (params_band.vfo_x[X6100_VFO_A].durty.mode)
-        params_mb_write_int(id, "vfoa_mode", params_band.vfo_x[X6100_VFO_A].mode, &params_band.vfo_x[X6100_VFO_A].durty.mode);
+    if (params_band.vfo_x[RADIO_VFO_A].durty.mode)
+        params_mb_write_int(id, "vfoa_mode", params_band.vfo_x[RADIO_VFO_A].mode, &params_band.vfo_x[RADIO_VFO_A].durty.mode);
         
-    if (params_band.vfo_x[X6100_VFO_A].durty.agc)
-        params_mb_write_int(id, "vfoa_agc", params_band.vfo_x[X6100_VFO_A].agc, &params_band.vfo_x[X6100_VFO_A].durty.agc);
+    if (params_band.vfo_x[RADIO_VFO_A].durty.agc)
+        params_mb_write_int(id, "vfoa_agc", params_band.vfo_x[RADIO_VFO_A].agc, &params_band.vfo_x[RADIO_VFO_A].durty.agc);
 
-    if (params_band.vfo_x[X6100_VFO_B].durty.freq)
-        params_mb_write_int64(id, "vfob_freq", params_band.vfo_x[X6100_VFO_B].freq, &params_band.vfo_x[X6100_VFO_B].durty.freq);
+    if (params_band.vfo_x[RADIO_VFO_B].durty.freq)
+        params_mb_write_int64(id, "vfob_freq", params_band.vfo_x[RADIO_VFO_B].freq, &params_band.vfo_x[RADIO_VFO_B].durty.freq);
         
-    if (params_band.vfo_x[X6100_VFO_B].durty.att)
-        params_mb_write_int(id, "vfob_att", params_band.vfo_x[X6100_VFO_B].att, &params_band.vfo_x[X6100_VFO_B].durty.att);
+    if (params_band.vfo_x[RADIO_VFO_B].durty.att)
+        params_mb_write_int(id, "vfob_att", params_band.vfo_x[RADIO_VFO_B].att, &params_band.vfo_x[RADIO_VFO_B].durty.att);
         
-    if (params_band.vfo_x[X6100_VFO_B].durty.pre)
-        params_mb_write_int(id, "vfob_pre", params_band.vfo_x[X6100_VFO_B].pre, &params_band.vfo_x[X6100_VFO_B].durty.pre);
+    if (params_band.vfo_x[RADIO_VFO_B].durty.pre)
+        params_mb_write_int(id, "vfob_pre", params_band.vfo_x[RADIO_VFO_B].pre, &params_band.vfo_x[RADIO_VFO_B].durty.pre);
         
-    if (params_band.vfo_x[X6100_VFO_B].durty.mode)
-        params_mb_write_int(id, "vfob_mode", params_band.vfo_x[X6100_VFO_B].mode, &params_band.vfo_x[X6100_VFO_B].durty.mode);
+    if (params_band.vfo_x[RADIO_VFO_B].durty.mode)
+        params_mb_write_int(id, "vfob_mode", params_band.vfo_x[RADIO_VFO_B].mode, &params_band.vfo_x[RADIO_VFO_B].durty.mode);
         
-    if (params_band.vfo_x[X6100_VFO_B].durty.agc)
-        params_mb_write_int(id, "vfob_agc", params_band.vfo_x[X6100_VFO_B].agc, &params_band.vfo_x[X6100_VFO_B].durty.agc);
+    if (params_band.vfo_x[RADIO_VFO_B].durty.agc)
+        params_mb_write_int(id, "vfob_agc", params_band.vfo_x[RADIO_VFO_B].agc, &params_band.vfo_x[RADIO_VFO_B].durty.agc);
 
     if (params_band.durty.grid_min)
         params_mb_write_int(id, "grid_min", params_band.grid_min, &params_band.durty.grid_min);
@@ -988,7 +988,7 @@ static void * params_thread(void *arg) {
 }
 
 void params_init() {
-    int rc = sqlite3_open("/mnt/params.db", &db);
+    int rc = sqlite3_open("params.db", &db);
     
     if (rc == SQLITE_OK) {
         if (!params_load()) {
@@ -1116,10 +1116,10 @@ uint32_t params_atu_load(bool *loaded) {
 }
 
 void params_band_vfo_clone() {
-    params_vfo_t *a = &params_band.vfo_x[X6100_VFO_A];
-    params_vfo_t *b = &params_band.vfo_x[X6100_VFO_B];
+    params_vfo_t *a = &params_band.vfo_x[RADIO_VFO_A];
+    params_vfo_t *b = &params_band.vfo_x[RADIO_VFO_B];
 
-    if (params_band.vfo == X6100_VFO_A) {
+    if (params_band.vfo == RADIO_VFO_A) {
         *b = *a;
         
         b->durty.freq = true;

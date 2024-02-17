@@ -19,7 +19,6 @@
 #include <pthread.h>
 #include <sys/poll.h>
 
-#include <aether_radio/x6100_control/low/gpio.h>
 #include "lvgl/lvgl.h"
 
 #include "cat.h"
@@ -199,13 +198,13 @@ static void frame_parse(uint16_t len) {
         case C_SET_VFO:
             switch (frame[5]) {
                 case S_VFOA:
-                    radio_set_vfo(X6100_VFO_A);
+                    radio_set_vfo(RADIO_VFO_A);
                     event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
                     send_code(CODE_OK);
                     break;
 
                 case S_VFOB:
-                    radio_set_vfo(X6100_VFO_B);
+                    radio_set_vfo(RADIO_VFO_B);
                     event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
                     send_code(CODE_OK);
                     break;
@@ -221,9 +220,9 @@ static void frame_parse(uint16_t len) {
                 uint64_t freq;
                 
                 if (frame[5] == 0x00) {
-                    freq = params_band.vfo_x[X6100_VFO_A].freq;
+                    freq = params_band.vfo_x[RADIO_VFO_A].freq;
                 } else {
-                    freq = params_band.vfo_x[X6100_VFO_B].freq;
+                    freq = params_band.vfo_x[RADIO_VFO_B].freq;
                 }
                 to_bcd(&frame[6], freq, 10);
                 send_frame(12);
@@ -231,15 +230,15 @@ static void frame_parse(uint16_t len) {
                 uint64_t freq = from_bcd(&frame[6], 10);
                 
                 if (frame[5] == 0x00) {
-                    params_band.vfo_x[X6100_VFO_A].freq = freq;
+                    params_band.vfo_x[RADIO_VFO_A].freq = freq;
                     
-                    if (params_band.vfo == X6100_VFO_A) {
+                    if (params_band.vfo == RADIO_VFO_A) {
                         set_freq(freq);
                     }
                 } else {
-                    params_band.vfo_x[X6100_VFO_B].freq = freq;
+                    params_band.vfo_x[RADIO_VFO_B].freq = freq;
                     
-                    if (params_band.vfo == X6100_VFO_B) {
+                    if (params_band.vfo == RADIO_VFO_B) {
                         set_freq(freq);
                     }
                 }
@@ -255,17 +254,17 @@ static void frame_parse(uint16_t len) {
                 frame[8] = CODE_OK;
                 send_frame(10);
             } else {
-                x6100_mode_t mode;
+                radio_mode_t mode;
                 
                 switch (frame[6]) {
                     case 0:
                         switch (frame[7]) {
                             case 0:
-                                mode = x6100_mode_lsb;
+                                mode = radio_mode_lsb;
                                 break;
                                 
                             case 1:
-                                mode = x6100_mode_lsb_dig;
+                                mode = radio_mode_lsb_dig;
                                 break;
                         }
                         break;
@@ -273,20 +272,20 @@ static void frame_parse(uint16_t len) {
                     case 1:
                         switch (frame[7]) {
                             case 0:
-                                mode = x6100_mode_usb;
+                                mode = radio_mode_usb;
                                 break;
                                 
                             case 1:
-                                mode = x6100_mode_usb_dig;
+                                mode = radio_mode_usb_dig;
                                 break;
                         }
                         break;
                 }
                 
                 if (frame[5] == 0x00) {
-                    radio_set_mode(X6100_VFO_A, mode);
+                    radio_set_mode(RADIO_VFO_A, mode);
                 } else {
-                    radio_set_mode(X6100_VFO_B, mode);
+                    radio_set_mode(RADIO_VFO_B, mode);
                 }
                 
                 send_code(CODE_OK);
@@ -313,8 +312,6 @@ static void * cat_thread(void *arg) {
 
 void cat_init() {
     /* UART */
-
-    x6100_gpio_set(x6100_pin_usb, 1);  /* USB -> CAT */
 
     fd = open("/dev/ttyS2", O_RDWR | O_NONBLOCK | O_NOCTTY);
     

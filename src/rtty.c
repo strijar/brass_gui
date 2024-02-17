@@ -242,7 +242,7 @@ void rtty_put_audio_samples(unsigned int n, float complex *samples) {
 
     cbuffercf_write(rx_buf, samples, n);
     
-    x6100_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = radio_current_mode();
 
     while (cbuffercf_size(rx_buf) > symbol_samples) {
         unsigned int    symbol;
@@ -261,8 +261,8 @@ void rtty_put_audio_samples(unsigned int n, float complex *samples) {
         float pwr1 = 10.0f * log10f(fskdem_get_symbol_energy(demod, 1, 1));
         float pwr = pwr0 - pwr1;
 
-        if (((mode == x6100_mode_usb || mode == x6100_mode_usb_dig) && !params.rtty_reverse) || 
-            ((mode == x6100_mode_lsb || mode == x6100_mode_lsb_dig) && params.rtty_reverse))
+        if (((mode == radio_mode_usb || mode == radio_mode_usb_dig) && !params.rtty_reverse) || 
+            ((mode == radio_mode_lsb || mode == radio_mode_lsb_dig) && params.rtty_reverse))
         {
             pwr = -pwr;
         }

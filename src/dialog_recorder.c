@@ -15,8 +15,6 @@
 #include <dirent.h>
 #include <pthread.h>
 
-#include <aether_radio/x6100_control/control.h>
-
 #include "lvgl/lvgl.h"
 #include "audio.h"
 #include "recorder.h"

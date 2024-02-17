@@ -75,39 +75,39 @@ void info_atu_update() {
 }
 
 const char* info_params_mode() {
-    x6100_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = radio_current_mode();
     char            *str;
 
     switch (mode) {
-        case x6100_mode_lsb:
+        case radio_mode_lsb:
             str = "LSB";
             break;
             
-        case x6100_mode_lsb_dig:
+        case radio_mode_lsb_dig:
             str = "LSB-D";
             break;
             
-        case x6100_mode_usb:
+        case radio_mode_usb:
             str = "USB";
             break;
             
-        case x6100_mode_usb_dig:
+        case radio_mode_usb_dig:
             str = "USB-D";
             break;
             
-        case x6100_mode_cw:
+        case radio_mode_cw:
             str = "CW";
             break;
             
-        case x6100_mode_cwr:
+        case radio_mode_cwr:
             str = "CW-R";
             break;
 
-        case x6100_mode_am:
+        case radio_mode_am:
             str = "AM";
             break;
             
-        case x6100_mode_nfm:
+        case radio_mode_nfm:
             str = "NFM";
             break;
             
@@ -120,23 +120,23 @@ const char* info_params_mode() {
 }
 
 const char* info_params_agc() {
-    x6100_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
+    radio_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
     char            *str;
 
     switch (agc) {
-        case x6100_agc_off:
+        case radio_agc_off:
             str = "OFF";
             break;
             
-        case x6100_agc_slow:
+        case radio_agc_slow:
             str = "SLOW";
             break;
             
-        case x6100_agc_fast:
+        case radio_agc_fast:
             str = "FAST";
             break;
             
-        case x6100_agc_auto:
+        case radio_agc_auto:
             str = "AUTO";
             break;
             
@@ -153,24 +153,24 @@ const char* info_params_vfo() {
     char            *str;
 
     if (params_band.split) {
-        str = params_band.vfo == X6100_VFO_A ? "SPL-A" : "SPL-B";
+        str = params_band.vfo == RADIO_VFO_A ? "SPL-A" : "SPL-B";
     } else {
-        str = params_band.vfo == X6100_VFO_A ? "VFO-A" : "VFO-B";
+        str = params_band.vfo == RADIO_VFO_A ? "VFO-A" : "VFO-B";
     }
     
     return str;
 }
 
 bool info_params_att() {
-    x6100_att_t     att = params_band.vfo_x[params_band.vfo].att;
+    radio_att_t     att = params_band.vfo_x[params_band.vfo].att;
 
-    return att == x6100_att_on;
+    return att == radio_att_on;
 }
 
 bool info_params_pre() {
-    x6100_pre_t     pre = params_band.vfo_x[params_band.vfo].pre;
+    radio_pre_t     pre = params_band.vfo_x[params_band.vfo].pre;
     
-    return pre == x6100_pre_on;
+    return pre == radio_pre_on;
 }
 
 void info_params_set() {
