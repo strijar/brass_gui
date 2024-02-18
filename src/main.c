@@ -88,11 +88,13 @@ int main(void) {
     styles_init();
     
     lv_obj_t *main_obj = main_screen();
-/*
+
     cw_init();
     dsp_init();
     rtty_init();
     radio_init(main_obj);
+
+/*
     backlight_init();
     cat_init();
     pannel_visible();

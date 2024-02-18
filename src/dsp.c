@@ -25,7 +25,6 @@
 #include "recorder.h"
 
 static int32_t          nfft = 400;
-static iirfilt_cccf     dc_block;
 
 static pthread_mutex_t  spectrum_mux;
 
@@ -46,7 +45,6 @@ static uint8_t          waterfall_fps_ms = (1000 / 25);
 static uint64_t         waterfall_time;
 
 static float complex    *buf;
-static float complex    *buf_filtered;
 
 static uint8_t          delay;
 
@@ -63,8 +61,6 @@ static void dsp_calc_auto(float *data_buf, uint16_t size);
 void dsp_init() {
     pthread_mutex_init(&spectrum_mux, NULL);
 
-    dc_block = iirfilt_cccf_create_dc_blocker(0.005f);
-
     spectrum_sg = spgramcf_create(nfft, LIQUID_WINDOW_HANN, nfft, nfft / 4);
     spectrum_psd = (float *) malloc(nfft * sizeof(float));
     spectrum_psd_filtered = (float *) malloc(nfft * sizeof(float));
@@ -78,7 +74,6 @@ void dsp_init() {
     waterfall_psd = (float *) malloc(nfft * sizeof(float));
 
     buf = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
-    buf_filtered = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
 
     spectrum_time = get_time();
     waterfall_time = get_time();
@@ -94,7 +89,6 @@ void dsp_init() {
 void dsp_reset() {
     delay = 4;
 
-    iirfilt_cccf_reset(dc_block);
     spgramcf_reset(spectrum_sg);
     spgramcf_reset(waterfall_sg);
 }
@@ -109,12 +103,10 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
     /* Spectrum */
 
-    iirfilt_cccf_execute_block(dc_block, buf_samples, size, buf_filtered);
-
     pthread_mutex_lock(&spectrum_mux);
 
     if (spectrum_factor > 1) {
-        firdecim_crcf_execute_block(spectrum_decim, buf_filtered, size / spectrum_factor, spectrum_dec_buf);
+        firdecim_crcf_execute_block(spectrum_decim, buf_samples, size / spectrum_factor, spectrum_dec_buf);
         spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
         
         memset(spectrum_dec_buf, 0, sizeof(float complex) * size / spectrum_factor);
@@ -123,7 +115,7 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
             spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
         }
     } else {
-        spgramcf_write(spectrum_sg, buf_filtered, size);
+        spgramcf_write(spectrum_sg, buf_samples, size);
     }
 
     spgramcf_get_psd(spectrum_sg, spectrum_psd);
@@ -150,7 +142,7 @@ void dsp_samples(float complex *buf_samples, uint16_t size) {
 
     /* Waterfall */
 
-    spgramcf_write(waterfall_sg, buf_filtered, size);
+    spgramcf_write(waterfall_sg, buf_samples, size);
     spgramcf_get_psd(waterfall_sg, waterfall_psd);
 
     for (uint16_t i = 0; i < nfft; i++)

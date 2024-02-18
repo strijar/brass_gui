@@ -33,7 +33,7 @@ static lv_obj_t         *main_obj;
 
 static pthread_mutex_t  control_mux;
 
-// static x6100_flow_t     *pack;
+static float complex    samples[RADIO_SAMPLES];
 
 static radio_state_t    state = RADIO_RX;
 static uint64_t         now_time;
@@ -58,6 +58,14 @@ bool radio_tick() {
     }
 
     int32_t d = now_time - prev_time;
+
+    for (size_t i = 0; i < RADIO_SAMPLES; i++) {
+        samples[i] = (0.001f * randnf() + 0.001f * randnf() * _Complex_I);
+    }
+
+    dsp_samples(samples, RADIO_SAMPLES);
+    usleep(35000 / 2);
+
 /*
     if (x6100_flow_read(pack)) {
         prev_time = now_time;

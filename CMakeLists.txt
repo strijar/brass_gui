@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
 
-project(x6100_gui)
+project(brass_gui)
 
 include_directories(.)
 include_directories(third-party/rapidxml)
