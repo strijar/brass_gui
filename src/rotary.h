@@ -17,9 +17,11 @@ typedef struct {
     uint16_t        left[3];
     uint16_t        right[3];
     uint8_t         mode;
+    uint8_t         div;
     
     lv_indev_drv_t  indev_drv;
     lv_indev_t      *indev;
+    int16_t         accum;
 } rotary_t;
 
-rotary_t * rotary_init(char *dev_name);
+rotary_t * rotary_init(char *dev_name, uint8_t div);

@@ -70,9 +70,9 @@ int main(void) {
 
     keyboard_init();
 
-    vol = rotary_init("/dev/input/event0");
+    vol = rotary_init("/dev/input/event0", 1);
     mfk = encoder_init("/dev/input/event1");
-    rotary_t *main = rotary_init("/dev/input/event2");
+    rotary_t *main = rotary_init("/dev/input/event2", 8);
     keypad_t *keypad = keypad_init("/dev/input/event3");
 //    keypad_t *power = keypad_init("/dev/input/event4");
 

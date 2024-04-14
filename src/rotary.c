@@ -18,29 +18,33 @@
 static void rotary_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     struct input_event  in;
     rotary_t            *rotary = (rotary_t*) drv->user_data;
-    int32_t             diff = 0;
     bool                send = false;
 
     while (read(rotary->fd, &in, sizeof(struct input_event)) > 0) {
         if (in.type == EV_REL) {
-            diff += in.value;
+            rotary->accum += in.value;
             send = true;
         }
     }
     
     if (send) {
-        backlight_tick();
+        int16_t diff = rotary->accum / rotary->div;
+        rotary->accum = rotary->accum % rotary->div;
+
+        if (diff != 0) {
+            backlight_tick();
     
-        if (rotary->left[0] == 0 && rotary->right[0] == 0) {
-            lv_event_send(lv_scr_act(), EVENT_ROTARY, (void *) diff);
-        } else {
-            data->state = LV_INDEV_STATE_PRESSED;
-            data->key = diff < 0 ? rotary->left[rotary->mode] : rotary->right[rotary->mode];
+            if (rotary->left[0] == 0 && rotary->right[0] == 0) {
+                lv_event_send(lv_scr_act(), EVENT_ROTARY, (void *) diff);
+            } else {
+                data->state = LV_INDEV_STATE_PRESSED;
+                data->key = diff < 0 ? rotary->left[rotary->mode] : rotary->right[rotary->mode];
+            }
         }
     }
 }
 
-rotary_t * rotary_init(char *dev_name) {
+rotary_t * rotary_init(char *dev_name, uint8_t div) {
     int fd = open(dev_name, O_RDWR | O_NOCTTY | O_NDELAY);
 
     if (fd == -1) {
@@ -55,6 +59,8 @@ rotary_t * rotary_init(char *dev_name) {
     
     memset(rotary, 0, sizeof(rotary_t));
     rotary->fd = fd;
+    rotary->div = div;
+    rotary->accum = 0;
     
     lv_indev_drv_init(&rotary->indev_drv);
 
