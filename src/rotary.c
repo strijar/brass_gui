@@ -35,7 +35,7 @@ static void rotary_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
             lv_event_send(lv_scr_act(), EVENT_ROTARY, (void *) diff);
         } else {
             data->state = LV_INDEV_STATE_PRESSED;
-            data->key = diff > 0 ? rotary->left[rotary->mode] : rotary->right[rotary->mode];
+            data->key = diff < 0 ? rotary->left[rotary->mode] : rotary->right[rotary->mode];
         }
     }
 }

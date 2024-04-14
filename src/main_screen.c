@@ -630,7 +630,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_poweroff();
             }
             break;
-            
+
+        /*            
         case KEYPAD_LOCK:
             if (keypad->state == KEYPAD_RELEASE) {
                 freq_lock = !freq_lock;
@@ -641,6 +642,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 exit(1);
             }
             break;
+        */
 
         case KEYPAD_PTT:
             switch (keypad->state) {

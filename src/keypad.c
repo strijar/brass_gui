@@ -38,7 +38,7 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
             switch (in.code) {
                 /* Rotary VOL */
                 
-                case BTN_TRIGGER_HAPPY21:
+                case BTN_NORTH:
                     data->key = LV_KEY_ESC;
                     data->state = (in.value) ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
                     keypad->evdev_key = data->key;
@@ -47,7 +47,7 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
 
                 /* Rotary MFK */
                     
-                case BTN_TRIGGER_HAPPY27:
+                case BTN_SOUTH:
                     mfk->pressed = (in.value != 0);
                     return;
                 
@@ -81,28 +81,28 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     event.key = KEYPAD_DFL;
                     break;
 
-                case BTN_TRIGGER_HAPPY13:
+                case KEY_F1:
                     event.key = KEYPAD_F1;
                     break;
 
-                case BTN_TRIGGER_HAPPY14:
+                case KEY_F2:
                     event.key = KEYPAD_F2;
                     break;
 
-                case BTN_TRIGGER_HAPPY15:
+                case KEY_F3:
                     event.key = KEYPAD_F3;
                     break;
 
-                case BTN_TRIGGER_HAPPY19:
+                case KEY_F4:
                     event.key = KEYPAD_F4;
                     break;
 
-                case BTN_TRIGGER_HAPPY20:
+                case KEY_F5:
                     event.key = KEYPAD_F5;
                     break;
 
-                case BTN_TRIGGER_HAPPY25:
-                    event.key = KEYPAD_LOCK;
+                case KEY_F6:
+                    event.key = KEYPAD_F6;
                     break;
 
                 /* Top side */ 

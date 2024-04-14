@@ -29,7 +29,7 @@ typedef enum {
     KEYPAD_F3,
     KEYPAD_F4,
     KEYPAD_F5,
-    KEYPAD_LOCK,
+    KEYPAD_F6,
     
     KEYPAD_PTT,
     KEYPAD_BAND_DOWN,

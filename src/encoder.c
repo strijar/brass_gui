@@ -32,7 +32,7 @@ static void encoder_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
         backlight_tick();
     }
 
-    data->enc_diff = -diff;
+    data->enc_diff = diff;
     data->state = encoder->pressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
 }
 

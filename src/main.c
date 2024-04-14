@@ -69,21 +69,19 @@ int main(void) {
     lv_timer_set_period(timer, 15);
 
     keyboard_init();
-/*
-    keypad_t *keypad = keypad_init("/dev/input/event0");
-    keypad_t *power = keypad_init("/dev/input/event4");
 
-    rotary_t *main = rotary_init("/dev/input/event1");
-
-    vol = rotary_init("/dev/input/event2");
-    mfk = encoder_init("/dev/input/event3");
+    vol = rotary_init("/dev/input/event0");
+    mfk = encoder_init("/dev/input/event1");
+    rotary_t *main = rotary_init("/dev/input/event2");
+    keypad_t *keypad = keypad_init("/dev/input/event3");
+//    keypad_t *power = keypad_init("/dev/input/event4");
 
     vol->left[VOL_EDIT] = KEY_VOL_LEFT_EDIT;
     vol->right[VOL_EDIT] = KEY_VOL_RIGHT_EDIT;
 
     vol->left[VOL_SELECT] = KEY_VOL_LEFT_SELECT;
     vol->right[VOL_SELECT] = KEY_VOL_RIGHT_SELECT;
-*/
+
     params_init();
     styles_init();
     

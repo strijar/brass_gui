@@ -8,7 +8,7 @@
 
 #include "styles.h"
 
-#define PATH "A:/usr/share/x6100/"
+#define PATH "A:/usr/share/brass/"
 
 lv_style_t  background_style;
 lv_style_t  spectrum_style;
