@@ -92,7 +92,7 @@ static void band_info_draw_cb(lv_event_t * e) {
         lv_draw_label_dsc_init(&dsc_label);
     
         dsc_label.color = lv_color_white();
-        dsc_label.font = &sony_22;
+        dsc_label.font = font_band_info;
 
         lv_point_t label_size;
         lv_txt_get_size(&label_size, band->name, dsc_label.font, 0, 0, LV_COORD_MAX, 0);

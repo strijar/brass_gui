@@ -93,7 +93,7 @@ static void meter_draw_cb(lv_event_t * e) {
     lv_draw_label_dsc_init(&label_dsc);
     
     label_dsc.color = lv_color_white();
-    label_dsc.font = &sony_22;
+    label_dsc.font = font_meter;
 
     area.x1 = x1;
     area.y1 = y1;

@@ -66,8 +66,8 @@ static void pannel_update_cb(lv_event_t * e) {
             check_lines();
         }
     } else {
-        lv_txt_get_size(&line_size, last_line, &sony_38, 0, 0, LV_COORD_MAX, 0);
-        lv_txt_get_size(&text_size, text, &sony_38, 0, 0, LV_COORD_MAX, 0);
+        lv_txt_get_size(&line_size, last_line, font_panel, 0, 0, LV_COORD_MAX, 0);
+        lv_txt_get_size(&text_size, text, font_panel, 0, 0, LV_COORD_MAX, 0);
 
         if (line_size.x + text_size.x > (lv_obj_get_width(obj) - 40)) {
             strcat(last_line, "\n");

@@ -116,7 +116,7 @@ lv_obj_t * textarea_window_open(textarea_window_cb_t ok, textarea_window_cb_t ca
     lv_textarea_set_max_length(text, 40);
     
     lv_obj_clear_flag(text, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_text_font(text, &sony_44, 0);
+    lv_obj_set_style_text_font(text, font_textarea, 0);
 
     if (ok || cancel) {
         lv_obj_add_event_cb(text, text_cb, LV_EVENT_KEY, NULL);

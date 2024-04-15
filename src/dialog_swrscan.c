@@ -134,7 +134,7 @@ static void draw_cb(lv_event_t * e) {
     lv_draw_label_dsc_init(&dsc_label);
     
     dsc_label.color = lv_color_white();
-    dsc_label.font = &sony_28;
+    dsc_label.font = font_swrscan;
 
     lv_point_t label_size;
 

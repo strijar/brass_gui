@@ -38,12 +38,12 @@ static void set_state(clock_state_t new_state) {
     
     switch (state) {
         case CLOCK_TIME:
-            lv_obj_set_style_text_font(obj, &sony_38, 0);
+            lv_obj_set_style_text_font(obj, font_clock_time, 0);
             lv_obj_set_style_pad_ver(obj, 18, 0);
             break;
 
         case CLOCK_POWER:        
-            lv_obj_set_style_text_font(obj, &sony_30, 0);
+            lv_obj_set_style_text_font(obj, font_clock_power, 0);
             lv_obj_set_style_pad_ver(obj, 8, 0);
             break;
     }

@@ -7,6 +7,7 @@
  */
 
 #include "styles.h"
+#include "fonts/jura.h"
 
 #define PATH "A:/usr/share/brass/"
 
@@ -37,6 +38,25 @@ lv_style_t  dialog_dropdown_list_style;
 
 lv_color_t  bg_color;
 
+lv_font_t   *font_band_info = &jura_22;
+lv_font_t   *font_clock_time = &jura_36;
+lv_font_t   *font_clock_power = &jura_28;
+lv_font_t   *font_dialog_freq = &jura_44;
+lv_font_t   *font_swrscan = &jura_28;
+lv_font_t   *font_meter = &jura_22;
+lv_font_t   *font_panel = &jura_38;
+lv_font_t   *font_textarea = &jura_44;
+lv_font_t   *font_tx_info = &jura_22;
+
+lv_font_t   *font_freq = &jura_28;
+lv_font_t   *font_freq_main = &jura_bold_34;
+lv_font_t   *font_btn = &jura_bold_18;
+lv_font_t   *font_msg = &jura_38;
+lv_font_t   *font_msg_tiny = &jura_60;
+lv_font_t   *font_dialog = &jura_36;
+lv_font_t   *font_dialog_list = &jura_30;
+lv_font_t   *font_info_item = &jura_bold_18;
+
 void styles_init() {
     bg_color = lv_color_hex(0x0040A0);
 
@@ -55,7 +75,7 @@ void styles_init() {
 
     lv_style_init(&freq_style);
     lv_style_set_text_color(&freq_style, lv_color_white());
-    lv_style_set_text_font(&freq_style, &sony_30);
+    lv_style_set_text_font(&freq_style, font_freq);
     lv_style_set_pad_ver(&freq_style, 7);
     lv_style_set_width(&freq_style, 150);
     lv_style_set_height(&freq_style, 36);
@@ -63,7 +83,7 @@ void styles_init() {
 
     lv_style_init(&freq_main_style);
     lv_style_set_text_color(&freq_main_style, lv_color_white());
-    lv_style_set_text_font(&freq_main_style, &sony_38);
+    lv_style_set_text_font(&freq_main_style, font_freq_main);
     lv_style_set_pad_ver(&freq_main_style, 5);
     lv_style_set_width(&freq_main_style, 500);
     lv_style_set_height(&freq_main_style, 36);
@@ -82,14 +102,14 @@ void styles_init() {
     lv_style_set_bg_img_src(&btn_style, PATH "images/btn.bin");
     lv_style_set_bg_img_opa(&btn_style, LV_OPA_COVER);
     lv_style_set_border_width(&btn_style, 0);
-    lv_style_set_text_font(&btn_style, &sony_30);
+    lv_style_set_text_font(&btn_style, font_btn);   // 30
     lv_style_set_text_color(&btn_style, lv_color_white());
     lv_style_set_radius(&btn_style, 0);
     lv_style_set_bg_opa(&btn_style, LV_OPA_0);
 
     lv_style_init(&msg_style);
     lv_style_set_text_color(&msg_style, lv_color_white());
-    lv_style_set_text_font(&msg_style, &sony_38);
+    lv_style_set_text_font(&msg_style, font_msg); // 38
     lv_style_set_width(&msg_style, 603);
     lv_style_set_height(&msg_style, 66);
     lv_style_set_x(&msg_style, 800 / 2 - (603 / 2));
@@ -101,7 +121,7 @@ void styles_init() {
 
     lv_style_init(&msg_tiny_style);
     lv_style_set_text_color(&msg_tiny_style, lv_color_white());
-    lv_style_set_text_font(&msg_tiny_style, &sony_60);
+    lv_style_set_text_font(&msg_tiny_style, font_msg_tiny);  // 60
     lv_style_set_width(&msg_tiny_style, 324);
     lv_style_set_height(&msg_tiny_style, 66);
     lv_style_set_x(&msg_tiny_style, 800 / 2 - (324 / 2));
@@ -112,7 +132,7 @@ void styles_init() {
 
     lv_style_init(&pannel_style);
     lv_style_set_text_color(&pannel_style, lv_color_white());
-    lv_style_set_text_font(&pannel_style, &sony_38);
+    lv_style_set_text_font(&pannel_style, font_panel);
     lv_style_set_width(&pannel_style, 795);
     lv_style_set_height(&pannel_style, 182);
     lv_style_set_x(&pannel_style, 800 / 2 - (795 / 2));
@@ -125,7 +145,7 @@ void styles_init() {
 
     lv_style_init(&dialog_style);
     lv_style_set_text_color(&dialog_style, lv_color_white());
-    lv_style_set_text_font(&dialog_style, &sony_36);
+    lv_style_set_text_font(&dialog_style, font_dialog);    // 36
     lv_style_set_width(&dialog_style, 796);
     lv_style_set_height(&dialog_style, 348);
     lv_style_set_x(&dialog_style, 800 / 2 - (796 / 2));
@@ -151,7 +171,7 @@ void styles_init() {
     lv_style_set_text_color(&dialog_item_edited_style, lv_color_black());
 
     lv_style_init(&dialog_dropdown_list_style);
-    lv_style_set_text_font(&dialog_dropdown_list_style, &sony_30);
+    lv_style_set_text_font(&dialog_dropdown_list_style, font_dialog_list);  // 30
 
     lv_style_init(&clock_style);
     lv_style_set_text_color(&clock_style, lv_color_white());
@@ -175,7 +195,7 @@ void styles_init() {
     lv_style_set_bg_opa(&info_style, LV_OPA_0);
 
     lv_style_init(&info_item_style);
-    lv_style_set_text_font(&info_item_style, &sony_20);
+    lv_style_set_text_font(&info_item_style, font_info_item); // 20
     lv_style_set_pad_ver(&info_item_style, 5);
     lv_style_set_radius(&info_item_style, 0);
 
