@@ -48,7 +48,7 @@ int main(void) {
     lv_png_init();
     
     fbdev_init();
-//    audio_init();
+    audio_init();
     event_init();
     
     lv_disp_draw_buf_init(&disp_buf, buf, NULL, DISP_BUF_SIZE);

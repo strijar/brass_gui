@@ -57,19 +57,21 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     event.key = KEYPAD_POWER;
                     break;
                     
-                case BTN_TRIGGER_HAPPY1:
+                case KEY_1:
                     event.key = KEYPAD_GEN;
                     break;
 
-                case BTN_TRIGGER_HAPPY7:
+                case KEY_2:
                     event.key = KEYPAD_APP;
                     break;
 
-                case BTN_TRIGGER_HAPPY2:
+                /*
+                case KEY_3:
                     event.key = KEYPAD_KEY;
                     break;
+                */
 
-                case BTN_TRIGGER_HAPPY8:
+                case KEY_3:
                     event.key = KEYPAD_MSG;
                     break;
 

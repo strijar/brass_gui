@@ -28,10 +28,10 @@ static pa_mainloop_api      *mlapi;
 static pa_context           *ctx;
 
 static pa_stream            *play_stm;
-static char                 *play_device = "alsa_output.platform-sound.stereo-fallback";
+static char                 *play_device = "alsa_output.0.stereo-fallback";
 
 static pa_stream            *capture_stm;
-static char                 *capture_device = "alsa_input.platform-sound.stereo-fallback";
+static char                 *capture_device = "alsa_input.0.stereo-fallback";
 
 static void on_state_change(pa_context *c, void *userdata) {
     pa_threaded_mainloop_signal(mloop, 0);
@@ -50,7 +50,7 @@ void audio_init() {
     pa_threaded_mainloop_start(mloop);
     
     mlapi = pa_threaded_mainloop_get_api(mloop);
-    ctx = pa_context_new(mlapi, "X6100 GUI");
+    ctx = pa_context_new(mlapi, "Brass GUI");
 
     pa_threaded_mainloop_lock(mloop);
     pa_context_set_state_callback(ctx, on_state_change, NULL);
@@ -78,7 +78,7 @@ void audio_init() {
     attr.fragsize = pa_usec_to_bytes(AUDIO_RATE_MS * PA_USEC_PER_MSEC, &spec);
     attr.tlength = attr.fragsize * 8;
 
-    play_stm = pa_stream_new(ctx, "X6100 GUI Play", &spec, NULL);
+    play_stm = pa_stream_new(ctx, "Brass GUI Play", &spec, NULL);
 
     pa_threaded_mainloop_lock(mloop);
     pa_stream_connect_playback(play_stm, play_device, &attr, PA_STREAM_ADJUST_LATENCY, NULL, NULL);
@@ -89,7 +89,7 @@ void audio_init() {
     spec.rate = AUDIO_CAPTURE_RATE,
     attr.fragsize = attr.tlength = pa_usec_to_bytes(AUDIO_RATE_MS * PA_USEC_PER_MSEC, &spec);
 
-    capture_stm = pa_stream_new(ctx, "X6100 GUI Capture", &spec, NULL);
+    capture_stm = pa_stream_new(ctx, "Brass GUI Capture", &spec, NULL);
     
     pa_threaded_mainloop_lock(mloop);
     pa_stream_set_read_callback(capture_stm, read_callback, NULL);
@@ -164,7 +164,4 @@ int16_t* audio_gain(int16_t *buf, size_t samples, uint16_t gain) {
     }
     
     return out_samples;
-}
-
-void audio_play_en(bool on) {
 }

@@ -119,7 +119,7 @@ static bool create_file() {
     file = sf_open(filename, SFM_WRITE, &sfinfo);
     
     if (file == NULL) {
-        LV_LOG_ERROR("Problem with create file");
+        LV_LOG_ERROR("Problem with create file - %s", sf_strerror(NULL));
         return false;
     }
 
@@ -193,9 +193,7 @@ static void * play_thread(void *arg) {
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
-    audio_play_en(true);
     play_item();
-    audio_play_en(false);
 
     if (dialog.run) {
         buttons_unload_page();
@@ -332,8 +330,6 @@ static void construct_cb(lv_obj_t *parent) {
 }
 
 static void destruct_cb() {
-    audio_play_en(false);
-    
     if (beacon == VOICE_BEACON_IDLE) {
         pthread_cancel(thread);
         pthread_join(thread, NULL);
@@ -438,7 +434,6 @@ void dialog_msg_voice_period_cb(lv_event_t * e) {
 void dialog_msg_voice_rec_cb(lv_event_t * e) {
     if (state == MSG_VOICE_OFF) {
         if (create_file()) {
-            audio_play_en(true);
             state = MSG_VOICE_RECORD;
 
             buttons_unload_page();
@@ -451,7 +446,6 @@ static void rec_stop_cb(lv_event_t * e) {
     buttons_unload_page();
     buttons_load_page(PAGE_MSG_VOICE_2);
 
-    audio_play_en(false);
     state = MSG_VOICE_OFF;
     close_file();
     load_table();
@@ -500,7 +494,7 @@ msg_voice_state_t dialog_msg_voice_get_state() {
 }
 
 void dialog_msg_voice_put_audio_samples(size_t nsamples, int16_t *samples) {
-    int16_t *out_samples = audio_gain(samples, nsamples, params.rec_gain * 6);
+    int16_t *out_samples = audio_gain(samples, nsamples, params.rec_gain);
     int16_t peak = 0;
     
     for (uint16_t i = 0; i < nsamples; i++) {
