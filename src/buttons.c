@@ -34,7 +34,7 @@ typedef struct {
 } button_t;
 
 static uint8_t      btn_height = 62;
-static button_t     btn[BUTTONS];
+static button_t     btn[6];
 static lv_obj_t     *parent_obj = NULL;
 
 static void button_next_page_cb(lv_event_t * e);
@@ -247,9 +247,9 @@ static button_item_t    buttons[] = {
 void buttons_init(lv_obj_t *parent) {
     uint16_t y = 480 - btn_height;
     uint16_t x = 0;
-    uint16_t width = 152;
+    uint16_t width = 133;
 
-    for (uint8_t i = 0; i < 5; i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         lv_obj_t *f = lv_btn_create(parent);
         
         lv_obj_remove_style_all(f); 
@@ -258,7 +258,7 @@ void buttons_init(lv_obj_t *parent) {
         lv_obj_set_pos(f, x, y);
         lv_obj_set_size(f, width, btn_height);
 
-        x += width + 10;
+        x += width;
         
         lv_obj_t *label = lv_label_create(f);
         
