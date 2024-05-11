@@ -12,7 +12,8 @@
 
 #include "lvgl/lvgl.h"
 
-#define RADIO_SAMPLES   (512)
+#define RADIO_SAMPLES   (256)
+#define RADIO_FFT       (1024)
 
 typedef enum {
     RADIO_VFO_A = 0,

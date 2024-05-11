@@ -10,6 +10,12 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <math.h>
+
+#include "dma-proxy.h"
 
 #include "util.h"
 #include "radio.h"
@@ -26,20 +32,26 @@
 #include "dialog_swrscan.h"
 #include "voice.h"
 
-#define FLOW_RESTART_TIMOUT 300
-#define IDLE_TIMEOUT        (3 * 1000)
+#define FLOW_RESTART_TIMOUT     300
+#define ADC_BUFS                RX_BUFFER_COUNT
 
-static lv_obj_t         *main_obj;
+typedef struct {
+    uint32_t    dds_step;
+} radio_control_reg_t;
 
-static pthread_mutex_t  control_mux;
+static lv_obj_t                 *main_obj;
 
-static float complex    samples[RADIO_SAMPLES];
+static pthread_mutex_t          control_mux;
 
-static radio_state_t    state = RADIO_RX;
-static uint64_t         now_time;
-static uint64_t         prev_time;
-static uint64_t         idle_time;
-static bool             mute = false;
+static radio_state_t            state = RADIO_RX;
+static bool                     mute = false;
+
+static int                      adc_fd;
+static uint8_t                  adc_buf_id = 0;
+static struct channel_buffer    *adc_buf_ptr = NULL;
+
+static int                      radio_control_fd;
+static radio_control_reg_t      *radio_control_reg;
 
 static void update_agc_time();
 
@@ -48,24 +60,67 @@ static void radio_lock() {
 }
 
 static void radio_unlock() {
-    idle_time = get_time();
     pthread_mutex_unlock(&control_mux);
 }
 
+static bool adc_init() {
+    adc_fd = open("/dev/adc", O_RDWR);
+    
+    if (adc_fd < 1) {
+        LV_LOG_ERROR("Unable to open ADC device file");
+        return false;
+    }
+
+    adc_buf_ptr = (struct channel_buffer *) mmap(NULL, sizeof(struct channel_buffer) * RX_BUFFER_COUNT,
+        PROT_READ | PROT_WRITE, MAP_SHARED, adc_fd, 0);
+
+    if (adc_buf_ptr == MAP_FAILED) {
+        LV_LOG_ERROR("Failed to mmap ADC channel");
+        close(adc_fd);
+        return false;
+    }
+    
+    for (uint8_t id = 0; id < ADC_BUFS; id++) {
+        adc_buf_ptr[id].length = RADIO_FFT * sizeof(float) * 2;
+        ioctl(adc_fd, START_XFER, &id);
+    }
+
+    return true;
+}
+
+static bool radio_control_init() {
+    radio_control_fd = open("/dev/uio0", O_RDWR | O_SYNC);
+    
+    if (radio_control_fd < 1) {
+        LV_LOG_ERROR("Unable to open Radio control device file");
+        return false;
+    }
+
+    radio_control_reg = (radio_control_reg_t *) mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, radio_control_fd, 0);
+
+    if (radio_control_reg == MAP_FAILED) {
+        close(radio_control_fd);
+        LV_LOG_ERROR("Failed to mmap Radio control reg");
+        return false;
+    }
+  
+    return true;
+}
+
 bool radio_tick() {
-    if (now_time < prev_time) {
-        prev_time = now_time;
+    ioctl(adc_fd, FINISH_XFER, &adc_buf_id);
+
+    if (adc_buf_ptr[adc_buf_id].status != PROXY_NO_ERROR) {
+        LV_LOG_ERROR("ADC transfer error");
+        return false;;
     }
 
-    int32_t d = now_time - prev_time;
-
-    for (size_t i = 0; i < RADIO_SAMPLES; i++) {
-        samples[i] = (0.001f * randnf() + 0.001f * randnf() * _Complex_I);
-    }
+    float complex *samples = &adc_buf_ptr[adc_buf_id].buffer;
 
     dsp_samples(samples, RADIO_SAMPLES);
-    usleep(35000 / 2);
-
+    ioctl(adc_fd, START_XFER, &adc_buf_id);
+    adc_buf_id = (adc_buf_id + 1) % ADC_BUFS;
+    
 /*
     if (x6100_flow_read(pack)) {
         prev_time = now_time;
@@ -160,11 +215,7 @@ bool radio_tick() {
 
 static void * radio_thread(void *arg) { 
     while (true) {
-        now_time = get_time();
-
-        if (radio_tick()) {
-            usleep(5000);
-        }
+        radio_tick();
     }
 }
 
@@ -228,27 +279,14 @@ void radio_bb_reset() {
 }
 
 void radio_init(lv_obj_t *obj) {
-/*
-    if (!x6100_gpio_init())
-        return;
-
-    while (!x6100_control_init()) {
-        usleep(100000);
-    }
-
-    if (!x6100_flow_init())
-        return;
-
-    x6100_gpio_set(x6100_pin_wifi, 1);        
-    x6100_gpio_set(x6100_pin_morse_key, 1);
-*/    
     main_obj = obj;
-/*
-    pack = malloc(sizeof(x6100_flow_t));
-*/
+
     radio_vfo_set();
     radio_mode_set();
     radio_load_atu();
+
+    adc_init();
+    radio_control_init();
 /*
     x6100_control_rxvol_set(params.vol);
     x6100_control_rfg_set(params.rfg);
@@ -297,8 +335,6 @@ void radio_init(lv_obj_t *obj) {
     x6100_control_lineout_set(params.line_out);
     x6100_control_cmd(x6100_monilevel, params.moni);
 */
-    prev_time = get_time();
-    idle_time = prev_time;
 
     pthread_mutex_init(&control_mux, NULL);
 
@@ -326,7 +362,7 @@ void radio_set_freq(uint64_t freq) {
     params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq);
 
     radio_lock();
-    // x6100_control_vfo_freq_set(params_band.vfo, freq - shift);
+    radio_control_reg->dds_step = (uint32_t) floor((freq - shift) / 122.88e6 * (1 << 30) + 0.5);
     radio_unlock();
 
     radio_load_atu();
