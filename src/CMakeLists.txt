@@ -19,6 +19,7 @@ target_sources(${PROJECT_NAME} PUBLIC
 add_subdirectory(fonts)
 add_subdirectory(ft8)
 add_subdirectory(widgets)
+add_subdirectory(fpga)
 
 include_directories(utf8)
 include_directories(${CMAKE_SYSROOT}/usr/include/RHVoice/)

@@ -33,6 +33,8 @@
 #include "backlight.h"
 #include "events.h"
 #include "gps.h"
+#include "fpga/fft.h"
+#include "fpga/adc.h"
 
 #define DISP_BUF_SIZE (800 * 480 * 3)
 
@@ -91,6 +93,7 @@ int main(void) {
     dsp_init();
     rtty_init();
     radio_init(main_obj);
+    fft_init();
 
 /*
     backlight_init();

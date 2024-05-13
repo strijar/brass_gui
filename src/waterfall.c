@@ -98,8 +98,7 @@ void waterfall_data(float *data_buf, uint16_t size) {
     float max = params.waterfall_auto_max.x ? waterfall_auto_max + 3.0f : grid_max;
 
     for (int x = 0; x < width; x++) {
-        uint16_t    index = x * size / width;
-        float       v = (data_buf[index] - min) / (max - min);
+        float       v = (data_buf[x] - min) / (max - min);
         
         if (v < 0.0f) {
             v = 0.0f;

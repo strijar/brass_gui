@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include "lvgl/lvgl.h"
 
-#define S_MIN   (-127)
+#define S_MIN   (-134)
 #define S1      (-121)
 #define S2      (-115)
 #define S3      (-109)

@@ -113,11 +113,11 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     event.key = KEYPAD_PTT;
                     break;
 
-                case BTN_TRIGGER_HAPPY5:
+                case KEY_A:
                     event.key = KEYPAD_BAND_DOWN;
                     break;
 
-                case BTN_TRIGGER_HAPPY6:
+                case KEY_B:
                     event.key = KEYPAD_BAND_UP;
                     break;
 

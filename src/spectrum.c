@@ -31,7 +31,7 @@ static int              grid_max = -40;
 static int32_t          width_hz = 100000;
 static int16_t          visor_height = 100;
 
-static uint16_t         spectrum_size = 400;
+static uint16_t         spectrum_size = 800;
 static float            *spectrum_buf = NULL;
 
 static int16_t          delta_surplus = 0;

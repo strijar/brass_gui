@@ -10,12 +10,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
 #include <math.h>
-
-#include "dma-proxy.h"
 
 #include "util.h"
 #include "radio.h"
@@ -31,13 +26,9 @@
 #include "info.h"
 #include "dialog_swrscan.h"
 #include "voice.h"
+#include "fpga/control.h"
 
 #define FLOW_RESTART_TIMOUT     300
-#define ADC_BUFS                RX_BUFFER_COUNT
-
-typedef struct {
-    uint32_t    dds_step;
-} radio_control_reg_t;
 
 static lv_obj_t                 *main_obj;
 
@@ -45,13 +36,6 @@ static pthread_mutex_t          control_mux;
 
 static radio_state_t            state = RADIO_RX;
 static bool                     mute = false;
-
-static int                      adc_fd;
-static uint8_t                  adc_buf_id = 0;
-static struct channel_buffer    *adc_buf_ptr = NULL;
-
-static int                      radio_control_fd;
-static radio_control_reg_t      *radio_control_reg;
 
 static void update_agc_time();
 
@@ -63,64 +47,7 @@ static void radio_unlock() {
     pthread_mutex_unlock(&control_mux);
 }
 
-static bool adc_init() {
-    adc_fd = open("/dev/adc", O_RDWR);
-    
-    if (adc_fd < 1) {
-        LV_LOG_ERROR("Unable to open ADC device file");
-        return false;
-    }
-
-    adc_buf_ptr = (struct channel_buffer *) mmap(NULL, sizeof(struct channel_buffer) * RX_BUFFER_COUNT,
-        PROT_READ | PROT_WRITE, MAP_SHARED, adc_fd, 0);
-
-    if (adc_buf_ptr == MAP_FAILED) {
-        LV_LOG_ERROR("Failed to mmap ADC channel");
-        close(adc_fd);
-        return false;
-    }
-    
-    for (uint8_t id = 0; id < ADC_BUFS; id++) {
-        adc_buf_ptr[id].length = RADIO_FFT * sizeof(float) * 2;
-        ioctl(adc_fd, START_XFER, &id);
-    }
-
-    return true;
-}
-
-static bool radio_control_init() {
-    radio_control_fd = open("/dev/uio0", O_RDWR | O_SYNC);
-    
-    if (radio_control_fd < 1) {
-        LV_LOG_ERROR("Unable to open Radio control device file");
-        return false;
-    }
-
-    radio_control_reg = (radio_control_reg_t *) mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, radio_control_fd, 0);
-
-    if (radio_control_reg == MAP_FAILED) {
-        close(radio_control_fd);
-        LV_LOG_ERROR("Failed to mmap Radio control reg");
-        return false;
-    }
-  
-    return true;
-}
-
 bool radio_tick() {
-    ioctl(adc_fd, FINISH_XFER, &adc_buf_id);
-
-    if (adc_buf_ptr[adc_buf_id].status != PROXY_NO_ERROR) {
-        LV_LOG_ERROR("ADC transfer error");
-        return false;;
-    }
-
-    float complex *samples = &adc_buf_ptr[adc_buf_id].buffer;
-
-    dsp_samples(samples, RADIO_SAMPLES);
-    ioctl(adc_fd, START_XFER, &adc_buf_id);
-    adc_buf_id = (adc_buf_id + 1) % ADC_BUFS;
-    
 /*
     if (x6100_flow_read(pack)) {
         prev_time = now_time;
@@ -224,6 +151,9 @@ void radio_vfo_set() {
 
     radio_lock();
 
+    radio_check_freq(params_band.vfo_x[params_band.vfo].freq, &shift);
+    control_set_rx_freq(params_band.vfo_x[params_band.vfo].freq - shift);
+
     /*
     for (int i = 0; i < 2; i++) {
         x6100_control_vfo_mode_set(i, params_band.vfo_x[i].mode);
@@ -281,12 +211,12 @@ void radio_bb_reset() {
 void radio_init(lv_obj_t *obj) {
     main_obj = obj;
 
+    control_init();
+
     radio_vfo_set();
     radio_mode_set();
     radio_load_atu();
 
-    adc_init();
-    radio_control_init();
 /*
     x6100_control_rxvol_set(params.vol);
     x6100_control_rfg_set(params.rfg);
@@ -338,10 +268,12 @@ void radio_init(lv_obj_t *obj) {
 
     pthread_mutex_init(&control_mux, NULL);
 
+/*
     pthread_t thread;
 
     pthread_create(&thread, NULL, radio_thread, NULL);
     pthread_detach(thread);
+*/
 }
 
 radio_state_t radio_get_state() {
@@ -362,7 +294,7 @@ void radio_set_freq(uint64_t freq) {
     params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq);
 
     radio_lock();
-    radio_control_reg->dds_step = (uint32_t) floor((freq - shift) / 122.88e6 * (1 << 30) + 0.5);
+    control_set_rx_freq(freq - shift);
     radio_unlock();
 
     radio_load_atu();
