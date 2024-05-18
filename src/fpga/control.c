@@ -17,7 +17,9 @@
 #include "control.h"
 
 typedef struct {
-    uint32_t    dds_step;
+    uint32_t    fft_dds_step;
+    uint32_t    fft_rate;
+    uint32_t    adc_dds_step;
 } control_reg_t;
 
 static int              fd;
@@ -40,5 +42,8 @@ void control_init() {
 }
 
 void control_set_rx_freq(uint64_t freq) {
-    control_reg->dds_step = (uint32_t) floor(freq / 122.88e6 * (1 << 30) + 0.5);
+    uint64_t f = freq - 585;
+
+    control_reg->fft_dds_step = (uint32_t) floor(f / 122.88e6 * (1 << 30) + 0.5);
+    control_reg->adc_dds_step = control_reg->fft_dds_step;
 }

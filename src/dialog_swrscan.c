@@ -21,6 +21,7 @@
 #include "util.h"
 #include "keyboard.h"
 #include "main_screen.h"
+#include "dsp.h"
 
 #define STEPS   50
 
@@ -239,12 +240,12 @@ static void key_cb(lv_event_t * e) {
             
         case KEY_VOL_LEFT_EDIT:
         case KEY_VOL_LEFT_SELECT:
-            radio_change_vol(-1);
+            dsp_change_vol(-1);
             break;
 
         case KEY_VOL_RIGHT_EDIT:
         case KEY_VOL_RIGHT_SELECT:
-            radio_change_vol(1);
+            dsp_change_vol(1);
             break;
     }
 }

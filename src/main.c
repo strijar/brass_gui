@@ -26,6 +26,7 @@
 #include "params.h"
 #include "bands.h"
 #include "audio.h"
+#include "audio_adc.h"
 #include "cw.h"
 #include "pannel.h"
 #include "cat.h"
@@ -51,6 +52,7 @@ int main(void) {
     
     fbdev_init();
     audio_init();
+    audio_adc_init();
     event_init();
     
     lv_disp_draw_buf_init(&disp_buf, buf, NULL, DISP_BUF_SIZE);
@@ -94,6 +96,7 @@ int main(void) {
     rtty_init();
     radio_init(main_obj);
     fft_init();
+    adc_init();
 
 /*
     backlight_init();

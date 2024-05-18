@@ -13,7 +13,7 @@
 #include <liquid/liquid.h>
 
 void dsp_init();
-void dsp_samples(float complex *buf_samples, uint16_t size);
+void dsp_adc(float complex *data);
 void dsp_fft(float complex *data);
 void dsp_reset();
 
@@ -24,3 +24,6 @@ void dsp_set_spectrum_beta(float x);
 
 void dsp_put_audio_samples(size_t nsamples, int16_t *samples);
 void dsp_auto_clear();
+
+void dsp_set_vol(uint8_t x);
+uint16_t dsp_change_vol(int16_t df);

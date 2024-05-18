@@ -12,6 +12,7 @@
 #include "main.h"
 #include "params.h"
 #include "voice.h"
+#include "dsp.h"
 
 static vol_mode_t   vol_mode = VOL_VOL;
 
@@ -25,7 +26,7 @@ void vol_update(int16_t diff, bool voice) {
 
     switch (vol_mode) {
         case VOL_VOL:
-            x = radio_change_vol(diff);
+            x = dsp_change_vol(diff);
             msg_set_text_fmt("#%3X Volume: %i", color, x);
             
             if (diff) {

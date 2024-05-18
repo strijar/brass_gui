@@ -153,7 +153,7 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     event.key = KEYPAD_AGC;
                     break;
 
-                case BTN_TRIGGER_HAPPY24:
+                case KEY_C:
                     event.key = KEYPAD_FST;
                     break;
                     

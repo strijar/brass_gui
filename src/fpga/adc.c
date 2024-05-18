@@ -21,7 +21,7 @@
 #include "adc.h"
 #include "dma-proxy.h"
 
-#define ADC_BUFS                16
+#define ADC_BUFS                4
 
 static int                      fd;
 static int                      buf_id = 0;
@@ -45,8 +45,7 @@ static void * adc_thread(void *arg) {
         } else {
             complex float *samples = (complex float *) &buf_ptr[buf_id].buffer;
 
-            dsp_samples(samples, ADC_SAMPLES);
-
+            dsp_adc(samples);
             ioctl(fd, START_XFER, &buf_id);
             buf_id = (buf_id + 1) % ADC_BUFS;
         }

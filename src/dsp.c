@@ -18,12 +18,14 @@
 #include "params.h"
 #include "meter.h"
 #include "audio.h"
+#include "audio_adc.h"
 #include "cw.h"
 #include "rtty.h"
 #include "dialog_ft8.h"
 #include "dialog_msg_voice.h"
 #include "recorder.h"
 #include "fpga/fft.h"
+#include "fpga/adc.h"
 
 static int32_t          nfft = 800;
 
@@ -41,6 +43,9 @@ static uint16_t         waterfall_psd_count = 0;
 static uint16_t         waterfall_fps_ms = (1000 / 10);
 static uint64_t         waterfall_time;
 
+static ampmodem         demod;
+static firfilt_rrrf     filter;
+
 static float            *auto_psd;
 static uint16_t         auto_psd_count = 0;
 static uint16_t         auto_fps_ms = (1000 / 10);
@@ -57,6 +62,9 @@ static bool             ready = false;
 static bool             auto_clear = true;
 
 static float            fft_buf[FFT_SAMPLES];
+static int16_t          adc_buf[ADC_SAMPLES];
+static float            adc_vol = 0;
+static bool             adc_mute = false;
 
 static void calc_auto();
 
@@ -76,6 +84,11 @@ void dsp_init() {
 
     buf = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
 
+    demod = ampmodem_create(1.0, LIQUID_AMPMODEM_LSB, 1);
+    
+    filter = firfilt_rrrf_create_kaiser(31, 3000.0f / 48000.0f, 60.0f, 0);
+    firfilt_rrrf_set_scale(filter, 1.0f);
+
     spectrum_time = get_time();
     waterfall_time = get_time();
     auto_time = get_time();
@@ -85,6 +98,7 @@ void dsp_init() {
     audio = (float complex *) malloc(AUDIO_CAPTURE_RATE * sizeof(float complex));
     audio_hilb = firhilbf_create(7, 60.0f);
     
+    dsp_set_vol(params.vol);
     ready = true;
 }
 
@@ -100,10 +114,10 @@ static void update_smeter() {
         radio_filter_get(&filter_from, &filter_to);
     
         from = nfft / 2;
-        from -= filter_to * nfft / 100000;
+        from += filter_from * nfft / 100000;
     
         to = nfft / 2;
-        to -= filter_from * nfft / 100000;
+        to += filter_to * nfft / 100000;
     
         int16_t peak_db = -121;
  
@@ -198,71 +212,27 @@ void dsp_fft(float complex *data) {
     update_auto(now);
 }
 
-void dsp_samples(float complex *buf_samples, uint16_t size) {
-#if 0
-    int res;
+void dsp_adc(float complex *data) {
+    static float p = 0.0f;
 
-    if (delay)
-        delay--;
+    for (int i = 0; i < ADC_SAMPLES; i++) {
+        float x, y;
 
-    uint64_t now = get_time();
+        ampmodem_demodulate(demod, data[i], &x);
+        firfilt_rrrf_execute_one(filter, x, &y);
 
-    /* Spectrum */
-
-    pthread_mutex_lock(&spectrum_mux);
-
-    if (spectrum_factor > 1) {
-        firdecim_crcf_execute_block(spectrum_decim, buf_samples, size / spectrum_factor, spectrum_dec_buf);
-        spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
-    
-        memset(spectrum_dec_buf, 0, sizeof(float complex) * size / spectrum_factor);
-
-        for (uint8_t i = 0; i < spectrum_factor - 1; i++) {
-            spgramcf_write(spectrum_sg, spectrum_dec_buf, size / spectrum_factor);
-        }
-    } else {
-        spgramcf_write(spectrum_sg, buf_samples, size);
-    }
-
-    spgramcf_get_psd(spectrum_sg, spectrum_psd);
-
-    for (uint16_t i = 0; i < nfft; i++)
-        spectrum_psd[i] -= 12.0f;
-
-    pthread_mutex_unlock(&spectrum_mux);
-    
-    if (now - spectrum_time > spectrum_fps_ms) {
-        if (!delay) {
-            for (uint16_t i = 0; i < nfft; i++) {
-                float psd = spectrum_psd[i];
-                
-                lpf(&spectrum_psd_filtered[i], psd, spectrum_beta);
-            }
+        y *= 16384.0f * adc_vol;
         
-            spectrum_data(spectrum_psd_filtered, nfft);
+        if (y > 16384.0f) {
+            y = 16384.0f;
+        } else if (y < -16384.0f) {
+            y = -16384.0f;
         }
 
-        spgramcf_reset(spectrum_sg);
-        spectrum_time = now;
+        adc_buf[i] = (int16_t) y;
     }
 
-    /* Waterfall */
-
-    spgramcf_write(waterfall_sg, buf_samples, size);
-    spgramcf_get_psd(waterfall_sg, waterfall_psd);
-
-    for (uint16_t i = 0; i < nfft; i++)
-        waterfall_psd[i] -= 12.0f;
-
-    if (now - waterfall_time > waterfall_fps_ms) {
-        if (!delay) {
-            waterfall_data(waterfall_psd, nfft);
-        }
-
-        spgramcf_reset(waterfall_sg);
-        waterfall_time = now;
-    }
-#endif
+    audio_adc_play(adc_buf, ADC_SAMPLES);
 }
 
 void dsp_set_spectrum_factor(uint8_t x) {
@@ -362,4 +332,24 @@ static void calc_auto() {
         lpf(&waterfall_auto_min, min, 0.5f);
         lpf(&waterfall_auto_max, max, 0.5f);
     }
+}
+
+void dsp_set_vol(uint8_t x) {
+    adc_vol = x / 100.0f;
+}
+
+uint16_t dsp_change_vol(int16_t df) {
+    if (df == 0) {
+        return params.vol;
+    }
+    
+    adc_mute = false;
+    
+    params_lock();
+    params.vol = limit(params.vol + df, 0, 100);
+    params_unlock(&params.durty.vol);
+
+    dsp_set_vol(params.vol);
+    
+    return params.vol;
 }

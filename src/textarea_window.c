@@ -7,10 +7,10 @@
  */
 
 #include "events.h"
-#include "radio.h"
 #include "keyboard.h"
 #include "textarea_window.h"
 #include "styles.h"
+#include "dsp.h"
 
 static lv_obj_t             *window = NULL;
 static lv_obj_t             *text = NULL;
@@ -52,12 +52,12 @@ static void text_cb(lv_event_t * e) {
             
         case KEY_VOL_LEFT_EDIT:
         case KEY_VOL_LEFT_SELECT:
-            radio_change_vol(-1);
+            dsp_change_vol(-1);
             break;
 
         case KEY_VOL_RIGHT_EDIT:
         case KEY_VOL_RIGHT_SELECT:
-            radio_change_vol(1);
+            dsp_change_vol(1);
             break;
     }
 }
@@ -72,12 +72,12 @@ static void keyboard_cb(lv_event_t * e) {
             switch (key) {
                 case KEY_VOL_LEFT_EDIT:
                 case KEY_VOL_LEFT_SELECT:
-                    radio_change_vol(-1);
+                    dsp_change_vol(-1);
                     break;
 
                 case KEY_VOL_RIGHT_EDIT:
                 case KEY_VOL_RIGHT_SELECT:
-                    radio_change_vol(1);
+                    dsp_change_vol(1);
                     break;
             }
             break;

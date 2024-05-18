@@ -27,6 +27,7 @@
 #include "dialog_swrscan.h"
 #include "voice.h"
 #include "fpga/control.h"
+#include "audio_adc.h"
 
 #define FLOW_RESTART_TIMOUT     300
 
@@ -325,24 +326,6 @@ uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq) {
     radio_set_freq(align_long(params_band.vfo_x[params_band.vfo].freq + df, abs(df)));
 
     return params_band.vfo_x[params_band.vfo].freq;
-}
-
-uint16_t radio_change_vol(int16_t df) {
-    if (df == 0) {
-        return params.vol;
-    }
-    
-    mute = false;
-    
-    params_lock();
-    params.vol = limit(params.vol + df, 0, 55);
-    params_unlock(&params.durty.vol);
-
-    radio_lock();
-    // x6100_control_rxvol_set(params.vol);
-    radio_unlock();
-    
-    return params.vol;
 }
 
 void radio_change_mute() {

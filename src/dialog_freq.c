@@ -15,7 +15,7 @@
 #include "dialog.h"
 #include "dialog_freq.h"
 #include "styles.h"
-#include "radio.h"
+#include "dsp.h"
 #include "events.h"
 #include "util.h"
 #include "keyboard.h"
@@ -123,12 +123,12 @@ static void key_cb(lv_event_t * e) {
             
         case KEY_VOL_LEFT_EDIT:
         case KEY_VOL_LEFT_SELECT:
-            radio_change_vol(-1);
+            dsp_change_vol(-1);
             break;
 
         case KEY_VOL_RIGHT_EDIT:
         case KEY_VOL_RIGHT_SELECT:
-            radio_change_vol(1);
+            dsp_change_vol(1);
             break;
     }
 }

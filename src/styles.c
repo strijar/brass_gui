@@ -53,8 +53,8 @@ lv_font_t   *font_freq_main = &jura_bold_34;
 lv_font_t   *font_btn = &jura_bold_18;
 lv_font_t   *font_msg = &jura_38;
 lv_font_t   *font_msg_tiny = &jura_60;
-lv_font_t   *font_dialog = &jura_36;
-lv_font_t   *font_dialog_list = &jura_30;
+lv_font_t   *font_dialog = &jura_bold_26;
+lv_font_t   *font_dialog_list = &jura_bold_26;
 lv_font_t   *font_info_item = &jura_bold_18;
 
 void styles_init() {

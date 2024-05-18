@@ -111,7 +111,6 @@ radio_mode_t radio_current_mode();
 radio_vfo_t radio_set_vfo(radio_vfo_t vfo);
 radio_vfo_t radio_change_vfo();
 
-uint16_t radio_change_vol(int16_t df);
 uint16_t radio_change_rfg(int16_t df);
 uint16_t radio_change_sql(int16_t df);
 uint32_t radio_change_filter_low(int32_t freq);

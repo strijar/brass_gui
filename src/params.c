@@ -49,7 +49,7 @@ params_t params = {
     .clock_power_timeout    = 3,
     .clock_tx_timeout       = 1,
 
-    .vol                    = 20,
+    .vol                    = 50,
     .rfg                    = 63,
     .ant                    = 1,
     .pwr                    = 5.0f,

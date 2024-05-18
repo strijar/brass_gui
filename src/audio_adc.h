@@ -8,7 +8,10 @@
 
 #pragma once
 
-#define ADC_SAMPLES (128)
-#define ADC_RATE    (48000)
+#include <stdbool.h>
+#include <stddef.h>
 
-bool adc_init();
+void audio_adc_init();
+int audio_adc_play(int16_t *buf, size_t samples);
+
+void audio_adc_set_vol(uint8_t x);

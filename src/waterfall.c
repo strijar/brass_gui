@@ -108,7 +108,7 @@ void waterfall_data(float *data_buf, uint16_t size) {
         
         uint8_t id = v * 255;
         
-        lv_img_buf_set_px_color(frame, width - x, 0, palette[id]);
+        lv_img_buf_set_px_color(frame, x, 0, palette[id]);
     }
     
     event_send(img, LV_EVENT_REFRESH, NULL);
