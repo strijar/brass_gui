@@ -15,20 +15,32 @@
 #include "recorder.h"
 #include "msg.h"
 #include "params.h"
+#include "fpga/adc.h"
+
+#define BUFS    32
 
 char            *recorder_path = "/mnt/rec";
 
 static bool     on = false;
 static SNDFILE  *file = NULL;
 
+typedef int16_t buf_t[ADC_SAMPLES];
+
+static buf_t    buf[BUFS];
+static int16_t  buf_index = 0;
+
 static bool create_file() {
     SF_INFO sfinfo;
 
     memset(&sfinfo, 0, sizeof(sfinfo));
 
-    sfinfo.samplerate = AUDIO_CAPTURE_RATE;
+    sfinfo.samplerate = 44100;
     sfinfo.channels = 1;
+    #if 1
     sfinfo.format = SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III;
+    #else
+    sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+    #endif
     
     char        filename[64];
     time_t      now = time(NULL);
@@ -44,6 +56,8 @@ static bool create_file() {
     if (file == NULL) {
         return false;
     }
+
+    buf_index = 0;
 
     double q = 0.25;
     sf_command(file, SFC_SET_VBR_ENCODING_QUALITY, &q, sizeof(q));
@@ -73,9 +87,13 @@ bool recorder_is_on() {
     return on;
 }
 
-void recorder_put_audio_samples(size_t nsamples, int16_t *samples) {
-    int16_t *out_samples = audio_gain(samples, nsamples, params.rec_gain * 6);
-
-    sf_write_short(file, out_samples, nsamples);
-    free(out_samples);
+void recorder_put_audio_samples(int16_t *samples) {
+    memcpy(buf[buf_index], samples, ADC_SAMPLES * (sizeof(int16_t)));
+    
+    buf_index++;
+    
+    if (buf_index == BUFS) {
+        buf_index = 0;
+        sf_write_short(file, buf, ADC_SAMPLES * BUFS);
+    }
 }

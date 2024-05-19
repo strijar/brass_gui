@@ -15,4 +15,4 @@ extern char *recorder_path;
 
 void recorder_set_on(bool on);
 bool recorder_is_on();
-void recorder_put_audio_samples(size_t nsamples, int16_t *samples);
+void recorder_put_audio_samples(int16_t *samples);

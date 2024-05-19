@@ -62,9 +62,12 @@ static bool             ready = false;
 static bool             auto_clear = true;
 
 static float            fft_buf[FFT_SAMPLES];
+
 static int16_t          adc_buf[ADC_SAMPLES];
 static float            adc_vol = 0;
 static bool             adc_mute = false;
+
+static int16_t          rec_buf[ADC_SAMPLES];
 
 static void calc_auto();
 
@@ -84,9 +87,9 @@ void dsp_init() {
 
     buf = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
 
-    demod = ampmodem_create(1.0, LIQUID_AMPMODEM_LSB, 1);
+    demod = ampmodem_create(1.0, LIQUID_AMPMODEM_USB, 1);
     
-    filter = firfilt_rrrf_create_kaiser(31, 3000.0f / 48000.0f, 60.0f, 0);
+    filter = firfilt_rrrf_create_kaiser(97, 3000.0f / 48000.0f, 60.0f, 0);
     firfilt_rrrf_set_scale(filter, 1.0f);
 
     spectrum_time = get_time();
@@ -221,18 +224,32 @@ void dsp_adc(float complex *data) {
         ampmodem_demodulate(demod, data[i], &x);
         firfilt_rrrf_execute_one(filter, x, &y);
 
-        y *= 16384.0f * adc_vol;
+        y *= 16384.0f;
         
         if (y > 16384.0f) {
             y = 16384.0f;
         } else if (y < -16384.0f) {
             y = -16384.0f;
         }
+        
+        rec_buf[i] = (int16_t) y;
+        
+        y *= adc_vol;
 
+        if (y > 16384.0f) {
+            y = 16384.0f;
+        } else if (y < -16384.0f) {
+            y = -16384.0f;
+        }
+        
         adc_buf[i] = (int16_t) y;
     }
-
+    
     audio_adc_play(adc_buf, ADC_SAMPLES);
+    
+    if (recorder_is_on()) {
+        recorder_put_audio_samples(rec_buf);
+    }
 }
 
 void dsp_set_spectrum_factor(uint8_t x) {
@@ -254,10 +271,6 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
     if (dialog_msg_voice_get_state() == MSG_VOICE_RECORD) {
         dialog_msg_voice_put_audio_samples(nsamples, samples);
         return;
-    }
-
-    if (recorder_is_on()) {
-        recorder_put_audio_samples(nsamples, samples);
     }
 
     for (uint16_t i = 0; i < nsamples; i++)
