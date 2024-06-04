@@ -73,7 +73,7 @@ void mfk_update(int16_t diff, bool voice) {
                 }
                 params_unlock(&params_mode.durty.spectrum_factor);
             
-                spectrum_mode_set();
+                spectrum_mode_changed();
             }
             msg_set_text_fmt("#%3X Spectrum zoom: x%i", color, params_mode.spectrum_factor);
 

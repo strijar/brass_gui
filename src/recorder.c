@@ -34,7 +34,7 @@ static bool create_file() {
 
     memset(&sfinfo, 0, sizeof(sfinfo));
 
-    sfinfo.samplerate = 44100;
+    sfinfo.samplerate = ADC_RATE;
     sfinfo.channels = 1;
     #if 1
     sfinfo.format = SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III;

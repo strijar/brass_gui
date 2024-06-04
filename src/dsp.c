@@ -43,7 +43,7 @@ static uint16_t         waterfall_psd_count = 0;
 static uint16_t         waterfall_fps_ms = (1000 / 10);
 static uint64_t         waterfall_time;
 
-static ampmodem         demod;
+static firhilbf         demod_ssb;
 static firfilt_rrrf     filter;
 
 static float            *auto_psd;
@@ -87,9 +87,9 @@ void dsp_init() {
 
     buf = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
 
-    demod = ampmodem_create(1.0, LIQUID_AMPMODEM_USB, 1);
+    demod_ssb = firhilbf_create(15, 60.0f);
     
-    filter = firfilt_rrrf_create_kaiser(97, 3000.0f / 48000.0f, 60.0f, 0);
+    filter = firfilt_rrrf_create_kaiser(127, 2800.0f / 12800.0f, 30.0f, 0);
     firfilt_rrrf_set_scale(filter, 1.0f);
 
     spectrum_time = get_time();
@@ -216,13 +216,25 @@ void dsp_fft(float complex *data) {
 }
 
 void dsp_adc(float complex *data) {
-    static float p = 0.0f;
+    radio_mode_t    mode = radio_current_mode();
 
     for (int i = 0; i < ADC_SAMPLES; i++) {
-        float x, y;
+        float m_lsb, m_usb;
+        float x = 0.0, y;
 
-        ampmodem_demodulate(demod, data[i], &x);
-        firfilt_rrrf_execute_one(filter, x, &y);
+        switch (mode) {
+            case radio_mode_lsb:
+                firhilbf_c2r_execute(demod_ssb, data[i], &m_lsb, &m_usb);
+                x = m_lsb;
+                break;
+
+            case radio_mode_usb:
+                firhilbf_c2r_execute(demod_ssb, data[i], &m_lsb, &m_usb);
+                x = m_usb;
+                break;
+        }
+  
+        firfilt_rrrf_execute_one(filter, x * 2.0f, &y);
 
         y *= 16384.0f;
         

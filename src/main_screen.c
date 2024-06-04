@@ -67,7 +67,7 @@ static lv_obj_t     *tx_info;
 
 static void freq_shift(int16_t diff);
 static void next_freq_step(bool up);
-static void freq_update();
+static uint64_t freq_update();
 
 void mem_load(uint16_t id) {
     params_memory_load(id);
@@ -84,9 +84,9 @@ void mem_load(uint16_t id) {
 
     radio_vfo_set();
     radio_mode_set();
-    spectrum_mode_set();
-    spectrum_band_set();
-    waterfall_band_set();
+    spectrum_mode_changed();
+    spectrum_band_changed();
+    waterfall_band_changed();
 
     radio_load_atu();
     info_params_set();
@@ -114,7 +114,7 @@ void mem_save(uint16_t id) {
 
 /* * */
 
-static void freq_update() {
+static uint64_t freq_update() {
     uint64_t    f;
     radio_vfo_t vfo = params_band.vfo;
     uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;
@@ -154,7 +154,8 @@ static void freq_update() {
     split_freq(f + 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
     
-    band_info_update(f);
+    
+    return f;
 }
 
 static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
@@ -383,7 +384,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_AM);
                 params_mode_load();
                 radio_mode_set();
-                spectrum_mode_set();
+                spectrum_mode_changed();
                 info_params_set();
                 pannel_visible();
 
@@ -402,7 +403,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_CW);
                 params_mode_load();
                 radio_mode_set();
-                spectrum_mode_set();
+                spectrum_mode_changed();
                 info_params_set();
                 pannel_visible();
 
@@ -421,7 +422,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_SSB);
                 params_mode_load();
                 radio_mode_set();
-                spectrum_mode_set();
+                spectrum_mode_changed();
                 info_params_set();
                 pannel_visible();
 
@@ -440,16 +441,6 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                     msg_tiny_set_text_fmt("AGC: %s", info_params_agc());
                 }
             } else if (keypad->state == KEYPAD_LONG) {
-                radio_change_split();
-                info_params_set();
-                waterfall_clear();
-                spectrum_clear();
-                dsp_auto_clear();
-                main_screen_band_set();
-
-                if (params.mag_info.x) {
-                    msg_tiny_set_text_fmt("%s", info_params_vfo());
-                }
             }
             break;
 
@@ -601,26 +592,6 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             }
             break;
 
-        case KEYPAD_AB:
-            if (keypad->state == KEYPAD_RELEASE) {
-                radio_change_vfo();
-                info_params_set();
-                waterfall_clear();
-                spectrum_clear();
-                dsp_auto_clear();
-                main_screen_band_set();
-
-                if (params.mag_info.x) {
-                    msg_tiny_set_text_fmt("%s", info_params_vfo());
-                }
-            } else if (keypad->state == KEYPAD_LONG) {
-                params_band_vfo_clone();
-                radio_vfo_set();
-                msg_set_text_fmt("Clone VFO %s", params_band.vfo == RADIO_VFO_A ? "A->B" : "B->A");
-                voice_say_text_fmt("V F O cloned %s", params_band.vfo == RADIO_VFO_A ? "from A to B" : "from B to A");
-            }
-            break;
-
         case KEYPAD_POWER:
             if (keypad->state == KEYPAD_RELEASE) {
                 backlight_switch();
@@ -630,19 +601,6 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_poweroff();
             }
             break;
-
-        /*            
-        case KEYPAD_LOCK:
-            if (keypad->state == KEYPAD_RELEASE) {
-                freq_lock = !freq_lock;
-                freq_update();
-                voice_say_text_fmt("Frequency %s", freq_lock ? "locked" : "unlocked");
-            } else if (keypad->state == KEYPAD_LONG) {
-                radio_bb_reset();
-                exit(1);
-            }
-            break;
-        */
 
         case KEYPAD_PTT:
             switch (keypad->state) {
@@ -712,17 +670,6 @@ static void main_screen_hkey_cb(lv_event_t * e) {
                 info_params_set();
             } else if (hkey->state == HKEY_LONG) {
                 radio_start_atu();
-            }
-            break;
-
-        case HKEY_XFC:
-            if (hkey->state == HKEY_RELEASE) {
-                radio_change_vfo();
-                info_params_set();
-                waterfall_clear();
-                spectrum_clear();
-                dsp_auto_clear();
-                main_screen_band_set();
             }
             break;
 
@@ -824,11 +771,40 @@ static void freq_shift(int16_t diff) {
         return;
     }
     
-    uint64_t        freq, prev_freq;
+    uint64_t    prev_freq = params_band.vfo_x[params_band.vfo].freq;
+    int32_t     df = diff * params_mode.freq_step * freq_accel(abs(diff));
+    uint64_t    freq = align_long(prev_freq + df, abs(df));
+    
+    switch (params.freq_mode.x) {
+        case FREQ_MODE_JOIN:
+            radio_set_freq(freq, true, true);
+            waterfall_change_freq(freq - prev_freq);
+            spectrum_change_freq(freq - prev_freq);
+            band_info_update(freq);
 
-    freq = radio_change_freq(diff * params_mode.freq_step * freq_accel(abs(diff)), &prev_freq);
-    waterfall_change_freq(freq - prev_freq);
-    spectrum_change_freq(freq - prev_freq);
+            spectrum_set_range(freq - 50000, freq + 50000);
+            spectrum_set_rx(freq);
+            break;
+            
+        case FREQ_MODE_SLIDE:
+            break;
+
+        case FREQ_MODE_RX_ONLY:
+            radio_set_freq(freq, true, false);
+            spectrum_set_rx(freq);
+            break;
+            
+        case FREQ_MODE_FFT_ONLY:
+            radio_set_freq(freq, false, true);
+            waterfall_change_freq(freq - prev_freq);
+            spectrum_change_freq(freq - prev_freq);
+            band_info_update(freq);
+            break;
+            
+        default:
+            break;
+    }
+
     freq_update();
     check_cross_band(freq, prev_freq);
     
@@ -1032,7 +1008,7 @@ void main_screen_set_freq(uint64_t freq) {
         }
     }
 
-    radio_set_freq(freq);
+    radio_set_freq(freq, true, true);
     event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
 }
 
@@ -1058,10 +1034,9 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(spectrum, spectrum_key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(spectrum, spectrum_pressed_cb, LV_EVENT_PRESSED, NULL);
     
-    spectrum_band_set();
+    spectrum_band_changed();
 
     lv_obj_set_y(spectrum, y);
-    lv_obj_set_height(spectrum, spectrum_height);
     
     y += spectrum_height;
     
@@ -1089,7 +1064,7 @@ lv_obj_t * main_screen() {
 
     waterfall = waterfall_init(obj);
 
-    waterfall_band_set();
+    waterfall_band_changed();
     
     lv_obj_set_y(waterfall, y);
     waterfall_set_height(480 - y);
@@ -1107,7 +1082,7 @@ lv_obj_t * main_screen() {
     meter = meter_init(obj);
     tx_info = tx_info_init(obj);
     
-    main_screen_band_set();
+    main_screen_band_changed();
 
     msg_set_text_fmt("TRX Brass de R1CBU " VERSION);
     msg_set_timeout(2000);
@@ -1115,6 +1090,16 @@ lv_obj_t * main_screen() {
     return obj;
 }
 
-void main_screen_band_set() {
-    freq_update();
+void main_screen_band_changed() {
+    uint64_t freq = freq_update();
+
+    info_params_set();
+    pannel_visible();
+
+    waterfall_clear();
+    spectrum_clear();
+    dsp_auto_clear();
+
+    spectrum_set_range(freq - 50000, freq + 50000);
+    spectrum_set_rx(freq);
 }

@@ -135,7 +135,7 @@ static void set_freq(uint64_t freq) {
         bands_activate(&params.freq_band, NULL);
     }
 
-    radio_set_freq(freq);
+    radio_set_freq(freq, true, true);
     event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
 }
 

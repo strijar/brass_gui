@@ -28,11 +28,13 @@ void bands_activate(band_t *band, uint64_t *freq) {
         params_band_freq_set(*freq);
     }
 
-    radio_vfo_set();
+    radio_set_freq(params_band.vfo_x[params_band.vfo].freq, true, true);
     radio_mode_set();
-    spectrum_mode_set();
-    spectrum_band_set();
-    waterfall_band_set();
+    radio_load_atu();
+
+    spectrum_mode_changed();
+    spectrum_band_changed();
+    waterfall_band_changed();
 }
 
 void bands_change(bool up) {
@@ -40,14 +42,7 @@ void bands_change(bool up) {
     
     if (params_bands_find_next(params_band.vfo_x[params_band.vfo].freq, up, &band)) {
         bands_activate(&band, NULL);
-        radio_load_atu();
-        info_params_set();
-        pannel_visible();
-
-        waterfall_clear();
-        spectrum_clear();
-        dsp_auto_clear();
-        main_screen_band_set();
+        main_screen_band_changed();
             
         voice_say_text_fmt("Band %s", band.name);
     }

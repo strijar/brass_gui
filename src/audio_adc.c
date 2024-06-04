@@ -65,9 +65,9 @@ void audio_adc_init() {
 
     /* Play */
 
-    spec.rate = 44100,
+    spec.rate = 12800;
     attr.fragsize = ADC_SAMPLES * sizeof(int16_t);
-    attr.tlength = attr.fragsize * 32;
+    attr.tlength = attr.fragsize * 16;
 
     play_stm = pa_stream_new(ctx, "Brass TRX ADC", &spec, NULL);
 

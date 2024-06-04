@@ -26,6 +26,7 @@
 #include "clock.h"
 #include "voice.h"
 #include "dsp.h"
+#include "fpga/control.h"
 
 static lv_obj_t     *grid;
 
@@ -82,6 +83,7 @@ static void uint8_spinbox_update_cb(lv_event_t * e) {
     params_uint8_set(var, lv_spinbox_get_value(obj));
 }
 
+
 static void uint8_dropdown_update_cb(lv_event_t * e) {
     lv_obj_t        *obj = lv_event_get_target(e);
     params_uint8_t  *var = lv_event_get_user_data(e);
@@ -117,6 +119,7 @@ static lv_obj_t * spinbox_uint8(lv_obj_t *parent, params_uint8_t *var) {
     
     return obj;
 }
+
 
 static lv_obj_t * dropdown_uint8(lv_obj_t *parent, params_uint8_t *var, const char *options) {
     lv_obj_t *obj = lv_dropdown_create(parent);
@@ -1179,6 +1182,39 @@ static uint8_t make_freq_accel(uint8_t row) {
     return row + 1;
 }
 
+/* TXO freq */
+
+static void txo_freq_update_cb(lv_event_t * e) {
+    lv_obj_t        *obj = lv_event_get_target(e);
+
+    params_int32_set(&params.txo_offset, lv_spinbox_get_value(obj));
+    control_update();
+}
+
+static uint8_t make_txo_freq(uint8_t row) {
+    lv_obj_t    *obj;
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+    
+    lv_label_set_text(obj, "TXO offset");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_spinbox_create(grid);
+
+    dialog_item(&dialog, obj);
+    lv_spinbox_set_value(obj, params.txo_offset.x);
+    lv_spinbox_set_range(obj, params.txo_offset.min, params.txo_offset.max);
+    lv_obj_add_event_cb(obj, txo_freq_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_spinbox_set_digit_format(obj, 6, 0);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+
+    return row + 1;
+}
+
 static uint8_t make_delimiter(uint8_t row) {
     row_dsc[row] = 10;
     
@@ -1242,10 +1278,13 @@ static void construct_cb(lv_obj_t *parent) {
     row = make_freq_accel(row);
 
     row = make_delimiter(row);
+    row = make_txo_freq(row);
+
+    row = make_delimiter(row);
     
     for (uint8_t i = 0; i < TRANSVERTER_NUM; i++)
         row = make_transverter(row, i);
-    
+
     row_dsc[row] = LV_GRID_TEMPLATE_LAST;
     lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
 }

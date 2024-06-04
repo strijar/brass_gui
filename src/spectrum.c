@@ -19,17 +19,19 @@
 #include "meter.h"
 #include "rtty.h"
 #include "recorder.h"
+#include "widgets/lv_finder.h"
 
 float                   spectrum_auto_min;
 float                   spectrum_auto_max;
 
 static lv_obj_t         *obj;
+static lv_obj_t         *finder;
 
 static int              grid_min = -70;
 static int              grid_max = -40;
 
 static int32_t          width_hz = 100000;
-static int16_t          visor_height = 100;
+static int16_t          finder_height = 100;
 
 static uint16_t         spectrum_size = 800;
 static float            *spectrum_buf = NULL;
@@ -120,100 +122,14 @@ static void spectrum_draw_cb(lv_event_t * e) {
             main_b = main_a;
         }
     }
-
-    /* Filter */
-    
-    lv_draw_rect_dsc_t  rect_dsc;
-    lv_area_t           area;
-
-    lv_draw_rect_dsc_init(&rect_dsc);
-
-    rect_dsc.bg_color = bg_color;
-    rect_dsc.bg_opa = LV_OPA_50;
-    
-    uint32_t    w_hz = width_hz / params_mode.spectrum_factor;
-    int32_t     filter_from, filter_to;
-    
-    radio_filter_get(&filter_from, &filter_to);
-
-    int16_t sign_from = (filter_from > 0) ? 1 : -1;
-    int16_t sign_to = (filter_to > 0) ? 1 : -1;
-    
-    int32_t f1 = (int64_t)(w * filter_from) / w_hz;
-    int32_t f2 = (int64_t)(w * filter_to) / w_hz;
-
-    area.x1 = x1 + w / 2 + f1;
-    area.y1 = y1 + h - visor_height;
-    area.x2 = x1 + w / 2 + f2;
-    area.y2 = y1 + h;
-
-    lv_draw_rect(draw_ctx, &rect_dsc, &area);
-
-    /* Notch */
-    
-    if (params.dnf) {
-        rect_dsc.bg_color = lv_color_white();
-        rect_dsc.bg_opa = LV_OPA_50;
-
-        filter_from = sign_from * (params.dnf_center - params.dnf_width);
-        filter_to = sign_to * (params.dnf_center + params.dnf_width);
-
-        if (filter_from < filter_to) {
-            f1 = (int64_t)(w * filter_from) / w_hz;
-            f2 = (int64_t)(w * filter_to) / w_hz;
-        } else {
-            f1 = (int64_t)(w * filter_to) / w_hz;
-            f2 = (int64_t)(w * filter_from) / w_hz;
-        }
-
-        area.x1 = x1 + w / 2 + f1;
-        area.y1 = y1 + h - visor_height;
-        area.x2 = x1 + w / 2 + f2;
-        area.y2 = y1 + h;
-
-        lv_draw_rect(draw_ctx, &rect_dsc, &area);
-    }
-    
-    if (rtty_get_state() != RTTY_OFF) {
-        filter_from = sign_from * (params.rtty_center - params.rtty_shift / 2);
-        filter_to = sign_to * (params.rtty_center + params.rtty_shift / 2);
-
-        f1 = (int64_t)(w * filter_from) / w_hz;
-        f2 = (int64_t)(w * filter_to) / w_hz;
-
-        main_a.x = x1 + w / 2 + f1;
-        main_a.y = y1 + h - visor_height;
-        main_b.x = main_a.x;
-        main_b.y = y1 + h;
-        lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
-
-        main_a.x = x1 + w / 2 + f2;
-        main_b.x = main_a.x;
-        lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
-    }
-
-    /* Center */
-
-    main_line_dsc.width = 1;
-    
-    main_a.x = x1 + w / 2;
-    main_a.y = y1 + h - visor_height;
-    main_b.x = main_a.x;
-    main_b.y = y1 + h;
-
-    if (recorder_is_on()) {
-        main_line_dsc.color = lv_color_hex(0xFF0000);
-    }
-
-    lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
 }
 
 static void tx_cb(lv_event_t * e) {
-    visor_height -= 61;
+    finder_height -= 61;
 }
 
 static void rx_cb(lv_event_t * e) {
-    visor_height += 61;
+    finder_height += 61;
 }
 
 lv_obj_t * spectrum_init(lv_obj_t * parent) {
@@ -225,12 +141,30 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
 
     lv_obj_add_style(obj, &spectrum_style, 0);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+
     lv_obj_add_event_cb(obj, spectrum_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
     lv_obj_add_event_cb(obj, tx_cb, EVENT_RADIO_TX, NULL);
     lv_obj_add_event_cb(obj, rx_cb, EVENT_RADIO_RX, NULL);
 
+    /* RX finder */
+
+    finder = lv_finder_create(obj);
+    
+    lv_finder_set_cursor(finder, 1, 0);
+
+    lv_obj_add_style(finder, &rx_finder_style, LV_PART_MAIN);
+
+    lv_obj_set_style_bg_color(finder, bg_color, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
+
+    lv_obj_set_style_line_width(finder, 1, LV_PART_INDICATOR);
+    lv_obj_set_style_line_color(finder, lv_color_white(), LV_PART_INDICATOR);
+    lv_obj_set_style_line_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
+
     spectrum_clear();
-    spectrum_band_set();
+    spectrum_band_changed();
+    spectrum_mode_changed();
 
     return obj;
 }
@@ -262,13 +196,19 @@ void spectrum_data(float *data_buf, uint16_t size) {
     event_send(obj, LV_EVENT_REFRESH, NULL);
 }
 
-void spectrum_band_set() {
+void spectrum_band_changed() {
     spectrum_set_min(params_band.grid_min);
     spectrum_set_max(params_band.grid_max);
 }
 
-void spectrum_mode_set() {
+void spectrum_mode_changed() {
     dsp_set_spectrum_factor(params_mode.spectrum_factor);
+
+    int32_t from, to;
+
+    radio_filter_get(&from, &to);
+
+    lv_finder_set_offsets(finder, from, to);
 }
 
 void spectrum_set_max(int db) {
@@ -338,4 +278,14 @@ void spectrum_change_freq(int16_t df) {
             }
         }
     }
+}
+
+void spectrum_set_range(uint64_t min_freq, uint64_t max_freq) {
+    lv_finder_set_range(finder, min_freq, max_freq);
+    lv_obj_invalidate(finder);
+}
+
+void spectrum_set_rx(uint64_t freq) {
+    lv_finder_set_value(finder, freq);
+    lv_obj_invalidate(finder);
 }

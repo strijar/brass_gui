@@ -26,6 +26,7 @@ extern lv_style_t   info_style;
 extern lv_style_t   info_item_style;
 extern lv_style_t   meter_style;
 extern lv_style_t   tx_info_style;
+extern lv_style_t   rx_finder_style;
 
 extern lv_style_t   panel_top_style;
 extern lv_style_t   panel_mid_style;

@@ -49,22 +49,22 @@ lv_obj_t * lv_finder_create(lv_obj_t * parent) {
  * Setter functions
  *====================*/
 
-void lv_finder_set_range(lv_obj_t * obj, int16_t min, int16_t max) {
+void lv_finder_set_range(lv_obj_t * obj, uint64_t freq_min, uint64_t freq_max) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_finder_t * finder = (lv_finder_t *)obj;
     
-    finder->range_min = min;
-    finder->range_max = max;
+    finder->range_min = freq_min;
+    finder->range_max = freq_max;
 }
 
-void lv_finder_set_cursor(lv_obj_t * obj, uint8_t index, int16_t value) {
+void lv_finder_set_cursor(lv_obj_t * obj, uint8_t index, int16_t hz) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_finder_t * finder = (lv_finder_t *)obj;
     
     if (index > 0 && index <= LV_FINDER_CURSORS) {
-        finder->cursor[index - 1] = value;
+        finder->cursor[index - 1] = hz;
         
         if (index > finder->cursor_num) {
             finder->cursor_num = index;
@@ -72,20 +72,30 @@ void lv_finder_set_cursor(lv_obj_t * obj, uint8_t index, int16_t value) {
     }
 }
 
-void lv_finder_set_width(lv_obj_t * obj, uint16_t x) {
+void lv_finder_set_width(lv_obj_t * obj, uint16_t hz) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_finder_t * finder = (lv_finder_t *)obj;
     
-    finder->width = x;
+    finder->offset_min = -hz/2;
+    finder->offset_max = hz/2;
 }
 
-void lv_finder_set_value(lv_obj_t * obj, int16_t x) {
+void lv_finder_set_offsets(lv_obj_t * obj, int16_t min, int16_t max) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_finder_t * finder = (lv_finder_t *)obj;
     
-    finder->value = x;
+    finder->offset_min = min;
+    finder->offset_max = max;
+};
+
+void lv_finder_set_value(lv_obj_t * obj, uint64_t freq) {
+    LV_ASSERT_OBJ(obj, MY_CLASS);
+
+    lv_finder_t * finder = (lv_finder_t *)obj;
+    
+    finder->value = freq;
 }
 
 /**********************
@@ -99,7 +109,8 @@ static void lv_finder_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj
     lv_finder_t * finder = (lv_finder_t *)obj;
 
     finder->value = 1000;
-    finder->width = 50;
+    finder->offset_min = -25;
+    finder->offset_max = 25;
     finder->range_min = 50;
     finder->range_max = 3000;
     finder->cursor_num = 0;
@@ -128,10 +139,10 @@ static void lv_finder_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         lv_coord_t      h = lv_obj_get_height(obj);
         uint16_t        border = lv_obj_get_style_border_width(obj, LV_PART_INDICATOR);
 
-        int32_t         size_hz = finder->range_max - finder->range_min;
-        int32_t         f = finder->value - finder->range_min;
-        int64_t         f1 = w * (f - finder->width / 2) / size_hz;
-        int64_t         f2 = w * (f + finder->width / 2) / size_hz;
+        uint64_t        size_hz = finder->range_max - finder->range_min;
+        int64_t         f = finder->value - finder->range_min;
+        int64_t         f1 = w * (f + finder->offset_min) / size_hz;
+        int64_t         f2 = w * (f + finder->offset_max) / size_hz;
 
         area.x1 = x1 + f1;
         area.y1 = y1 + border;

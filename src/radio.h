@@ -95,13 +95,11 @@ typedef enum {
 } radio_charger_t;
 
 void radio_init(lv_obj_t *obj);
-void radio_bb_reset();
 bool radio_tick();
 radio_state_t radio_get_state();
 
-void radio_set_freq(uint64_t freq);
+void radio_set_freq(uint64_t freq, bool rx, bool fft);
 bool radio_check_freq(uint64_t freq, uint64_t *shift);
-uint64_t radio_change_freq(int32_t df, uint64_t *prev_freq);
 
 void radio_set_mode(radio_vfo_t vfo,  radio_mode_t mode);
 void radio_change_mode(radio_mode_t select);

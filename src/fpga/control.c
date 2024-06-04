@@ -15,6 +15,7 @@
 
 #include "lvgl/lvgl.h"
 #include "control.h"
+#include "src/params.h"
 
 typedef struct {
     uint32_t    fft_dds_step;
@@ -24,6 +25,9 @@ typedef struct {
 
 static int              fd;
 static control_reg_t    *control_reg;
+
+static uint64_t         rx_freq;
+static uint64_t         fft_freq;
 
 void control_init() {
     fd = open("/dev/uio0", O_RDWR | O_SYNC);
@@ -41,9 +45,21 @@ void control_init() {
     }
 }
 
-void control_set_rx_freq(uint64_t freq) {
-    uint64_t f = freq - 585;
+void control_update() {
+    control_set_rx_freq(rx_freq);
+    control_set_fft_freq(fft_freq);
+}
 
-    control_reg->fft_dds_step = (uint32_t) floor(f / 122.88e6 * (1 << 30) + 0.5);
-    control_reg->adc_dds_step = control_reg->fft_dds_step;
+void control_set_rx_freq(uint64_t freq) {
+    float txo = 122880000.0f + params.txo_offset.x;
+
+    rx_freq = freq;
+    control_reg->adc_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
+}
+
+void control_set_fft_freq(uint64_t freq) {
+    float txo = 122880000.0f + params.txo_offset.x;
+
+    fft_freq = freq;
+    control_reg->fft_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
 }

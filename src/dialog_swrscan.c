@@ -94,7 +94,7 @@ static void do_step(float vswr) {
     }
 
     uint64_t freq = freq_start + (freq_stop - freq_start) * freq_index / STEPS;
-    radio_set_freq(freq);
+    radio_set_freq(freq, true, true);
 }
 
 static lv_coord_t calc_y(float vswr) {
@@ -258,7 +258,7 @@ void dialog_swrscan_run_cb(lv_event_t * e) {
     } else {
         mem_save(MEM_BACKUP_ID);
         do_init();
-        radio_set_freq(freq_start);
+        radio_set_freq(freq_start, true, true);
         run = radio_start_swrscan();
     }
 }

@@ -11,4 +11,7 @@
 #include <stdint.h>
 
 void control_init();
+void control_update();
+
 void control_set_rx_freq(uint64_t freq);
+void control_set_fft_freq(uint64_t freq);

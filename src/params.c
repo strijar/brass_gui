@@ -66,6 +66,8 @@ params_t params = {
     .moni                   = 59,
     .spmode                 = { .x = false,             .name = "spmode",           .voice = "Speaker mode" },
     .freq_accel             = { .x = FREQ_ACCEL_LITE,   .name = "freq_accel",       .voice = "Frequency acceleration" },
+    .freq_mode              = { .x = FREQ_MODE_JOIN,    .name = "freq_mode",        .voice = "Frequency mode" },
+    .txo_offset             = { .x = 0,                 .name = "txo_offset",       .voice = "Oscilator offset", .min = -100000, .max = 1000000 },
 
     .dnf                    = false,
     .dnf_center             = 1000,
@@ -487,6 +489,24 @@ static bool params_load_uint16(params_uint16_t *var, const char *name, const int
     return false;
 }
 
+static bool params_load_int32(params_int32_t *var, const char *name, const int32_t x) {
+    if (strcmp(name, var->name) == 0) {
+        var->x = x;
+        return true;
+    }
+    
+    return false;
+}
+
+static bool params_load_uint64(params_uint64_t *var, const char *name, const uint64_t x) {
+    if (strcmp(name, var->name) == 0) {
+        var->x = x;
+        return true;
+    }
+    
+    return false;
+}
+
 static bool params_load_str(params_str_t *var, const char *name, const char *x) {
     if (strcmp(name, var->name) == 0) {
         strncpy(var->x, x, sizeof(var->x) - 1);
@@ -685,6 +705,8 @@ static bool params_load() {
         if (params_load_uint8(&params.voice_pitch, name, i)) continue;
         if (params_load_uint8(&params.voice_volume, name, i)) continue;
         if (params_load_uint8(&params.freq_accel, name, i)) continue;
+        if (params_load_uint8(&params.freq_mode, name, i)) continue;
+        if (params_load_int32(&params.txo_offset, name, i)) continue;
 
         if (params_load_uint16(&params.ft8_tx_freq, name, i)) continue;
 
@@ -759,6 +781,18 @@ static void params_save_uint8(params_uint8_t *var) {
 static void params_save_uint16(params_uint16_t *var) {
     if (var->durty) {
         params_write_int(var->name, var->x, &var->durty);
+    }
+}
+
+static void params_save_int32(params_int32_t *var) {
+    if (var->durty) {
+        params_write_int(var->name, var->x, &var->durty);
+    }
+}
+
+static void params_save_uint64(params_uint64_t *var) {
+    if (var->durty) {
+        params_write_int64(var->name, var->x, &var->durty);
     }
 }
 
@@ -877,6 +911,8 @@ static void params_save() {
     params_save_uint8(&params.voice_pitch);
     params_save_uint8(&params.voice_volume);
     params_save_uint8(&params.freq_accel);
+    params_save_uint8(&params.freq_mode);
+    params_save_int32(&params.txo_offset);
 
     params_save_uint16(&params.ft8_tx_freq);
 
@@ -1325,6 +1361,26 @@ void params_uint16_set(params_uint16_t *var, uint16_t x) {
     
     if (var->voice) {
         voice_say_int(var->voice, var->x);
+    }
+}
+
+void params_int32_set(params_int32_t *var, int32_t x) {
+    params_lock();
+    var->x = x;
+    params_unlock(&var->durty);
+    
+    if (var->voice) {
+        voice_say_int(var->voice, var->x);
+    }
+}
+
+void params_uint64_set(params_uint64_t *var, uint64_t x) {
+    params_lock();
+    var->x = x;
+    params_unlock(&var->durty);
+    
+    if (var->voice) {
+        voice_say_freq(var->x);
     }
 }
 

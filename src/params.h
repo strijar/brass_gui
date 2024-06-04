@@ -104,6 +104,13 @@ typedef enum {
     FREQ_ACCEL_STRONG,
 } freq_accel_t;
 
+typedef enum {
+    FREQ_MODE_JOIN = 0,
+    FREQ_MODE_SLIDE,
+    FREQ_MODE_RX_ONLY,
+    FREQ_MODE_FFT_ONLY
+} rx_freq_mode_t;
+
 /* Params items */
 
 typedef struct {
@@ -147,13 +154,26 @@ typedef struct {
     char        *name;
     char        *voice;
     int16_t     x;
+    int16_t     min;
+    int16_t     max;
     bool        durty;
 } params_int16_t;
 
 typedef struct {
     char        *name;
     char        *voice;
+    int32_t     x;
+    int32_t     min;
+    int32_t     max;
+    bool        durty;
+} params_int32_t;
+
+typedef struct {
+    char        *name;
+    char        *voice;
     uint64_t    x;
+    uint64_t    min;
+    uint64_t    max;
     bool        durty;
 } params_uint64_t;
 
@@ -205,6 +225,8 @@ typedef struct {
     int16_t             moni;
     params_bool_t       spmode;
     params_uint8_t      freq_accel;
+    params_uint8_t      freq_mode;
+    params_int32_t      txo_offset;
     
     /* DSP */
     
@@ -457,6 +479,8 @@ void params_unlock(bool *durty);
 void params_bool_set(params_bool_t *var, bool x);
 void params_uint8_set(params_uint8_t *var, uint8_t x);
 void params_uint16_set(params_uint16_t *var, uint16_t x);
+void params_int32_set(params_int32_t *var, int32_t x);
+void params_uint64_set(params_uint64_t *var, uint64_t x);
 void params_str_set(params_str_t *var, const char *x);
 
 uint8_t params_uint8_change(params_uint8_t *var, int16_t df);

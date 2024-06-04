@@ -154,7 +154,7 @@ void waterfall_set_height(lv_coord_t h) {
     lv_img_set_src(img, frame);
     lv_obj_add_event_cb(img, do_scroll_cb, LV_EVENT_DRAW_POST, NULL);
     
-    waterfall_band_set();
+    waterfall_band_changed();
     band_info_init(obj);
 }
 
@@ -164,7 +164,7 @@ void waterfall_clear() {
     scroll_hor_surplus = 0;
 }
 
-void waterfall_band_set() {
+void waterfall_band_changed() {
     grid_min = params_band.grid_min;
     grid_max = params_band.grid_max;
 }

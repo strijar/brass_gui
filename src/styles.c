@@ -24,6 +24,7 @@ lv_style_t  info_style;
 lv_style_t  info_item_style;
 lv_style_t  meter_style;
 lv_style_t  tx_info_style;
+lv_style_t  rx_finder_style;
 
 lv_style_t  panel_top_style;
 lv_style_t  panel_mid_style;
@@ -71,7 +72,17 @@ void styles_init() {
     lv_style_set_border_width(&spectrum_style, 0);
     lv_style_set_radius(&spectrum_style, 0);
     lv_style_set_width(&spectrum_style, 800);
+    lv_style_set_height(&spectrum_style, 480 / 3);
     lv_style_set_x(&spectrum_style, 0);
+    lv_style_set_pad_hor(&spectrum_style, 0);
+
+    lv_style_init(&rx_finder_style);
+    lv_style_set_radius(&rx_finder_style, 0);
+    lv_style_set_bg_opa(&rx_finder_style, LV_OPA_0);
+    lv_style_set_width(&rx_finder_style, 800);
+    lv_style_set_height(&rx_finder_style, 100);
+    lv_style_set_x(&rx_finder_style, 0);
+    lv_style_set_y(&rx_finder_style, 40);
 
     lv_style_init(&freq_style);
     lv_style_set_text_color(&freq_style, lv_color_white());

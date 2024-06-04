@@ -26,11 +26,12 @@ extern "C" {
 typedef struct {
     lv_obj_t        obj;
 
-    uint16_t        width;
-    int16_t         value;
+    int16_t         offset_min;
+    int16_t         offset_max;
+    uint64_t        value;
 
-    int16_t         range_min;
-    int16_t         range_max;
+    uint64_t        range_min;
+    uint64_t        range_max;
     
     uint8_t         cursor_num;
     int16_t         cursor[LV_FINDER_CURSORS];
@@ -48,10 +49,11 @@ lv_obj_t * lv_finder_create(lv_obj_t * parent);
  * Setter functions
  *====================*/
 
-void lv_finder_set_range(lv_obj_t * obj, int16_t min, int16_t max);
-void lv_finder_set_cursor(lv_obj_t * obj, uint8_t index, int16_t value);
-void lv_finder_set_width(lv_obj_t * obj, uint16_t x);
-void lv_finder_set_value(lv_obj_t * obj, int16_t x);
+void lv_finder_set_range(lv_obj_t * obj, uint64_t freq_min, uint64_t freq_max);
+void lv_finder_set_cursor(lv_obj_t * obj, uint8_t index, int16_t hz);
+void lv_finder_set_width(lv_obj_t * obj, uint16_t hz);
+void lv_finder_set_offsets(lv_obj_t * obj, int16_t min, int16_t max);
+void lv_finder_set_value(lv_obj_t * obj, uint64_t freq);
 
 #ifdef __cplusplus
 } /*extern "C"*/
