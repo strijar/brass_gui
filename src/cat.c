@@ -135,7 +135,8 @@ static void set_freq(uint64_t freq) {
         bands_activate(&params.freq_band, NULL);
     }
 
-    radio_set_freq(freq, true, true);
+    radio_set_freq_rx(freq);
+    radio_set_freq_fft(freq);
     event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
 }
 
@@ -151,7 +152,7 @@ static void frame_parse(uint16_t len) {
 
     switch (frame[4]) {
         case C_RD_FREQ:
-            to_bcd(&frame[5], params_band.vfo_x[params_band.vfo].freq, 10);
+            to_bcd(&frame[5], params_band.vfo_x[params_band.vfo].freq_rx, 10);
             send_frame(11);
             break;
 
@@ -220,9 +221,9 @@ static void frame_parse(uint16_t len) {
                 uint64_t freq;
                 
                 if (frame[5] == 0x00) {
-                    freq = params_band.vfo_x[RADIO_VFO_A].freq;
+                    freq = params_band.vfo_x[RADIO_VFO_A].freq_rx;
                 } else {
-                    freq = params_band.vfo_x[RADIO_VFO_B].freq;
+                    freq = params_band.vfo_x[RADIO_VFO_B].freq_rx;
                 }
                 to_bcd(&frame[6], freq, 10);
                 send_frame(12);
@@ -230,13 +231,13 @@ static void frame_parse(uint16_t len) {
                 uint64_t freq = from_bcd(&frame[6], 10);
                 
                 if (frame[5] == 0x00) {
-                    params_band.vfo_x[RADIO_VFO_A].freq = freq;
+                    params_band.vfo_x[RADIO_VFO_A].freq_rx = freq;
                     
                     if (params_band.vfo == RADIO_VFO_A) {
                         set_freq(freq);
                     }
                 } else {
-                    params_band.vfo_x[RADIO_VFO_B].freq = freq;
+                    params_band.vfo_x[RADIO_VFO_B].freq_rx = freq;
                     
                     if (params_band.vfo == RADIO_VFO_B) {
                         set_freq(freq);

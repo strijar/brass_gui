@@ -289,3 +289,15 @@ void spectrum_set_rx(uint64_t freq) {
     lv_finder_set_value(finder, freq);
     lv_obj_invalidate(finder);
 }
+
+void spectrum_update_rx() {
+    lv_finder_set_value(finder, params_band.vfo_x[params_band.vfo].freq_rx);
+    lv_obj_invalidate(finder);
+}
+
+void spectrum_update_range() {
+    uint64_t freq = params_band.vfo_x[params_band.vfo].freq_fft;
+
+    lv_finder_set_range(finder, freq - 50000, freq + 50000);
+    lv_obj_invalidate(finder);
+}

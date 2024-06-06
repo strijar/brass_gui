@@ -72,7 +72,7 @@ static uint64_t freq_update();
 void mem_load(uint16_t id) {
     params_memory_load(id);
 
-    if (params_bands_find(params_band.vfo_x[params_band.vfo].freq, &params.freq_band)) {
+    if (params_bands_find(params_band.vfo_x[params_band.vfo].freq_rx, &params.freq_band)) {
         if (params.freq_band.type != 0) {
             params.band = params.freq_band.id;
         } else {
@@ -118,17 +118,21 @@ static uint64_t freq_update() {
     uint64_t    f;
     radio_vfo_t vfo = params_band.vfo;
     uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;
+    uint16_t    mhz, khz, hz;
 
     if (params_band.split && radio_get_state() == RADIO_TX) {
         vfo = (vfo == RADIO_VFO_A) ? RADIO_VFO_B : RADIO_VFO_A;
     }
-    
-    f = params_band.vfo_x[vfo].freq;
 
-    uint16_t    mhz, khz, hz;
+    f = params_band.vfo_x[vfo].freq_fft;
 
     split_freq(f - 50000, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[0], "#%03X %i.%03i", color, mhz, khz);
+
+    split_freq(f + 50000, &mhz, &khz, &hz);
+    lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
+
+    f = params_band.vfo_x[vfo].freq_rx;
 
     split_freq(f, &mhz, &khz, &hz);
 
@@ -142,7 +146,7 @@ static uint64_t freq_update() {
 
     if (params_band.split) {
         uint16_t    mhz2, khz2, hz2;
-        uint64_t    f2 = params_band.vfo_x[(vfo == RADIO_VFO_A) ? RADIO_VFO_B : RADIO_VFO_A].freq;
+        uint64_t    f2 = params_band.vfo_x[(vfo == RADIO_VFO_A) ? RADIO_VFO_B : RADIO_VFO_A].freq_rx;
 
         split_freq(f2, &mhz2, &khz2, &hz2);
         
@@ -150,10 +154,6 @@ static uint64_t freq_update() {
     } else {
         lv_label_set_text_fmt(freq[1], "#%03X %i.%03i.%03i", color, mhz, khz, hz);
     }
-
-    split_freq(f + 50000, &mhz, &khz, &hz);
-    lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
-    
     
     return f;
 }
@@ -771,34 +771,59 @@ static void freq_shift(int16_t diff) {
         return;
     }
     
-    uint64_t    prev_freq = params_band.vfo_x[params_band.vfo].freq;
+    uint64_t    prev_freq_rx = params_band.vfo_x[params_band.vfo].freq_rx;
+    uint64_t    prev_freq_fft = params_band.vfo_x[params_band.vfo].freq_fft;
+    
     int32_t     df = diff * params_mode.freq_step * freq_accel(abs(diff));
-    uint64_t    freq = align_long(prev_freq + df, abs(df));
+
+    uint64_t    freq_rx = align_long(prev_freq_rx + df, abs(df));
+    uint64_t    freq_fft = align_long(prev_freq_fft + df, abs(df));
+    int32_t     freq_delta = freq_rx - freq_fft;
+    bool        slided = false;
     
     switch (params.freq_mode.x) {
         case FREQ_MODE_JOIN:
-            radio_set_freq(freq, true, true);
-            waterfall_change_freq(freq - prev_freq);
-            spectrum_change_freq(freq - prev_freq);
-            band_info_update(freq);
+            radio_set_freq_rx(freq_rx);
+            radio_set_freq_fft(freq_rx);
+            waterfall_change_freq(freq_rx - prev_freq_rx);
+            spectrum_change_freq(freq_rx - prev_freq_rx);
+            band_info_update(freq_rx);
 
-            spectrum_set_range(freq - 50000, freq + 50000);
-            spectrum_set_rx(freq);
+            spectrum_update_range();
+            spectrum_update_rx();
+            check_cross_band(freq_rx, prev_freq_rx);
+            voice_say_freq(freq_rx);
             break;
             
         case FREQ_MODE_SLIDE:
-            break;
+            if (freq_delta < -45000) {
+                freq_fft += freq_delta + 45000;
+                slided = true;
+            } else if (freq_delta > 45000) {
+                freq_fft += freq_delta - 45000;
+                slided = true;
+            }
+            
+            if (slided) {
+                radio_set_freq_fft(freq_fft);
+                waterfall_change_freq(freq_fft - prev_freq_fft);
+                spectrum_update_range();
+            }
+            /* no break */
 
         case FREQ_MODE_RX_ONLY:
-            radio_set_freq(freq, true, false);
-            spectrum_set_rx(freq);
+            radio_set_freq_rx(freq_rx);
+            spectrum_update_rx();
+            check_cross_band(freq_rx, prev_freq_rx);
+            voice_say_freq(freq_rx);
             break;
             
         case FREQ_MODE_FFT_ONLY:
-            radio_set_freq(freq, false, true);
-            waterfall_change_freq(freq - prev_freq);
-            spectrum_change_freq(freq - prev_freq);
-            band_info_update(freq);
+            radio_set_freq_fft(freq_fft);
+            waterfall_change_freq(freq_fft - prev_freq_fft);
+            spectrum_update_range();
+            spectrum_update_rx();
+            band_info_update(freq_fft);
             break;
             
         default:
@@ -806,10 +831,7 @@ static void freq_shift(int16_t diff) {
     }
 
     freq_update();
-    check_cross_band(freq, prev_freq);
-    
     dialog_send(EVENT_FREQ_UPDATE, NULL);
-    voice_say_freq(freq);
 }
 
 static void main_screen_rotary_cb(lv_event_t * e) {
@@ -995,7 +1017,7 @@ void main_screen_lock_mode(bool lock) {
 
 void main_screen_set_freq(uint64_t freq) {
     radio_vfo_t vfo = params_band.vfo;
-    uint64_t    prev_freq = params_band.vfo_x[vfo].freq;
+    uint64_t    prev_freq = params_band.vfo_x[vfo].freq_rx;
     
     if (params_bands_find(freq, &params.freq_band)) {
         if (params.freq_band.type != 0) {
@@ -1008,7 +1030,8 @@ void main_screen_set_freq(uint64_t freq) {
         }
     }
 
-    radio_set_freq(freq, true, true);
+    radio_set_freq_rx(freq);
+    radio_set_freq_fft(freq);
     event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
 }
 

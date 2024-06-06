@@ -28,7 +28,9 @@ void bands_activate(band_t *band, uint64_t *freq) {
         params_band_freq_set(*freq);
     }
 
-    radio_set_freq(params_band.vfo_x[params_band.vfo].freq, true, true);
+    radio_set_freq_rx(params_band.vfo_x[params_band.vfo].freq_rx);
+    radio_set_freq_fft(params_band.vfo_x[params_band.vfo].freq_rx); // ???
+
     radio_mode_set();
     radio_load_atu();
 
@@ -40,7 +42,7 @@ void bands_activate(band_t *band, uint64_t *freq) {
 void bands_change(bool up) {
     band_t band = { .name = NULL };
     
-    if (params_bands_find_next(params_band.vfo_x[params_band.vfo].freq, up, &band)) {
+    if (params_bands_find_next(params_band.vfo_x[params_band.vfo].freq_rx, up, &band)) {
         bands_activate(&band, NULL);
         main_screen_band_changed();
             

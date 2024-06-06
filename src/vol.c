@@ -192,6 +192,36 @@ void vol_update(int16_t diff, bool voice) {
                 voice_say_text_fmt(params.voice_volume.voice);
             }
             break;
+
+        case VOL_FREQ_MODE:
+            x = params_uint8_change(&params.freq_mode, diff);
+            
+            switch (x) {
+                case FREQ_MODE_JOIN:
+                    s = "join";
+                    break;
+
+                case FREQ_MODE_SLIDE:
+                    s = "slide";
+                    break;
+                    
+                case FREQ_MODE_RX_ONLY:
+                    s = "RX only";
+                    break;
+                    
+                case FREQ_MODE_FFT_ONLY:
+                    s = "spectrum only";
+                    break;
+            }
+            
+            msg_set_text_fmt("#%3X Freq mode: %s", color, s);
+
+            if (diff) {
+                voice_say_text("Frequency mode", s);
+            } else if (voice) {
+                voice_say_text_fmt("Frequency mode");
+            }
+            break;
             
         default:
             break;

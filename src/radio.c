@@ -134,8 +134,8 @@ bool radio_tick() {
 void radio_vfo_set() {
     uint64_t shift;
 
-    radio_check_freq(params_band.vfo_x[params_band.vfo].freq, &shift);
-    control_set_rx_freq(params_band.vfo_x[params_band.vfo].freq - shift);
+    radio_check_freq(params_band.vfo_x[params_band.vfo].freq_rx, &shift);
+    control_set_rx_freq(params_band.vfo_x[params_band.vfo].freq_rx - shift);
 
     /*
     for (int i = 0; i < 2; i++) {
@@ -152,7 +152,7 @@ void radio_vfo_set() {
     x6100_control_vfo_set(params_band.vfo);
     x6100_control_split_set(params_band.split);
     */
-    params_bands_find(params_band.vfo_x[params_band.vfo].freq, &params.freq_band);
+    params_bands_find(params_band.vfo_x[params_band.vfo].freq_rx, &params.freq_band);
 }
 
 void radio_mode_set() {
@@ -192,7 +192,7 @@ radio_state_t radio_get_state() {
     return state;
 }
 
-void radio_set_freq(uint64_t freq, bool rx, bool fft) {
+void radio_set_freq_rx(uint64_t freq) {
     uint64_t shift = 0;
     
     if (!radio_check_freq(freq, &shift)) {
@@ -201,18 +201,27 @@ void radio_set_freq(uint64_t freq, bool rx, bool fft) {
     }
 
     params_lock();
-    params_band.vfo_x[params_band.vfo].freq = freq;
+    params_band.vfo_x[params_band.vfo].freq_rx = freq;
     params_band.vfo_x[params_band.vfo].shift = (shift != 0);
-    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq);
+    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq_rx);
 
-    if (rx) {
-        control_set_rx_freq(freq - shift);
-        radio_load_atu();
-    }
+    control_set_rx_freq(freq - shift);
+    radio_load_atu();
+}
+
+void radio_set_freq_fft(uint64_t freq) {
+    uint64_t shift = 0;
     
-    if (fft) {
-        control_set_fft_freq(freq - shift);
+    if (!radio_check_freq(freq, &shift)) {
+        LV_LOG_ERROR("Freq %llu incorrect", freq);
+        return;
     }
+
+    params_lock();
+    params_band.vfo_x[params_band.vfo].freq_fft = freq;
+    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq_fft);
+
+    control_set_fft_freq(freq - shift);
 }
 
 bool radio_check_freq(uint64_t freq, uint64_t *shift) {

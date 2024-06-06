@@ -59,7 +59,7 @@ static void do_init() {
     }
 
     freq_index = 0;
-    freq_center = params_band.vfo_x[params_band.vfo].freq;
+    freq_center = params_band.vfo_x[params_band.vfo].freq_rx;
         
     freq_start = freq_center - params.swrscan_span / 2;
     freq_stop = freq_center + params.swrscan_span / 2;
@@ -94,7 +94,8 @@ static void do_step(float vswr) {
     }
 
     uint64_t freq = freq_start + (freq_stop - freq_start) * freq_index / STEPS;
-    radio_set_freq(freq, true, true);
+    radio_set_freq_rx(freq);
+    radio_set_freq_fft(freq);
 }
 
 static lv_coord_t calc_y(float vswr) {
@@ -258,7 +259,8 @@ void dialog_swrscan_run_cb(lv_event_t * e) {
     } else {
         mem_save(MEM_BACKUP_ID);
         do_init();
-        radio_set_freq(freq_start, true, true);
+        radio_set_freq_rx(freq_start);
+        radio_set_freq_fft(freq_start);
         run = radio_start_swrscan();
     }
 }

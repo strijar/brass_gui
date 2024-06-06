@@ -27,6 +27,7 @@ typedef enum {
     VOL_VOICE_RATE,
     VOL_VOICE_PITCH,
     VOL_VOICE_VOLUME,
+    VOL_FREQ_MODE,
     
     VOL_LAST
 } vol_mode_t;

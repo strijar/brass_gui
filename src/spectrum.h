@@ -29,4 +29,7 @@ void spectrum_change_freq(int16_t df);
 void spectrum_set_range(uint64_t min_freq, uint64_t max_freq);
 void spectrum_set_rx(uint64_t freq);
 
+void spectrum_update_rx();
+void spectrum_update_range();
+
 void spectrum_clear();

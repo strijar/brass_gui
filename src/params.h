@@ -17,100 +17,6 @@
 #include "clock.h"
 #include "voice.h"
 
-typedef struct {
-    int32_t         filter_low;
-    int32_t         filter_high;
-
-    uint16_t        freq_step;
-    int16_t         spectrum_factor;
-
-    /* durty flags */
-    
-    struct {
-        bool    filter_low;
-        bool    filter_high;
-
-        bool    freq_step;
-        bool    spectrum_factor;
-    } durty;
-} params_mode_t;
-
-typedef struct {
-    uint64_t        freq;
-    bool            shift;
-    radio_att_t     att;
-    radio_pre_t     pre;
-    radio_mode_t    mode;
-    radio_agc_t     agc;
-    
-    struct {
-        bool    freq;
-        bool    att;
-        bool    pre;
-        bool    mode;
-        bool    agc;
-    } durty;
-} params_vfo_t;
-
-typedef struct {
-    radio_vfo_t     vfo;
-
-    params_vfo_t    vfo_x[2];
-
-    bool            split;
-    int16_t         grid_min;
-    int16_t         grid_max;
-    char            label[64];
-
-    /* durty flags */
-    
-    struct {
-        bool    vfo;
-        bool    split;
-        bool    grid_min;
-        bool    grid_max;
-        bool    label;
-    } durty;
-} params_band_t;
-
-typedef enum {
-    BUTTONS_DARK = 0,
-    BUTTONS_LIGHT,
-    BUTTONS_TEMPORARILY
-} buttons_light_t;
-
-typedef enum {
-    ACTION_NONE = 0,
-    ACTION_SCREENSHOT,
-    ACTION_RECORDER,
-    ACTION_MUTE,
-    ACTION_STEP_UP,
-    ACTION_STEP_DOWN,
-    ACTION_VOICE_MODE,
-
-    ACTION_APP_RTTY = 100,
-    ACTION_APP_FT8,
-    ACTION_APP_SWRSCAN,
-    ACTION_APP_GPS,
-    ACTION_APP_SETTINGS,
-    ACTION_APP_RECORDER,
-    ACTION_APP_QTH,
-    ACTION_APP_CALLSIGN
-} press_action_t;
-
-typedef enum {
-    FREQ_ACCEL_NONE = 0,
-    FREQ_ACCEL_LITE,
-    FREQ_ACCEL_STRONG,
-} freq_accel_t;
-
-typedef enum {
-    FREQ_MODE_JOIN = 0,
-    FREQ_MODE_SLIDE,
-    FREQ_MODE_RX_ONLY,
-    FREQ_MODE_FFT_ONLY
-} rx_freq_mode_t;
-
 /* Params items */
 
 typedef struct {
@@ -184,6 +90,105 @@ typedef struct {
     uint8_t     max_len;
     bool        durty;
 } params_str_t;
+
+/* * */
+
+typedef struct {
+    int32_t         filter_low;
+    int32_t         filter_high;
+
+    uint16_t        freq_step;
+    int16_t         spectrum_factor;
+
+    /* durty flags */
+    
+    struct {
+        bool    filter_low;
+        bool    filter_high;
+
+        bool    freq_step;
+        bool    spectrum_factor;
+    } durty;
+} params_mode_t;
+
+typedef struct {
+    uint64_t        freq_rx;
+    uint64_t        freq_fft;
+    bool            shift;
+    radio_att_t     att;
+    radio_pre_t     pre;
+    radio_mode_t    mode;
+    radio_agc_t     agc;
+    
+    struct {
+        bool    freq_rx;
+        bool    freq_fft;
+        bool    att;
+        bool    pre;
+        bool    mode;
+        bool    agc;
+    } durty;
+} params_vfo_t;
+
+typedef struct {
+    radio_vfo_t     vfo;
+
+    params_vfo_t    vfo_x[2];
+
+    bool            split;
+    int16_t         grid_min;
+    int16_t         grid_max;
+    char            label[64];
+
+    /* durty flags */
+    
+    struct {
+        bool    vfo;
+        bool    split;
+        bool    grid_min;
+        bool    grid_max;
+        bool    label;
+    } durty;
+} params_band_t;
+
+typedef enum {
+    BUTTONS_DARK = 0,
+    BUTTONS_LIGHT,
+    BUTTONS_TEMPORARILY
+} buttons_light_t;
+
+typedef enum {
+    ACTION_NONE = 0,
+    ACTION_SCREENSHOT,
+    ACTION_RECORDER,
+    ACTION_MUTE,
+    ACTION_STEP_UP,
+    ACTION_STEP_DOWN,
+    ACTION_VOICE_MODE,
+
+    ACTION_APP_RTTY = 100,
+    ACTION_APP_FT8,
+    ACTION_APP_SWRSCAN,
+    ACTION_APP_GPS,
+    ACTION_APP_SETTINGS,
+    ACTION_APP_RECORDER,
+    ACTION_APP_QTH,
+    ACTION_APP_CALLSIGN
+} press_action_t;
+
+typedef enum {
+    FREQ_ACCEL_NONE = 0,
+    FREQ_ACCEL_LITE,
+    FREQ_ACCEL_STRONG,
+} freq_accel_t;
+
+typedef enum {
+    FREQ_MODE_JOIN = 0,
+    FREQ_MODE_SLIDE,
+    FREQ_MODE_RX_ONLY,
+    FREQ_MODE_FFT_ONLY
+} rx_freq_mode_t;
+
 
 /* Params */
 

@@ -98,7 +98,8 @@ void radio_init(lv_obj_t *obj);
 bool radio_tick();
 radio_state_t radio_get_state();
 
-void radio_set_freq(uint64_t freq, bool rx, bool fft);
+void radio_set_freq_rx(uint64_t freq);
+void radio_set_freq_fft(uint64_t freq);
 bool radio_check_freq(uint64_t freq, uint64_t *shift);
 
 void radio_set_mode(radio_vfo_t vfo,  radio_mode_t mode);

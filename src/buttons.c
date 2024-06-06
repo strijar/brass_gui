@@ -63,7 +63,7 @@ static button_item_t    buttons[] = {
     { .label = "Filter\nLow",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_LOW },
     { .label = "Filter\nHigh",      .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_HIGH },
     { .label = "Speaker\nMode",     .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SPMODE },
-    { .label = "",                  .press = NULL },
+    { .label = "Freq\nMode",        .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FREQ_MODE },
 
     { .label = "(VOL 3:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_4, .prev = PAGE_VOL_2, .voice = "Volume|page 3" },
     { .label = "MIC\nSelect",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_MIC },
