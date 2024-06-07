@@ -119,7 +119,7 @@ static void do_scroll_cb(lv_event_t * event) {
         return;
     }
 
-    int16_t px = (abs(scroll_hor) / 10) + 1;
+    int16_t px = (abs(scroll_hor) / 4) + 1;
 
     if (scroll_hor > 0) {
         scroll_right(px);
@@ -136,10 +136,7 @@ void waterfall_set_height(lv_coord_t h) {
     lv_obj_set_height(obj, h);
     lv_obj_update_layout(obj);
 
-    /* For more accurate horizontal scroll, it should be a "multiple of 500Hz" */
-    /* 800 * 500Hz / 100000Hz = 4.0px */
-    
-    width = 800;
+    width = 1024;
     height = lv_obj_get_height(obj);
 
     frame = lv_img_buf_alloc(width, height, LV_IMG_CF_TRUE_COLOR);
@@ -150,6 +147,7 @@ void waterfall_set_height(lv_coord_t h) {
     styles_waterfall_palette(palette, 256);
 
     img = lv_img_create(obj);
+
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
     lv_img_set_src(img, frame);
     lv_obj_add_event_cb(img, do_scroll_cb, LV_EVENT_DRAW_POST, NULL);
@@ -202,7 +200,7 @@ void waterfall_change_min(int16_t d) {
 }
 
 void waterfall_change_freq(int16_t df) {
-    uint16_t    div = width_hz / width;
+    uint16_t    div = width_hz / 800;
     int16_t     surplus = df % div;
 
     scroll_hor += df / div;

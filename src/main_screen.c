@@ -797,10 +797,10 @@ static void freq_shift(int16_t diff) {
             
         case FREQ_MODE_SLIDE:
             if (freq_delta < -45000) {
-                freq_fft += freq_delta + 45000;
+                freq_fft += freq_delta + 45000 - df;
                 slided = true;
             } else if (freq_delta > 45000) {
-                freq_fft += freq_delta - 45000;
+                freq_fft += freq_delta - 45000 - df;
                 slided = true;
             }
             
