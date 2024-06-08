@@ -18,6 +18,8 @@
 #include "meter.h"
 #include "backlight.h"
 #include "dsp.h"
+#include "finder.h"
+#include "fpga/fft.h"
 
 #define PX_BYTES    4
 
@@ -30,7 +32,7 @@ static lv_obj_t         *img;
 static lv_coord_t       width;
 static lv_coord_t       height;
 static int32_t          width_hz = 100000;
-static uint32_t         line_len;
+static size_t           line_len;
 static uint8_t          *line_buf = NULL;
 
 static int              grid_min = -70;
@@ -38,8 +40,8 @@ static int              grid_max = -40;
 
 static lv_img_dsc_t     *frame;
 static lv_color_t       palette[256];
-static int16_t          scroll_hor = 0;
-static int16_t          scroll_hor_surplus = 0;
+static int32_t          scroll_hor = 0;
+static int32_t          scroll_hor_surplus = 0;
 
 lv_obj_t * waterfall_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
@@ -87,17 +89,17 @@ static void scroll_left(int16_t px) {
     }
 }
 
-void waterfall_data(float *data_buf, uint16_t size) {
+void waterfall_data(float *data_buf, size_t size) {
     if (scroll_hor) {
         return;
     }
 
     scroll_down();
 
-    float min = params.waterfall_auto_min.x ? waterfall_auto_min + 6.0f : grid_min;
+    float min = params.waterfall_auto_min.x ? waterfall_auto_min + 3.0f : grid_min;
     float max = params.waterfall_auto_max.x ? waterfall_auto_max + 3.0f : grid_max;
 
-    for (int x = 0; x < width; x++) {
+    for (size_t x = 0; x < width; x++) {
         float       v = (data_buf[x] - min) / (max - min);
         
         if (v < 0.0f) {
@@ -136,13 +138,24 @@ void waterfall_set_height(lv_coord_t h) {
     lv_obj_set_height(obj, h);
     lv_obj_update_layout(obj);
 
-    width = 1024;
+    lv_obj_set_height(waterfall_finder, h - 62);
+    lv_obj_update_layout(waterfall_finder);
+
+    width = 2047;
     height = lv_obj_get_height(obj);
 
     frame = lv_img_buf_alloc(width, height, LV_IMG_CF_TRUE_COLOR);
+    
+    if (!frame) {
+        LV_LOG_ERROR("Frame alloc");
+    }
 
     line_len = frame->data_size / frame->header.h;
     line_buf = malloc(line_len);
+    
+    if (!line_buf) {
+        LV_LOG_ERROR("Line buf alloc");
+    }
     
     styles_waterfall_palette(palette, 256);
 
@@ -151,13 +164,14 @@ void waterfall_set_height(lv_coord_t h) {
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
     lv_img_set_src(img, frame);
     lv_obj_add_event_cb(img, do_scroll_cb, LV_EVENT_DRAW_POST, NULL);
-    
+
+    lv_obj_move_foreground(waterfall_finder);
     waterfall_band_changed();
     band_info_init(obj);
 }
 
 void waterfall_clear() {
-    memset(frame->data,0, frame->data_size);
+    memset(frame->data, 0, frame->data_size);
     scroll_hor = 0;
     scroll_hor_surplus = 0;
 }

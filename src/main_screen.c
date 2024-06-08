@@ -49,6 +49,7 @@
 #include "buttons.h"
 #include "recorder.h"
 #include "voice.h"
+#include "finder.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
@@ -84,7 +85,8 @@ void mem_load(uint16_t id) {
 
     radio_vfo_set();
     radio_mode_set();
-    spectrum_mode_changed();
+
+    finder_mode_changed();
     spectrum_band_changed();
     waterfall_band_changed();
 
@@ -384,7 +386,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_AM);
                 params_mode_load();
                 radio_mode_set();
-                spectrum_mode_changed();
+                finder_mode_changed();
                 info_params_set();
                 pannel_visible();
 
@@ -403,7 +405,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_CW);
                 params_mode_load();
                 radio_mode_set();
-                spectrum_mode_changed();
+                finder_mode_changed();
                 info_params_set();
                 pannel_visible();
 
@@ -422,7 +424,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_SSB);
                 params_mode_load();
                 radio_mode_set();
-                spectrum_mode_changed();
+                finder_mode_changed();
                 info_params_set();
                 pannel_visible();
 
@@ -787,10 +789,11 @@ static void freq_shift(int16_t diff) {
             radio_set_freq_fft(freq_rx);
             waterfall_change_freq(freq_rx - prev_freq_rx);
             spectrum_change_freq(freq_rx - prev_freq_rx);
+
             band_info_update(freq_rx);
 
-            spectrum_update_range();
-            spectrum_update_rx();
+            finder_update_range();
+            finder_update_rx();
             check_cross_band(freq_rx, prev_freq_rx);
             voice_say_freq(freq_rx);
             break;
@@ -807,13 +810,14 @@ static void freq_shift(int16_t diff) {
             if (slided) {
                 radio_set_freq_fft(freq_fft);
                 waterfall_change_freq(freq_fft - prev_freq_fft);
-                spectrum_update_range();
+                finder_update_range();
+                band_info_update(freq_fft);
             }
             /* no break */
 
         case FREQ_MODE_RX_ONLY:
             radio_set_freq_rx(freq_rx);
-            spectrum_update_rx();
+            finder_update_rx();
             check_cross_band(freq_rx, prev_freq_rx);
             voice_say_freq(freq_rx);
             break;
@@ -821,8 +825,10 @@ static void freq_shift(int16_t diff) {
         case FREQ_MODE_FFT_ONLY:
             radio_set_freq_fft(freq_fft);
             waterfall_change_freq(freq_fft - prev_freq_fft);
-            spectrum_update_range();
-            spectrum_update_rx();
+
+            finder_update_range();
+            finder_update_rx();
+
             band_info_update(freq_fft);
             break;
             
@@ -1088,6 +1094,7 @@ lv_obj_t * main_screen() {
     waterfall = waterfall_init(obj);
 
     waterfall_band_changed();
+    finder_init(spectrum, waterfall);
     
     lv_obj_set_y(waterfall, y);
     waterfall_set_height(480 - y);
@@ -1123,6 +1130,6 @@ void main_screen_band_changed() {
     spectrum_clear();
     dsp_auto_clear();
 
-    spectrum_set_range(freq - 50000, freq + 50000);
-    spectrum_set_rx(freq);
+    finder_set_range(freq - 50000, freq + 50000);
+    finder_set_rx(freq);
 }

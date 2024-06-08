@@ -10,6 +10,6 @@
 
 #include <stdint.h>
 
-#define FFT_SAMPLES (1024)
+#define FFT_SAMPLES (2048)
 
 bool fft_init();

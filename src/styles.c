@@ -82,7 +82,7 @@ void styles_init() {
     lv_style_set_width(&rx_finder_style, 800);
     lv_style_set_height(&rx_finder_style, 100);
     lv_style_set_x(&rx_finder_style, 0);
-    lv_style_set_y(&rx_finder_style, 40);
+    lv_style_set_y(&rx_finder_style, 0);
 
     lv_style_init(&freq_style);
     lv_style_set_text_color(&freq_style, lv_color_white());
@@ -105,9 +105,10 @@ void styles_init() {
     lv_style_set_border_color(&waterfall_style, lv_color_hex(0xAAAAAA));
     lv_style_set_border_width(&waterfall_style, 0);
     lv_style_set_radius(&waterfall_style, 0);
-    lv_style_set_clip_corner(&waterfall_style, true);
     lv_style_set_width(&waterfall_style, 800);
     lv_style_set_x(&waterfall_style, 0);
+    lv_style_set_pad_hor(&waterfall_style, 0);
+    lv_style_set_pad_ver(&waterfall_style, 0);
 
     lv_style_init(&btn_style);
     lv_style_set_bg_img_src(&btn_style, PATH "images/btn.bin");

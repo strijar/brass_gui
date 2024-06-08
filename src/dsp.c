@@ -116,7 +116,7 @@ void update_auto(uint64_t now) {
     auto_psd_count++;
 
     if (now - auto_time > auto_fps_ms) {
-        for (uint16_t i = 0; i < FFT_SAMPLES; i++) {
+        for (size_t i = 0; i < FFT_SAMPLES; i++) {
             auto_psd[i] /= auto_psd_count;
         }
 
@@ -166,7 +166,7 @@ void update_waterfall(uint64_t now) {
 }
 
 void dsp_fft(float complex *data) {
-    for (uint16_t i = 0; i < FFT_SAMPLES; i++) {
+    for (size_t i = 0; i < FFT_SAMPLES; i++) {
         float complex x = data[i];
         float mag = sqrtf(crealf(x) * crealf(x) + cimagf(x) * cimag(x));
         uint16_t index = (i + FFT_SAMPLES / 2) % FFT_SAMPLES;
@@ -174,7 +174,7 @@ void dsp_fft(float complex *data) {
         fft_buf[index] = mag;
     }
 
-    for (uint16_t i = 0; i < FFT_SAMPLES; i++) {
+    for (size_t i = 0; i < FFT_SAMPLES; i++) {
         float x = fft_buf[i];
     
         spectrum_psd[i] += x;
@@ -305,11 +305,11 @@ static int compare_fft(const void *p1, const void *p2) {
 static void calc_auto() {
     float       min = 0;
     float       max = 0;
-    uint16_t    window = 30;
+    size_t      window = 30;
 
     qsort(auto_psd, FFT_SAMPLES, sizeof(float), compare_fft);
     
-    for (uint16_t i = 0; i < window; i++) {
+    for (size_t i = 0; i < window; i++) {
         min += auto_psd[i + fft_over];
         max += auto_psd[FFT_SAMPLES - i - fft_over - 1];
     }

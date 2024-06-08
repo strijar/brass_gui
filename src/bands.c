@@ -16,6 +16,7 @@
 #include "main_screen.h"
 #include "pannel.h"
 #include "voice.h"
+#include "finder.h"
 
 void bands_activate(band_t *band, uint64_t *freq) {
     params_lock();
@@ -34,7 +35,7 @@ void bands_activate(band_t *band, uint64_t *freq) {
     radio_mode_set();
     radio_load_atu();
 
-    spectrum_mode_changed();
+    finder_mode_changed();
     spectrum_band_changed();
     waterfall_band_changed();
 }
