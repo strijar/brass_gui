@@ -65,7 +65,7 @@ void audio_adc_init() {
 
     /* Play */
 
-    spec.rate = 12800;
+    spec.rate = ADC_RATE;
     attr.fragsize = ADC_SAMPLES * sizeof(int16_t);
     attr.tlength = attr.fragsize * 16;
 

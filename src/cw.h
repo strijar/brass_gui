@@ -14,8 +14,7 @@
 
 void cw_init();
 
-void cw_put_audio_samples(unsigned int n, float complex *samples);
-void cw_put_audio_int_samples(unsigned int n, int16_t *samples);
+void cw_put_audio_samples(float complex *samples, size_t n);
 
 bool cw_change_decoder(int16_t df);
 float cw_change_snr(int16_t df);

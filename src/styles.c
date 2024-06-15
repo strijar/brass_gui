@@ -45,7 +45,7 @@ lv_font_t   *font_clock_power = &jura_28;
 lv_font_t   *font_dialog_freq = &jura_44;
 lv_font_t   *font_swrscan = &jura_28;
 lv_font_t   *font_meter = &jura_22;
-lv_font_t   *font_panel = &jura_38;
+lv_font_t   *font_panel = &jura_bold_24;
 lv_font_t   *font_textarea = &jura_44;
 lv_font_t   *font_tx_info = &jura_22;
 

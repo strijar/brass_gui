@@ -9,6 +9,6 @@
 #pragma once
 
 #define ADC_SAMPLES (128)
-#define ADC_RATE    (48000)
+#define ADC_RATE    (12800)
 
 bool adc_init();

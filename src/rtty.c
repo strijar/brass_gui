@@ -14,6 +14,7 @@
 #include "params.h"
 #include "pannel.h"
 #include "util.h"
+#include "fpga/adc.h"
 
 #define SYMBOL_OVER         8
 #define SYMBOL_FACTOR       2
@@ -68,14 +69,15 @@ static const char rtty_symbols[32] = {
 };
 
 static void update_nco() {
-    float radians = 2.0f * (float) M_PI * (float) params.rtty_center / (float) AUDIO_CAPTURE_RATE;
+    float radians = 2.0f * (float) M_PI * (float) params.rtty_center / (float) ADC_RATE;
 
     nco_crcf_set_phase(nco, 0.0f);
     nco_crcf_set_frequency(nco, radians);
 }
 
 static void init() {
-    symbol_samples = (float) AUDIO_CAPTURE_RATE / (float) (params.rtty_rate / 100.0f) / (float) SYMBOL_FACTOR + 0.5f;
+    symbol_samples = (float) ADC_RATE / (float) (params.rtty_rate / 100.0f) / (float) SYMBOL_FACTOR + 0.5f;
+    
     symbol_over = symbol_samples / SYMBOL_OVER;
 
     nco = nco_crcf_create(LIQUID_NCO);
@@ -84,7 +86,7 @@ static void init() {
 
     /* RX */
 
-    demod = fskdem_create(1, symbol_samples, (float) params.rtty_shift / (float) AUDIO_CAPTURE_RATE / 2.0f);
+    demod = fskdem_create(1, symbol_samples, (float) params.rtty_shift / (float) ADC_RATE / 2.0f);
     rx_buf = cbuffercf_create(symbol_samples * 50);
     
     rx_window = malloc(symbol_samples * sizeof(complex float));
@@ -178,7 +180,7 @@ static void add_symbol(float pwr) {
         }
     }
 
-    /* LV_LOG_INFO("%5.1f %i", p_avr, rx_symbol_cur); */
+//    LV_LOG_INFO("%5.1f %i", p_avr, rx_symbol_cur);
         
     rx_symbol[SYMBOL_LEN - 1] = rx_symbol_cur;
     
@@ -232,7 +234,7 @@ static void add_symbol(float pwr) {
     }
 }
 
-void rtty_put_audio_samples(unsigned int n, float complex *samples) {
+void rtty_put_audio_samples(float complex *samples, size_t n) {
     pthread_mutex_lock(&rtty_mux);
 
     if (!ready) {
@@ -257,8 +259,12 @@ void rtty_put_audio_samples(unsigned int n, float complex *samples) {
 
         fskdem_demodulate(demod, nco_buf);
 
-        float pwr0 = 10.0f * log10f(fskdem_get_symbol_energy(demod, 0, 1));
-        float pwr1 = 10.0f * log10f(fskdem_get_symbol_energy(demod, 1, 1));
+        float f0 = fskdem_get_symbol_energy(demod, 0, 1);
+        float f1 = fskdem_get_symbol_energy(demod, 1, 1);
+
+        float pwr0 = 10.0f * log10f(f0);
+        float pwr1 = 10.0f * log10f(f1);
+        
         float pwr = pwr0 - pwr1;
 
         if (((mode == radio_mode_usb || mode == radio_mode_usb_dig) && !params.rtty_reverse) || 
@@ -268,7 +274,6 @@ void rtty_put_audio_samples(unsigned int n, float complex *samples) {
         }
         
         add_symbol(pwr);
-        
         cbuffercf_release(rx_buf, symbol_over);
     }
     

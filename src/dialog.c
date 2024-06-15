@@ -96,9 +96,9 @@ void dialog_item(dialog_t *dialog, lv_obj_t *obj) {
     }
 }
 
-void dialog_audio_samples(unsigned int n, float complex *samples) {
+void dialog_audio_samples(float complex *samples, size_t n) {
     if (dialog_is_run() && current_dialog->audio_cb) {
-        current_dialog->audio_cb(n, samples);
+        current_dialog->audio_cb(samples, n);
     }
 }
 

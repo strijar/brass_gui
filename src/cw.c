@@ -16,14 +16,15 @@
 #include "cw_decoder.h"
 #include "pannel.h"
 #include "meter.h"
+#include "fpga/adc.h"
 
 typedef struct {
     uint16_t    n;
     float       db;
 } fft_item_t;
 
-#define FFT             1024
-#define OVER            8
+#define FFT             256
+#define OVER            4
 #define FFT_OVER        (FFT / OVER)
 #define FFT_ALL         (FFT + FFT_OVER)
 
@@ -65,8 +66,8 @@ static int compare_fft_items(const void *p1, const void *p2) {
 }
 
 static bool cw_get_peak() {
-    uint32_t    start = FFT / 2 + FFT * params_mode.filter_low / AUDIO_CAPTURE_RATE;
-    uint32_t    stop = FFT / 2 + FFT * params_mode.filter_high / AUDIO_CAPTURE_RATE;
+    uint32_t    start = FFT / 2 + FFT * params_mode.filter_low / ADC_RATE;
+    uint32_t    stop = FFT / 2 + FFT * params_mode.filter_high / ADC_RATE;
     uint16_t    num = stop - start;
 
     float       peak_db = 0;
@@ -151,7 +152,7 @@ static bool cw_get_peak() {
     return peak_on;
 }
 
-void cw_put_audio_samples(unsigned int n, float complex *samples) {
+void cw_put_audio_samples(float complex *samples, size_t n) {
     if (!ready) {
         return;
     }
@@ -189,7 +190,7 @@ void cw_put_audio_samples(unsigned int n, float complex *samples) {
         }
 
         if (params.cw_decoder) {
-            cw_decoder_signal(cw_get_peak(), FFT_OVER * 1000.0f / AUDIO_CAPTURE_RATE);
+            cw_decoder_signal(cw_get_peak(), FFT_OVER * 1000.0f / ADC_RATE);
         }
     }
 }

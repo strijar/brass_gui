@@ -199,11 +199,13 @@ void dsp_adc(float complex *data) {
 
         switch (mode) {
             case radio_mode_lsb:
+            case radio_mode_cwr:
                 firhilbf_c2r_execute(demod_ssb, data[i], &m_lsb, &m_usb);
                 x = m_lsb;
                 break;
 
             case radio_mode_usb:
+            case radio_mode_cw:
                 firhilbf_c2r_execute(demod_ssb, data[i], &m_lsb, &m_usb);
                 x = m_usb;
                 break;
@@ -254,6 +256,14 @@ void dsp_adc(float complex *data) {
     } else {
         meter_db += 20.0f * log10f(peak) - 56.0f;
     }
+
+    if (rtty_get_state() == RTTY_RX) {
+        rtty_put_audio_samples(data, ADC_SAMPLES);
+    } else if (mode == radio_mode_cw || mode == radio_mode_cwr) {
+        cw_put_audio_samples(data, ADC_SAMPLES);
+    } else {
+        dialog_audio_samples(data, ADC_SAMPLES);
+    }
 }
 
 void dsp_set_spectrum_factor(uint8_t x) {
@@ -277,6 +287,7 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
         return;
     }
 
+    /*
     for (uint16_t i = 0; i < nsamples; i++)
         firhilbf_r2c_execute(audio_hilb, samples[i] / 32768.0f, &audio[i]);
 
@@ -289,6 +300,7 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
     } else {
         dialog_audio_samples(nsamples, audio);
     }
+    */
 }
 
 void dsp_auto_clear() {

@@ -43,9 +43,7 @@
 #include "ft8/encode.h"
 #include "ft8/crc.h"
 #include "gfsk.h"
-
-#define DECIM           4
-#define SAMPLE_RATE     (AUDIO_CAPTURE_RATE / DECIM)
+#include "fpga/adc.h"
 
 #define MIN_SCORE       10
 #define MAX_CANDIDATES  120
@@ -143,8 +141,6 @@ static pthread_mutex_t      audio_mutex;
 static cbuffercf            audio_buf;
 static pthread_t            thread;
 
-static firdecim_crcf        decim;
-static float complex        *decim_buf;
 static complex float        *rx_window = NULL;
 static complex float        *time_buf;
 static complex float        *freq_buf;
@@ -167,7 +163,7 @@ static struct tm            timestamp;
 static void construct_cb(lv_obj_t *parent);
 static void key_cb(lv_event_t * e);
 static void destruct_cb();
-static void audio_cb(unsigned int n, float complex *samples);
+static void audio_cb(float complex *samples, size_t n);
 static void rotary_cb(int32_t diff);
 static void * decode_thread(void *arg);
 
@@ -236,13 +232,13 @@ static void init() {
             break;
     }
     
-    block_size = SAMPLE_RATE * symbol_period;
+    block_size = ADC_RATE * symbol_period;
     subblock_size = block_size / TIME_OSR;
     nfft = block_size * FREQ_OSR;
     fft_norm = 2.0f / nfft;
     
     const uint32_t max_blocks = slot_time / symbol_period;
-    const uint32_t num_bins = SAMPLE_RATE * symbol_period / 2;
+    const uint32_t num_bins = ADC_RATE * symbol_period / 2;
 
     size_t mag_size = max_blocks * TIME_OSR * FREQ_OSR * num_bins * sizeof(uint8_t);
     
@@ -256,7 +252,6 @@ static void init() {
 
     /* FT8 DSP */
     
-    decim_buf = (float complex *) malloc(block_size * sizeof(float complex));
     time_buf = (float complex*) malloc(nfft * sizeof(float complex));
     freq_buf = (float complex*) malloc(nfft * sizeof(float complex));
     fft = fft_create_plan(nfft, time_buf, freq_buf, LIQUID_FFT_FORWARD, 0);
@@ -305,7 +300,6 @@ static void done() {
     free(wf.mag);
     windowcf_destroy(frame_window);
 
-    free(decim_buf);
     free(time_buf);
     free(freq_buf);
     fft_destroy_plan(fft);
@@ -347,10 +341,16 @@ static const char * find_qth(const char *str) {
     return NULL;
 }
 
+static bool to_me(const char * text) {
+    int16_t         callsign_len = strlen(params.callsign.x);
+
+    return (callsign_len > 0) && (strncasecmp(text, params.callsign.x, callsign_len) == 0);
+}
+
 static void send_rx_text(int16_t snr, const char * text) {
     ft8_msg_type_t  type;
 
-    if (strncasecmp(text, params.callsign.x, strlen(params.callsign.x)) == 0) {
+    if (to_me(text)) {
         type = MSG_RX_TO_ME;
     } else if (strncmp(text, "CQ ", 3) == 0) {
         type = MSG_RX_CQ;
@@ -444,8 +444,8 @@ void static waterfall_process(float complex *frame, const size_t size) {
     spgramcf_write(waterfall_sg, frame, size);
 
     if (now - waterfall_time > waterfall_fps_ms) {
-        uint32_t low_bin = waterfall_nfft / 2 + waterfall_nfft * params_mode.filter_low / SAMPLE_RATE;
-        uint32_t high_bin = waterfall_nfft / 2 + waterfall_nfft * params_mode.filter_high / SAMPLE_RATE;
+        uint32_t low_bin = waterfall_nfft / 2 + waterfall_nfft * params_mode.filter_low / ADC_RATE;
+        uint32_t high_bin = waterfall_nfft / 2 + waterfall_nfft * params_mode.filter_high / ADC_RATE;
     
         spgramcf_get_psd(waterfall_sg, waterfall_psd);
 
@@ -557,26 +557,23 @@ static bool do_start(bool *odd) {
 static void rx_worker(bool sync) {
     unsigned int    n;
     float complex   *buf;
-    const size_t    size = block_size * DECIM;
 
     pthread_mutex_lock(&audio_mutex);
 
-    while (cbuffercf_size(audio_buf) < size) {
+    while (cbuffercf_size(audio_buf) < block_size) {
         pthread_cond_wait(&audio_cond, &audio_mutex);
     }
     
     pthread_mutex_unlock(&audio_mutex);
         
-    while (cbuffercf_size(audio_buf) > size) {
-        cbuffercf_read(audio_buf, size, &buf, &n);
+    while (cbuffercf_size(audio_buf) > block_size) {
+        cbuffercf_read(audio_buf, block_size, &buf, &n);
 
-        firdecim_crcf_execute_block(decim, buf, block_size, decim_buf);
-        cbuffercf_release(audio_buf, size);
-
-        waterfall_process(decim_buf, block_size);
+        waterfall_process(buf, block_size);
+        cbuffercf_release(audio_buf, block_size);
 
         if (sync) {
-            process(decim_buf);
+            process(buf);
     
             if (wf.num_blocks >= wf.max_blocks) {
                 decode();
@@ -836,7 +833,6 @@ static void key_cb(lv_event_t * e) {
 static void destruct_cb() {
     done();
     
-    firdecim_crcf_destroy(decim);
     free(audio_buf);
 
     mem_load(MEM_BACKUP_ID);
@@ -951,7 +947,7 @@ static ft8_tx_msg_t parse_rx_msg(const char * str) {
         return MSG_TX_CALLING;
     }
     
-    if (call_to && strcmp(call_to, params.callsign.x) == 0) {
+    if (call_to && to_me(call_to)) {
         if (extra && strcmp(extra, "RR73") == 0 || strcmp(extra, "73") == 0) {
             buttons_load(2, &button_tx_cq_en);
             
@@ -1102,8 +1098,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_UP, NULL);
     lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_DOWN, NULL);
 
-    decim = firdecim_crcf_create_kaiser(DECIM, 16, 40.0f);
-    audio_buf = cbuffercf_create(AUDIO_CAPTURE_RATE);
+    audio_buf = cbuffercf_create(ADC_RATE);
 
     /* Waterfall */
 
@@ -1338,7 +1333,7 @@ static void tx_call_en_cb(lv_event_t * e) {
     qso = QSO_IDLE;
 }
 
-static void audio_cb(unsigned int n, float complex *samples) {
+static void audio_cb(float complex *samples, size_t n) {
     if (state == IDLE || state == RX_PROCESS) {
         pthread_mutex_lock(&audio_mutex);
         cbuffercf_write(audio_buf, samples, n);
