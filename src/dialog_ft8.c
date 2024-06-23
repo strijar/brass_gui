@@ -292,10 +292,10 @@ static void init() {
 }
 
 static void done() {
-    state = IDLE;
-
     pthread_cancel(thread);
     pthread_join(thread, NULL);
+
+    state = NOT_READY;
 
     free(wf.mag);
     windowcf_destroy(frame_window);
@@ -1043,8 +1043,6 @@ static void band_cb(lv_event_t * e) {
     params_unlock(&params.durty.ft8_band);
     load_band();
 
-    done();
-    init();
     clean();
 }
 
@@ -1334,6 +1332,10 @@ static void tx_call_en_cb(lv_event_t * e) {
 }
 
 static void audio_cb(float complex *samples, size_t n) {
+    if (state == NOT_READY) {
+        return;
+    }
+
     if (state == IDLE || state == RX_PROCESS) {
         pthread_mutex_lock(&audio_mutex);
         cbuffercf_write(audio_buf, samples, n);

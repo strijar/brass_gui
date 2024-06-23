@@ -160,14 +160,14 @@ static uint64_t freq_update() {
     return f;
 }
 
-static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
+static bool check_cross_band(uint64_t freq) {
     if (params_bands_find(freq, &params.freq_band)) {
         if (params.freq_band.type != 0) {
             if (params.freq_band.id != params.band) {
-                params_band_freq_set(prev_freq);
-                bands_activate(&params.freq_band, &freq);
+                bands_activate(&params.freq_band, false);
                 info_params_set();
                 pannel_visible();
+                return true;
             }
         } else {
             params.band = -1;
@@ -175,6 +175,8 @@ static void check_cross_band(uint64_t freq, uint64_t prev_freq) {
     } else {
         params.band = -1;
     }
+
+    return false;
 }
 
 static void next_freq_step(bool up) {
@@ -794,7 +796,7 @@ static void freq_shift(int16_t diff) {
 
             finder_update_range();
             finder_update_rx();
-            check_cross_band(freq_rx, prev_freq_rx);
+            check_cross_band(freq_rx);
             voice_say_freq(freq_rx);
             break;
             
@@ -811,14 +813,22 @@ static void freq_shift(int16_t diff) {
                 radio_set_freq_fft(freq_fft);
                 waterfall_change_freq(freq_fft - prev_freq_fft);
                 finder_update_range();
-                band_info_update(freq_fft);
             }
-            /* no break */
+
+            radio_set_freq_rx(freq_rx);
+            finder_update_rx();
+
+            if (slided || check_cross_band(freq_rx)) {
+                band_info_update(prev_freq_fft);
+            }
+            
+            voice_say_freq(freq_rx);
+            break;
 
         case FREQ_MODE_RX_ONLY:
             radio_set_freq_rx(freq_rx);
             finder_update_rx();
-            check_cross_band(freq_rx, prev_freq_rx);
+            check_cross_band(freq_rx);
             voice_say_freq(freq_rx);
             break;
             
@@ -1023,13 +1033,13 @@ void main_screen_lock_mode(bool lock) {
 
 void main_screen_set_freq(uint64_t freq) {
     radio_vfo_t vfo = params_band.vfo;
-    uint64_t    prev_freq = params_band.vfo_x[vfo].freq_rx;
+    uint64_t    prev_rx = params_band.vfo_x[vfo].freq_rx;
+    uint64_t    prev_fft = params_band.vfo_x[vfo].freq_fft;
     
     if (params_bands_find(freq, &params.freq_band)) {
         if (params.freq_band.type != 0) {
             if (params.freq_band.id != params.band) {
-                params_band_freq_set(prev_freq);
-                bands_activate(&params.freq_band, &freq);
+                bands_activate(&params.freq_band, false);
                 info_params_set();
                 pannel_visible();
             }

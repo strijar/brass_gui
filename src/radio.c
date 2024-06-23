@@ -133,9 +133,11 @@ bool radio_tick() {
 
 void radio_vfo_set() {
     uint64_t shift;
+    uint64_t freq = params_band.vfo_x[params_band.vfo].freq_rx;
 
-    radio_check_freq(params_band.vfo_x[params_band.vfo].freq_rx, &shift);
-    control_set_rx_freq(params_band.vfo_x[params_band.vfo].freq_rx - shift);
+    radio_check_freq(freq, &shift);
+    control_set_rx_freq(freq - shift);
+    control_set_fft_freq(freq - shift);
 
     /*
     for (int i = 0; i < 2; i++) {
@@ -152,7 +154,7 @@ void radio_vfo_set() {
     x6100_control_vfo_set(params_band.vfo);
     x6100_control_split_set(params_band.split);
     */
-    params_bands_find(params_band.vfo_x[params_band.vfo].freq_rx, &params.freq_band);
+    params_bands_find(freq, &params.freq_band);
 }
 
 void radio_mode_set() {

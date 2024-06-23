@@ -491,7 +491,7 @@ void params_str_set(params_str_t *var, const char *x);
 uint8_t params_uint8_change(params_uint8_t *var, int16_t df);
 
 void params_band_save();
-void params_band_load();
+void params_band_load(bool set_freq);
 
 void params_memory_save(uint16_t id);
 void params_memory_load(uint16_t id);
@@ -499,7 +499,8 @@ void params_memory_load(uint16_t id);
 void params_mode_save();
 void params_mode_load();
 
-void params_band_freq_set(uint64_t freq);
+void params_band_freq_rx_set(uint64_t freq);
+void params_band_freq_fft_set(uint64_t freq);
 
 void params_atu_save(uint32_t val);
 uint32_t params_atu_load(bool *loaded);

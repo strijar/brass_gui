@@ -58,9 +58,6 @@ static float complex    *buf;
 
 static uint8_t          delay;
 
-static firhilbf         audio_hilb;
-static float complex    *audio;
-
 static bool             ready = false;
 static bool             auto_clear = true;
 
@@ -100,9 +97,6 @@ void dsp_init() {
     auto_time = get_time();
     
     delay = 4;
-    
-    audio = (float complex *) malloc(AUDIO_CAPTURE_RATE * sizeof(float complex));
-    audio_hilb = firhilbf_create(7, 60.0f);
     
     dsp_set_vol(params.vol);
     ready = true;
@@ -286,21 +280,6 @@ void dsp_put_audio_samples(size_t nsamples, int16_t *samples) {
         dialog_msg_voice_put_audio_samples(nsamples, samples);
         return;
     }
-
-    /*
-    for (uint16_t i = 0; i < nsamples; i++)
-        firhilbf_r2c_execute(audio_hilb, samples[i] / 32768.0f, &audio[i]);
-
-    radio_mode_t    mode = radio_current_mode();
-    
-    if (rtty_get_state() == RTTY_RX) {
-        rtty_put_audio_samples(nsamples, audio);
-    } else if (mode == radio_mode_cw || mode == radio_mode_cwr) {
-        cw_put_audio_samples(nsamples, audio);
-    } else {
-        dialog_audio_samples(nsamples, audio);
-    }
-    */
 }
 
 void dsp_auto_clear() {

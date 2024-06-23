@@ -198,7 +198,7 @@ static sqlite3_stmt     *bands_find_stmt;
 
 static bool params_exec(const char *sql);
 static bool params_mb_save(uint16_t id);
-static void params_mb_load(sqlite3_stmt *stmt);
+static void params_mb_load(sqlite3_stmt *stmt, bool set_freq);
 
 /* Mode params */
 
@@ -273,10 +273,10 @@ void params_memory_load(uint16_t id) {
     }
 
     sqlite3_bind_int(stmt, 1, id);
-    params_mb_load(stmt);
+    params_mb_load(stmt, true);
 }
 
-void params_band_load() {
+void params_band_load(bool set_freq) {
     if (params.band < 0) {
         return;
     }
@@ -291,10 +291,10 @@ void params_band_load() {
     }
 
     sqlite3_bind_int(stmt, 1, params.band);
-    params_mb_load(stmt);
+    params_mb_load(stmt, set_freq);
 }
 
-static void params_mb_load(sqlite3_stmt *stmt) {
+static void params_mb_load(sqlite3_stmt *stmt, bool set_freq) {
     bool copy_freq = true;
     bool copy_att = true;
     bool copy_pre = true;
@@ -309,10 +309,12 @@ static void params_mb_load(sqlite3_stmt *stmt) {
         if (strcmp(name, "vfo") == 0) {
             params_band.vfo = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_freq") == 0) {
-            uint64_t x = sqlite3_column_int64(stmt, 1);
+            if (set_freq) {
+                uint64_t x = sqlite3_column_int64(stmt, 1);
         
-            params_band.vfo_x[RADIO_VFO_A].freq_rx = x;
-            params_band.vfo_x[RADIO_VFO_A].freq_fft = x;
+                params_band.vfo_x[RADIO_VFO_A].freq_rx = x;
+                params_band.vfo_x[RADIO_VFO_A].freq_fft = x;
+            }
         } else if (strcmp(name, "vfoa_att") == 0) {
             params_band.vfo_x[RADIO_VFO_A].att = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_pre") == 0) {
@@ -322,11 +324,13 @@ static void params_mb_load(sqlite3_stmt *stmt) {
         } else if (strcmp(name, "vfoa_agc") == 0) {
             params_band.vfo_x[RADIO_VFO_A].agc = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfob_freq_rx") == 0) {
-            uint64_t x = sqlite3_column_int64(stmt, 1);
+            if (set_freq) {
+                uint64_t x = sqlite3_column_int64(stmt, 1);
         
-            params_band.vfo_x[RADIO_VFO_B].freq_rx = x;
-            params_band.vfo_x[RADIO_VFO_B].freq_fft = x;
-            copy_freq = false;
+                params_band.vfo_x[RADIO_VFO_B].freq_rx = x;
+                params_band.vfo_x[RADIO_VFO_B].freq_fft = x;
+                copy_freq = false;
+            }
         } else if (strcmp(name, "vfob_att") == 0) {
             params_band.vfo_x[RADIO_VFO_B].att = sqlite3_column_int(stmt, 1);
             copy_att = false;
@@ -553,7 +557,7 @@ static bool params_load() {
 
         if (strcmp(name, "band") == 0) {
             params.band = i;
-            params_band_load();
+            params_band_load(true);
         } else if (strcmp(name, "vol") == 0) {
             params.vol = i;
         } else if (strcmp(name, "rfg") == 0) {
@@ -1123,11 +1127,18 @@ void params_unlock(bool *durty) {
     pthread_mutex_unlock(&params_mux);
 }
 
-void params_band_freq_set(uint64_t freq) {
+void params_band_freq_rx_set(uint64_t freq) {
     params_lock();
 
     params_band.vfo_x[params_band.vfo].freq_rx = freq;
     params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq_rx);
+}
+
+void params_band_freq_fft_set(uint64_t freq) {
+    params_lock();
+
+    params_band.vfo_x[params_band.vfo].freq_fft = freq;
+    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq_fft);
 }
 
 void params_atu_save(uint32_t val) {
