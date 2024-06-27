@@ -26,6 +26,7 @@
 #include "recorder.h"
 #include "fpga/fft.h"
 #include "fpga/adc.h"
+#include "dsp/firdes.h"
 
 const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
 
@@ -44,7 +45,11 @@ static uint16_t         waterfall_fps_ms = (1000 / 10);
 static uint64_t         waterfall_time;
 
 static firhilbf         demod_ssb;
-static firfilt_rrrf     filter;
+
+static size_t           filter_len = 0;
+static float            *filter_taps = NULL;
+static bool             filter_need_update = false;
+static firfilt_rrrf     filter = NULL;
 
 static float            *auto_psd;
 static uint16_t         auto_psd_count = 0;
@@ -88,9 +93,6 @@ void dsp_init() {
     buf = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
 
     demod_ssb = firhilbf_create(15, 60.0f);
-    
-    filter = firfilt_rrrf_create_kaiser(127, 2800.0f / 12800.0f, 30.0f, 0);
-    firfilt_rrrf_set_scale(filter, 1.0f);
 
     spectrum_time = get_time();
     waterfall_time = get_time();
@@ -104,6 +106,18 @@ void dsp_init() {
 
 void dsp_reset() {
     delay = 4;
+}
+
+void dsp_set_filter(float low_freq, float high_freq, float transition, float attenuation) {
+    size_t len = firdes_compute_taps_len(12800.0f, transition, attenuation);
+
+    if (filter_len != len) {
+        filter_taps = realloc(filter_taps, len * sizeof(float));
+        filter_len = len;
+    }
+
+    firdes_band_pass(1.0f, 12800.0f, low_freq, high_freq, filter_taps, filter_len);
+    filter_need_update = true;
 }
 
 void update_auto(uint64_t now) {
@@ -186,6 +200,15 @@ void dsp_fft(float complex *data) {
 void dsp_adc(float complex *data) {
     radio_mode_t    mode = radio_current_mode();
     float           peak = 0.0f;
+
+    if (filter_need_update) {
+        if (filter) {
+            filter = firfilt_rrrf_recreate(filter, filter_taps, filter_len);
+        } else {
+            filter = firfilt_rrrf_create(filter_taps, filter_len);
+        }
+        filter_need_update = false;
+    }
 
     for (int i = 0; i < ADC_SAMPLES; i++) {
         float m_lsb, m_usb;

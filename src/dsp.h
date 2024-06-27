@@ -18,6 +18,7 @@ void dsp_fft(float complex *data);
 void dsp_reset();
 
 void dsp_set_spectrum_factor(uint8_t x);
+void dsp_set_filter(float low_freq, float high_freq, float transition, float attenuation);
 
 float dsp_get_spectrum_beta();
 void dsp_set_spectrum_beta(float x);

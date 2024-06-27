@@ -96,6 +96,8 @@ typedef struct {
 typedef struct {
     int32_t         filter_low;
     int32_t         filter_high;
+    int32_t         filter_transition;
+    int32_t         filter_att;
 
     uint16_t        freq_step;
     int16_t         spectrum_factor;
@@ -105,6 +107,8 @@ typedef struct {
     struct {
         bool    filter_low;
         bool    filter_high;
+        bool    filter_transition;
+        bool    filter_att;
 
         bool    freq_step;
         bool    spectrum_factor;

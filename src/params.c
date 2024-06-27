@@ -175,6 +175,8 @@ params_band_t params_band = {
 params_mode_t params_mode = {
     .filter_low         = 50,
     .filter_high        = 2950,
+    .filter_transition  = 100,
+    .filter_att         = 40,
 
     .freq_step          = 500,
     .spectrum_factor    = 1,

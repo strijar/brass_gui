@@ -160,23 +160,7 @@ void radio_vfo_set() {
 void radio_mode_set() {
     radio_mode_t    mode = radio_current_mode();
 
-    if (mode == radio_mode_am || mode == radio_mode_nfm) {
-        /*
-        x6100_control_cmd(x6100_filter1_low, -params_mode.filter_high);
-        x6100_control_cmd(x6100_filter2_low, -params_mode.filter_high);
-        */
-    } else {
-        /*
-        x6100_control_cmd(x6100_filter1_low, params_mode.filter_low);
-        x6100_control_cmd(x6100_filter2_low, params_mode.filter_low);
-        */
-    }
-
-    /*
-    x6100_control_cmd(x6100_filter1_high, params_mode.filter_high);
-    x6100_control_cmd(x6100_filter2_high, params_mode.filter_high);
-    */
-
+    dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, params_mode.filter_att);
     update_agc_time();
 }
 
@@ -479,12 +463,12 @@ uint32_t radio_change_filter_low(int32_t df) {
     
     if (params_mode.filter_low < 0) {
         params_mode.filter_low = 0;
-    } else if (params_mode.filter_low > 6000) {
-        params_mode.filter_low = 6000;
-    } else if (params_mode.filter_low > params_mode.filter_high) {
-        params_mode.filter_low = params_mode.filter_high;
+    } else if (params_mode.filter_low > params_mode.filter_high - 100) {
+        params_mode.filter_low = params_mode.filter_high - 100;
     }
     params_unlock(&params_mode.durty.filter_low);
+
+    dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, params_mode.filter_att);
 
     return params_mode.filter_low;
 }
@@ -499,17 +483,14 @@ uint32_t radio_change_filter_high(int32_t df) {
     params_lock();
     params_mode.filter_high = align_int(params_mode.filter_high + df * 50, 50);
 
-    if (params_mode.filter_high < 0) {
-        params_mode.filter_high = 0;
-    } else if (params_mode.filter_high > 6000) {
-        params_mode.filter_high = 6000;
-    } else if (params_mode.filter_high < params_mode.filter_low) {
-        params_mode.filter_high = params_mode.filter_low;
+    if (params_mode.filter_high < 600) {
+        params_mode.filter_high = 600;
+    } else if (params_mode.filter_high < params_mode.filter_low + 100) {
+        params_mode.filter_high = params_mode.filter_low + 100;
     }
     params_unlock(&params_mode.durty.filter_high);
 
-    if (mode == radio_mode_am || mode == radio_mode_nfm) {
-    }
+    dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, params_mode.filter_att);
 
     return params_mode.filter_high;
 }

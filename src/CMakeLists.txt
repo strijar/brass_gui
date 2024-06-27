@@ -20,6 +20,7 @@ add_subdirectory(fonts)
 add_subdirectory(ft8)
 add_subdirectory(widgets)
 add_subdirectory(fpga)
+add_subdirectory(dsp)
 
 include_directories(utf8)
 include_directories(${CMAKE_SYSROOT}/usr/include/RHVoice/)
