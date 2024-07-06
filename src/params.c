@@ -64,7 +64,6 @@ params_t params = {
     .line_in                = 10,
     .line_out               = 10,
     .moni                   = 59,
-    .spmode                 = { .x = false,             .name = "spmode",           .voice = "Speaker mode" },
     .freq_accel             = { .x = FREQ_ACCEL_LITE,   .name = "freq_accel",       .voice = "Frequency acceleration" },
     .freq_mode              = { .x = FREQ_MODE_JOIN,    .name = "freq_mode",        .voice = "Frequency mode", .min = FREQ_MODE_JOIN, .max = FREQ_MODE_FFT_ONLY },
     .txo_offset             = { .x = 0,                 .name = "txo_offset",       .voice = "Oscilator offset", .min = -100000, .max = 1000000 },
@@ -176,7 +175,6 @@ params_mode_t params_mode = {
     .filter_low         = 50,
     .filter_high        = 2950,
     .filter_transition  = 100,
-    .filter_att         = 40,
 
     .freq_step          = 500,
     .spectrum_factor    = 1,
@@ -226,6 +224,8 @@ void params_mode_load() {
             params_mode.filter_low = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "filter_high") == 0) {
             params_mode.filter_high = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "filter_transition") == 0) {
+            params_mode.filter_transition = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "freq_step") == 0) {
             params_mode.freq_step = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_factor") == 0) {
@@ -254,10 +254,11 @@ void params_mode_save() {
         return;
     }
 
-    if (params_mode.durty.filter_low)       params_mode_write_int("filter_low", params_mode.filter_low, &params_mode.durty.filter_low);
-    if (params_mode.durty.filter_high)      params_mode_write_int("filter_high", params_mode.filter_high, &params_mode.durty.filter_high);
-    if (params_mode.durty.freq_step)        params_mode_write_int("freq_step", params_mode.freq_step, &params_mode.durty.freq_step);
-    if (params_mode.durty.spectrum_factor)  params_mode_write_int("spectrum_factor", params_mode.spectrum_factor, &params_mode.durty.spectrum_factor);
+    if (params_mode.durty.filter_low)           params_mode_write_int("filter_low", params_mode.filter_low, &params_mode.durty.filter_low);
+    if (params_mode.durty.filter_high)          params_mode_write_int("filter_high", params_mode.filter_high, &params_mode.durty.filter_high);
+    if (params_mode.durty.filter_transition)    params_mode_write_int("filter_transition", params_mode.filter_transition, &params_mode.durty.filter_transition);
+    if (params_mode.durty.freq_step)            params_mode_write_int("freq_step", params_mode.freq_step, &params_mode.durty.freq_step);
+    if (params_mode.durty.spectrum_factor)      params_mode_write_int("spectrum_factor", params_mode.spectrum_factor, &params_mode.durty.spectrum_factor);
 
     params_exec("COMMIT");
 }
@@ -721,7 +722,6 @@ static bool params_load() {
         if (params_load_bool(&params.spectrum_auto_max, name, i)) continue;
         if (params_load_bool(&params.waterfall_auto_min, name, i)) continue;
         if (params_load_bool(&params.waterfall_auto_max, name, i)) continue;
-        if (params_load_bool(&params.spmode, name, i)) continue;
         if (params_load_bool(&params.ft8_auto, name, i)) continue;
 
         if (params_load_uint8(&params.voice_mode, name, i)) continue;
@@ -948,7 +948,6 @@ static void params_save() {
     params_save_bool(&params.spectrum_auto_max);
     params_save_bool(&params.waterfall_auto_min);
     params_save_bool(&params.waterfall_auto_max);
-    params_save_bool(&params.spmode);
     params_save_bool(&params.ft8_auto);
 
     params_save_str(&params.qth);

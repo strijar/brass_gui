@@ -83,6 +83,17 @@ void vol_update(int16_t diff, bool voice) {
             }
             break;
 
+        case VOL_FILTER_TRANSITION:
+            x = radio_change_filter_transition(diff);
+            msg_set_text_fmt("#%3X Filter transition: %i Hz", color, x);
+
+            if (diff) {
+                voice_say_int("Filter transition", x);
+            } else if (voice) {
+                voice_say_text_fmt("Filter transition");
+            }
+            break;
+
         case VOL_PWR:
             f = radio_change_pwr(diff);
             msg_set_text_fmt("#%3X Power: %0.1f W", color, f);
@@ -153,10 +164,6 @@ void vol_update(int16_t diff, bool voice) {
             }
             break;
 
-        case VOL_SPMODE:
-            b = radio_change_spmode(diff);
-            msg_set_text_fmt("#%3X Speaker mode: %s", color, b ? "On" : "Off");
-            break;
 
         case VOL_VOICE_LANG:
             s = voice_change(diff);

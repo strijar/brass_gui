@@ -252,3 +252,7 @@ void spectrum_change_freq(int16_t df) {
     }
 }
 
+void spectrum_update_range() {
+    width_hz = 100000 / params_mode.spectrum_factor;
+    spectrum_clear();
+}

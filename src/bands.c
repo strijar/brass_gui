@@ -32,6 +32,7 @@ void bands_activate(band_t *band, bool touch_freq) {
     if (touch_freq) {
         radio_set_freq_rx(params_band.vfo_x[params_band.vfo].freq_rx);
         radio_set_freq_fft(params_band.vfo_x[params_band.vfo].freq_fft);
+        band_info_update(params_band.vfo_x[params_band.vfo].freq_fft);
     }
 
     radio_mode_set();

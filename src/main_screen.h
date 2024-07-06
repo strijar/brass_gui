@@ -35,3 +35,5 @@ void main_screen_set_freq(uint64_t f);
 
 void mem_load(uint16_t id);
 void mem_save(uint16_t id);
+
+void main_screen_update_range();

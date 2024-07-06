@@ -157,17 +157,24 @@ void radio_vfo_set() {
     params_bands_find(freq, &params.freq_band);
 }
 
+static void update_filter() {
+    dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, 40);
+}
+
 void radio_mode_set() {
     radio_mode_t    mode = radio_current_mode();
 
-    dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, params_mode.filter_att);
+    update_filter();
     update_agc_time();
+
+    dsp_set_spectrum_factor(params_mode.spectrum_factor);
 }
 
 void radio_init(lv_obj_t *obj) {
     main_obj = obj;
 
     control_init();
+    dsp_set_spectrum_factor(params_mode.spectrum_factor);
 
     radio_vfo_set();
     radio_mode_set();
@@ -244,16 +251,6 @@ uint16_t radio_change_moni(int16_t df) {
     params_unlock(&params.durty.moni);
 
     return params.moni;
-}
-
-bool radio_change_spmode(int16_t df) {
-    if (df == 0) {
-        return params.spmode.x;
-    }
-    
-    params_bool_set(&params.spmode, df > 0);
-
-    return params.spmode.x;
 }
 
 uint16_t radio_change_rfg(int16_t df) {
@@ -468,7 +465,7 @@ uint32_t radio_change_filter_low(int32_t df) {
     }
     params_unlock(&params_mode.durty.filter_low);
 
-    dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, params_mode.filter_att);
+    update_filter();
 
     return params_mode.filter_low;
 }
@@ -490,9 +487,29 @@ uint32_t radio_change_filter_high(int32_t df) {
     }
     params_unlock(&params_mode.durty.filter_high);
 
-    dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, params_mode.filter_att);
+    update_filter();
 
     return params_mode.filter_high;
+}
+
+uint32_t radio_change_filter_transition(int32_t df) {
+    if (df == 0) {
+        return params_mode.filter_transition;
+    }
+
+    params_lock();
+    params_mode.filter_transition = align_int(params_mode.filter_transition + df * 2, 2);
+
+    if (params_mode.filter_transition < 50) {
+        params_mode.filter_transition = 50;
+    } else if (params_mode.filter_transition > 200) {
+        params_mode.filter_transition = 200;
+    }
+    params_unlock(&params_mode.durty.filter_transition);
+
+    update_filter();
+
+    return params_mode.filter_transition;
 }
 
 static void update_agc_time() {

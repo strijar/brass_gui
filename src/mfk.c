@@ -9,6 +9,7 @@
 #include "lvgl/lvgl.h"
 #include "mfk.h"
 #include "params.h"
+#include "main_screen.h"
 #include "spectrum.h"
 #include "waterfall.h"
 #include "msg.h"
@@ -20,6 +21,7 @@
 #include "info.h"
 #include "backlight.h"
 #include "voice.h"
+#include "finder.h"
 
 mfk_state_t  mfk_state = MFK_STATE_EDIT;
 mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
@@ -29,6 +31,7 @@ void mfk_update(int16_t diff, bool voice) {
     char        *str;
     bool        b;
     float       f;
+    bool        update;
 
     uint32_t    color = mfk_state == MFK_STATE_EDIT ? 0xFFFFFF : 0xBBBBBB;
 
@@ -63,6 +66,8 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_SPECTRUM_FACTOR:
             if (diff != 0) {
+                update = false;
+                
                 params_lock();
                 params_mode.spectrum_factor += diff;
                 
@@ -70,10 +75,16 @@ void mfk_update(int16_t diff, bool voice) {
                     params_mode.spectrum_factor = 1;
                 } else if (params_mode.spectrum_factor > 4) {
                     params_mode.spectrum_factor = 4;
+                } else {
+                    update = true;
                 }
+                
                 params_unlock(&params_mode.durty.spectrum_factor);
             
-                finder_mode_changed();
+                if (update) {
+                    dsp_set_spectrum_factor(params_mode.spectrum_factor);
+                    main_screen_update_range();
+                }
             }
             msg_set_text_fmt("#%3X Spectrum zoom: x%i", color, params_mode.spectrum_factor);
 
@@ -95,7 +106,6 @@ void mfk_update(int16_t diff, bool voice) {
                     params.spectrum_beta = 90;
                 }
                 params_unlock(&params.durty.spectrum_beta);
-            
                 dsp_set_spectrum_beta(params.spectrum_beta / 100.0f);
             }
             msg_set_text_fmt("#%3X Spectrum beta: %i", color, params.spectrum_beta);

@@ -63,3 +63,7 @@ void control_set_fft_freq(uint64_t freq) {
     fft_freq = freq;
     control_reg->fft_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
 }
+
+void control_set_fft_rate(uint32_t rate) {
+    control_reg->fft_rate = rate;
+}

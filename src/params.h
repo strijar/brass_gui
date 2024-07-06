@@ -97,7 +97,6 @@ typedef struct {
     int32_t         filter_low;
     int32_t         filter_high;
     int32_t         filter_transition;
-    int32_t         filter_att;
 
     uint16_t        freq_step;
     int16_t         spectrum_factor;
@@ -108,7 +107,6 @@ typedef struct {
         bool    filter_low;
         bool    filter_high;
         bool    filter_transition;
-        bool    filter_att;
 
         bool    freq_step;
         bool    spectrum_factor;
@@ -232,7 +230,6 @@ typedef struct {
     uint8_t             line_in;
     uint8_t             line_out;
     int16_t             moni;
-    params_bool_t       spmode;
     params_uint8_t      freq_accel;
     params_uint8_t      freq_mode;
     params_int32_t      txo_offset;

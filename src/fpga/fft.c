@@ -23,7 +23,7 @@
 #include "adc.h"
 #include "dma-proxy.h"
 
-#define FFT_BUFS                4
+#define FFT_BUFS                2
 
 static int                      fd;
 static int                      buf_id = 0;
@@ -40,7 +40,7 @@ static void * fft_thread(void *arg) {
 
     while (true) {
         ioctl(fd, FINISH_XFER, &buf_id);
-
+        
         if (buf_ptr[buf_id].status != PROXY_NO_ERROR) {
             LV_LOG_ERROR("FFT transfer error");
             sleep(5);

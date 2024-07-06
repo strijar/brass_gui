@@ -128,10 +128,12 @@ static uint64_t freq_update() {
 
     f = params_band.vfo_x[vfo].freq_fft;
 
-    split_freq(f - 50000, &mhz, &khz, &hz);
+    int32_t half = 50000 / params_mode.spectrum_factor;
+
+    split_freq(f - half, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[0], "#%03X %i.%03i", color, mhz, khz);
 
-    split_freq(f + 50000, &mhz, &khz, &hz);
+    split_freq(f + half, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
 
     f = params_band.vfo_x[vfo].freq_rx;
@@ -161,10 +163,17 @@ static uint64_t freq_update() {
 }
 
 static bool check_cross_band(uint64_t freq) {
+    uint8_t spectrum_factor = params_mode.spectrum_factor;
+
     if (params_bands_find(freq, &params.freq_band)) {
         if (params.freq_band.type != 0) {
             if (params.freq_band.id != params.band) {
                 bands_activate(&params.freq_band, false);
+                
+                if (params_mode.spectrum_factor != spectrum_factor) {
+                    main_screen_update_range();
+                }
+                
                 info_params_set();
                 pannel_visible();
                 return true;
@@ -784,6 +793,7 @@ static void freq_shift(int16_t diff) {
     uint64_t    freq_fft = align_long(prev_freq_fft + df, abs(df));
     int32_t     freq_delta = freq_rx - freq_fft;
     bool        slided = false;
+    int32_t     half = 45000 / params_mode.spectrum_factor;
     
     switch (params.freq_mode.x) {
         case FREQ_MODE_JOIN:
@@ -801,11 +811,11 @@ static void freq_shift(int16_t diff) {
             break;
             
         case FREQ_MODE_SLIDE:
-            if (freq_delta < -45000) {
-                freq_fft += freq_delta + 45000 - df;
+            if (freq_delta < -half) {
+                freq_fft += freq_delta + half - df;
                 slided = true;
-            } else if (freq_delta > 45000) {
-                freq_fft += freq_delta - 45000 - df;
+            } else if (freq_delta > half) {
+                freq_fft += freq_delta - half - df;
                 slided = true;
             }
             
@@ -817,11 +827,8 @@ static void freq_shift(int16_t diff) {
 
             radio_set_freq_rx(freq_rx);
             finder_update_rx();
-
-            if (slided || check_cross_band(freq_rx)) {
-                band_info_update(prev_freq_fft);
-            }
-            
+            check_cross_band(freq_rx);
+            band_info_update(prev_freq_fft);
             voice_say_freq(freq_rx);
             break;
 
@@ -835,10 +842,8 @@ static void freq_shift(int16_t diff) {
         case FREQ_MODE_FFT_ONLY:
             radio_set_freq_fft(freq_fft);
             waterfall_change_freq(freq_fft - prev_freq_fft);
-
             finder_update_range();
             finder_update_rx();
-
             band_info_update(freq_fft);
             break;
             
@@ -1136,10 +1141,25 @@ void main_screen_band_changed() {
     info_params_set();
     pannel_visible();
 
-    waterfall_clear();
-    spectrum_clear();
+    waterfall_update_range();
+    spectrum_update_range();
+    band_info_update_range();
+
     dsp_auto_clear();
 
-    finder_set_range(freq - 50000, freq + 50000);
+    int32_t half = 50000 / params_mode.spectrum_factor;
+
+    finder_set_range(freq - half, freq + half);
     finder_set_rx(freq);
+}
+
+void main_screen_update_range() {
+    params_band.vfo_x[params_band.vfo].freq_fft = params_band.vfo_x[params_band.vfo].freq_rx;
+    radio_set_freq_fft(params_band.vfo_x[params_band.vfo].freq_fft);
+
+    finder_update_range();
+    band_info_update_range();
+    waterfall_update_range();
+    spectrum_update_range();
+    freq_update();
 }

@@ -234,3 +234,8 @@ void waterfall_change_freq(int16_t df) {
         lv_obj_invalidate(img);
     }
 }
+
+void waterfall_update_range() {
+    width_hz = 100000 / params_mode.spectrum_factor;
+    waterfall_clear();
+}

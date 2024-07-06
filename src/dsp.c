@@ -284,6 +284,7 @@ void dsp_adc(float complex *data) {
 }
 
 void dsp_set_spectrum_factor(uint8_t x) {
+    control_set_fft_rate(240 * x);
 }
 
 float dsp_get_spectrum_beta() {

@@ -166,3 +166,7 @@ void band_info_update(uint64_t f) {
         lv_timer_set_repeat_count(timer, 1);
     }
 }
+
+void band_info_update_range() {
+    width_hz = 100000 / params_mode.spectrum_factor;
+}

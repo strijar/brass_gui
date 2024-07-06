@@ -22,7 +22,7 @@ typedef enum {
     VOL_MIC,
     VOL_IMIC,
     VOL_MONI,
-    VOL_SPMODE,
+    VOL_FILTER_TRANSITION,
     VOL_VOICE_LANG,
     VOL_VOICE_RATE,
     VOL_VOICE_PITCH,

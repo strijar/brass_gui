@@ -87,9 +87,10 @@ void finder_update_rx() {
 
 void finder_update_range() {
     uint64_t freq = params_band.vfo_x[params_band.vfo].freq_fft;
+    uint32_t half = 50000 / params_mode.spectrum_factor;
 
-    lv_finder_set_range(spectrum_finder, freq - 50000, freq + 50000);
-    lv_finder_set_range(waterfall_finder, freq - 50000, freq + 50000);
+    lv_finder_set_range(spectrum_finder, freq - half, freq + half);
+    lv_finder_set_range(waterfall_finder, freq - half, freq + half);
 
     lv_obj_invalidate(spectrum_finder);
     lv_obj_invalidate(waterfall_finder);
