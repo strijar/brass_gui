@@ -1,3 +1,3 @@
 target_sources(${PROJECT_NAME} PUBLIC
-    firdes.c
+    firdes.c agc.c
 )

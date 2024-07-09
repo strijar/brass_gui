@@ -26,7 +26,9 @@
 #include "recorder.h"
 #include "fpga/fft.h"
 #include "fpga/adc.h"
+#include "fpga/control.h"
 #include "dsp/firdes.h"
+#include "dsp/agc.h"
 
 const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
 
@@ -45,6 +47,7 @@ static uint16_t         waterfall_fps_ms = (1000 / 10);
 static uint64_t         waterfall_time;
 
 static firhilbf         demod_ssb;
+static agc_t            *rx_agc;
 
 static size_t           filter_len = 0;
 static float            *filter_taps = NULL;
@@ -93,6 +96,29 @@ void dsp_init() {
     buf = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
 
     demod_ssb = firhilbf_create(15, 60.0f);
+
+    rx_agc = agc_create(
+        3,          /* mode */
+        ADC_RATE,   /* sample rate */
+        0.001f,     /* tau_attack */
+        0.250f,     /* tau_decay */
+        4,          /* n_tau */
+        10000.0f,   /* max_gain */
+        1.5f,       /* var_gain */
+        4.0f,       /* fixed_gain */
+        1.0f,       /* max_input */
+        1.0f,       /* out_target */
+        0.250f,     /* tau_fast_backaverage */
+        0.005f,     /* tau_fast_decay */
+        5.0f,       /* pop_ratio */
+        1,          /* hang_enable */
+        0.500f,     /* tau_hang_backmult */
+        0.250f,     /* hangtime */
+        0.250f,     /* hang_thresh */
+        0.100f      /* tau_hang_decay */
+    );
+
+    agc_set_mode(rx_agc, AGC_FAST);
 
     spectrum_time = get_time();
     waterfall_time = get_time();
@@ -234,14 +260,16 @@ void dsp_adc(float complex *data) {
             peak = fabs(y);
         }
 
-        y *= 16384.0f * 2.0f;
+        y = agc_apply(rx_agc, y);
+
+        y *= 16384.0f;
         
         if (y > 16384.0f) {
             y = 16384.0f;
         } else if (y < -16384.0f) {
             y = -16384.0f;
         }
-        
+                
         rec_buf[i] = (int16_t) y;
         
         y *= adc_vol;
