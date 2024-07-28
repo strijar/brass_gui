@@ -445,18 +445,6 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             }
             break;
 
-        case KEYPAD_AGC:
-            if (keypad->state == KEYPAD_RELEASE) {
-                radio_change_agc();
-                info_params_set();
-
-                if (params.mag_info.x) {
-                    msg_tiny_set_text_fmt("AGC: %s", info_params_agc());
-                }
-            } else if (keypad->state == KEYPAD_LONG) {
-            }
-            break;
-
         case KEYPAD_FST:
             if (keypad->state == KEYPAD_RELEASE) {
                 next_freq_step(true);

@@ -97,6 +97,7 @@ typedef struct {
     int32_t         filter_low;
     int32_t         filter_high;
     int32_t         filter_transition;
+    uint8_t         agc;
 
     uint16_t        freq_step;
     int16_t         spectrum_factor;
@@ -107,6 +108,7 @@ typedef struct {
         bool    filter_low;
         bool    filter_high;
         bool    filter_transition;
+        bool    agc;
 
         bool    freq_step;
         bool    spectrum_factor;
@@ -120,7 +122,6 @@ typedef struct {
     radio_att_t     att;
     radio_pre_t     pre;
     radio_mode_t    mode;
-    radio_agc_t     agc;
     
     struct {
         bool    freq_rx;
@@ -128,7 +129,6 @@ typedef struct {
         bool    att;
         bool    pre;
         bool    mode;
-        bool    agc;
     } durty;
 } params_vfo_t;
 
@@ -246,12 +246,6 @@ typedef struct {
     
     bool                nr;
     uint8_t             nr_level;
-    
-    /* AGC */
-    
-    bool                agc_hang;
-    int8_t              agc_knee;
-    uint8_t             agc_slope;
     
     /* VOX */
     
@@ -393,10 +387,6 @@ typedef struct {
         bool    nb_width;
         bool    nr;
         bool    nr_level;
-
-        bool    agc_hang;
-        bool    agc_knee;
-        bool    agc_slope;
 
         bool    vox;
         bool    vox_ag;

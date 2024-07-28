@@ -14,7 +14,7 @@
 typedef enum {
     VOL_VOL = 0,
     VOL_SQL,
-    VOL_RFG,
+    VOL_AGC,
     VOL_FILTER_LOW,
     VOL_FILTER_HIGH,
     VOL_PWR,

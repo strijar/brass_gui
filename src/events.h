@@ -42,7 +42,6 @@ typedef enum {
     KEYPAD_PRE,
     KEYPAD_ATU,
     KEYPAD_VM,
-    KEYPAD_AGC,
     KEYPAD_FST
 } keypad_key_t;
 

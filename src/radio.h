@@ -60,13 +60,6 @@ typedef enum {
 } radio_mic_sel_t;
 
 typedef enum {
-    radio_agc_off = 0,
-    radio_agc_slow = 1,
-    radio_agc_fast = 2,
-    radio_agc_auto = 3
-} radio_agc_t;
-
-typedef enum {
     radio_att_off = 0,
     radio_att_on = 1
 } radio_att_t;
@@ -121,7 +114,6 @@ void radio_change_mute();
 
 bool radio_change_pre();
 bool radio_change_att();
-void radio_change_agc();
 void radio_change_atu();
 void radio_change_split();
 float radio_change_pwr(int16_t d);
@@ -148,10 +140,6 @@ uint8_t radio_change_nb_level(int16_t d);
 uint8_t radio_change_nb_width(int16_t d);
 bool radio_change_nr(int16_t d);
 uint8_t radio_change_nr_level(int16_t d);
-
-bool radio_change_agc_hang(int16_t d);
-int8_t radio_change_agc_knee(int16_t d);
-uint8_t radio_change_agc_slope(int16_t d);
 
 void radio_start_atu();
 void radio_load_atu();

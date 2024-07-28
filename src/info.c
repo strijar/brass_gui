@@ -9,6 +9,7 @@
 #include "info.h"
 #include "styles.h"
 #include "params.h"
+#include "dsp/agc.h"
 
 typedef enum {
     INFO_VFO = 0,
@@ -120,30 +121,36 @@ const char* info_params_mode() {
 }
 
 const char* info_params_agc() {
-    radio_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
-    char            *str;
+    char        *str;
 
-    switch (agc) {
-        case radio_agc_off:
+    switch (params_mode.agc) {
+        case AGC_OFF:
             str = "OFF";
             break;
             
-        case radio_agc_slow:
+        case AGC_LONG:
+            str = "LONG";
+            break;
+            
+        case AGC_SLOW:
             str = "SLOW";
             break;
             
-        case radio_agc_fast:
+        case AGC_MED:
+            str = "MED";
+            break;
+
+        case AGC_FAST:
             str = "FAST";
             break;
-            
-        case radio_agc_auto:
-            str = "AUTO";
+
+        case AGC_CUSTOM:
+            str = "CUST";
             break;
             
         default:
             str = "?";
             break;
-
     }
 
     return str;

@@ -14,6 +14,8 @@
 #include "voice.h"
 #include "dsp.h"
 #include "finder.h"
+#include "dsp/agc.h"
+#include "info.h"
 
 static vol_mode_t   vol_mode = VOL_VOL;
 
@@ -37,14 +39,42 @@ void vol_update(int16_t diff, bool voice) {
             }
             break;
             
-        case VOL_RFG:
-            x = radio_change_rfg(diff);
-            msg_set_text_fmt("#%3X RF gain: %i", color, x);
+        case VOL_AGC:
+            x = dsp_change_rx_agc(diff);
+            
+            switch (x) {
+                case AGC_OFF:
+                    s = "Off";
+                    break;
+
+                case AGC_LONG:
+                    s = "Long";
+                    break;
+                    
+                case AGC_SLOW:
+                    s = "Slow";
+                    break;
+                    
+                case AGC_MED:
+                    s = "Medium";
+                    break;
+
+                case AGC_FAST:
+                    s = "Fast";
+                    break;
+
+                case AGC_CUSTOM:
+                    s = "Custom";
+                    break;
+            }
+            
+            msg_set_text_fmt("#%3X AGC mode: %s", color, s);
 
             if (diff) {
-                voice_say_int("RF gain", x);
+                info_params_set();
+                voice_say_text("AGC mode", s);
             } else if (voice) {
-                voice_say_text_fmt("RF gain");
+                voice_say_text_fmt("AGC mode");
             }
             break;
 

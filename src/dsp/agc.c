@@ -289,7 +289,7 @@ void agc_set_mode(agc_t *a, int mode) {
             agc_load(a);
             break;
 
-        default:
+        case AGC_CUSTOM:
             a->mode = 5;
             break;
     }

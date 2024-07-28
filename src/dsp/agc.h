@@ -16,7 +16,8 @@ typedef enum {
     AGC_LONG,
     AGC_SLOW,
     AGC_MED,
-    AGC_FAST
+    AGC_FAST,
+    AGC_CUSTOM
 } agc_mode_t;
 
 typedef struct {

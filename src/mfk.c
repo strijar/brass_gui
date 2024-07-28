@@ -458,39 +458,6 @@ void mfk_update(int16_t diff, bool voice) {
             }
             break;
 
-        case MFK_AGC_HANG:
-            b = radio_change_agc_hang(diff);
-            msg_set_text_fmt("#%3X AGC hang: %s", color, b ? "On" : "Off");
-
-            if (diff) {
-                voice_say_bool("Auto gain hang", b);
-            } else if (voice) {
-                voice_say_text_fmt("Auto gain hang switcher");
-            }
-            break;
-
-        case MFK_AGC_KNEE:
-            i = radio_change_agc_knee(diff);
-            msg_set_text_fmt("#%3X AGC knee: %i dB", color, i);
-
-            if (diff) {
-                voice_say_int("Auto gain knee level", i);
-            } else if (voice) {
-                voice_say_text_fmt("Auto gain knee level");
-            }
-            break;
-
-        case MFK_AGC_SLOPE:
-            i = radio_change_agc_slope(diff);
-            msg_set_text_fmt("#%3X AGC slope: %i dB", color, i);
-
-            if (diff) {
-                voice_say_int("Auto gain slope level", i);
-            } else if (voice) {
-                voice_say_text_fmt("Auto gain slope level");
-            }
-            break;
-
         case MFK_CW_DECODER:
             b = cw_change_decoder(diff);
             msg_set_text_fmt("#%3X CW decoder: %s", color, b ? "On" : "Off");

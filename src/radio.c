@@ -36,8 +36,6 @@ static lv_obj_t                 *main_obj;
 static radio_state_t            state = RADIO_RX;
 static bool                     mute = false;
 
-static void update_agc_time();
-
 bool radio_tick() {
 /*
     if (x6100_flow_read(pack)) {
@@ -165,7 +163,7 @@ void radio_mode_set() {
     radio_mode_t    mode = radio_current_mode();
 
     update_filter();
-    update_agc_time();
+    dsp_set_rx_agc(params_mode.agc);
 
     dsp_set_spectrum_factor(params_mode.spectrum_factor);
 }
@@ -510,80 +508,6 @@ uint32_t radio_change_filter_transition(int32_t df) {
     update_filter();
 
     return params_mode.filter_transition;
-}
-
-static void update_agc_time() {
-    radio_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
-    radio_mode_t    mode = radio_current_mode();
-    uint16_t        agc_time = 500;
-
-    switch (agc) {
-        case radio_agc_off:
-            agc_time = 1000;
-            break;
-            
-        case radio_agc_slow:
-            agc_time = 1000;
-            break;
-            
-        case radio_agc_fast:
-            agc_time = 100;
-            break;
-            
-        case radio_agc_auto:
-            switch (mode) {
-                case radio_mode_lsb:
-                case radio_mode_lsb_dig:
-                case radio_mode_usb:
-                case radio_mode_usb_dig:
-                    agc_time = 500;
-                    break;
-                    
-                case radio_mode_cw:
-                case radio_mode_cwr:
-                    agc_time = 100;
-                    break;
-                    
-                case radio_mode_am:
-                case radio_mode_nfm:
-                    agc_time = 1000;
-                    break;
-            }
-            break;
-    }
-}
-
-void radio_change_agc() {
-    params_lock();
-
-    radio_agc_t     agc = params_band.vfo_x[params_band.vfo].agc;
-    
-    switch (agc) {
-        case radio_agc_off:
-            agc = radio_agc_slow;
-            voice_say_text_fmt("Auto gain slow mode");
-            break;
-            
-        case radio_agc_slow:
-            agc = radio_agc_fast;
-            voice_say_text_fmt("Auto gain fast mode");
-            break;
-            
-        case radio_agc_fast:
-            agc = radio_agc_auto;
-            voice_say_text_fmt("Auto gain auto mode");
-            break;
-            
-        case radio_agc_auto:
-            agc = radio_agc_off;
-            voice_say_text_fmt("Auto gain off");
-            break;
-    }
-
-    update_agc_time();
-
-    params_band.vfo_x[params_band.vfo].agc = agc;
-    params_unlock(&params_band.vfo_x[params_band.vfo].durty.agc);
 }
 
 void radio_change_atu() {
@@ -997,42 +921,6 @@ uint8_t radio_change_nr_level(int16_t d) {
     params_unlock(&params.durty.nr_level);
     
     return params.nr_level;
-}
-
-bool radio_change_agc_hang(int16_t d) {
-    if (d == 0) {
-        return params.agc_hang;
-    }
-
-    params_lock();
-    params.agc_hang = !params.agc_hang;
-    params_unlock(&params.durty.agc_hang);
-
-    return params.agc_hang;
-}
-
-int8_t radio_change_agc_knee(int16_t d) {
-    if (d == 0) {
-        return params.agc_knee;
-    }
-
-    params_lock();
-    params.agc_knee = limit(params.agc_knee + d, -100, 0);
-    params_unlock(&params.durty.agc_knee);
-
-    return params.agc_knee;
-}
-
-uint8_t radio_change_agc_slope(int16_t d) {
-    if (d == 0) {
-        return params.agc_slope;
-    }
-
-    params_lock();
-    params.agc_slope = limit(params.agc_slope + d, 0, 10);
-    params_unlock(&params.durty.agc_slope);
-
-    return params.agc_slope;
 }
 
 void radio_set_ptt(bool tx) {

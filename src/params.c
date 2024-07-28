@@ -20,11 +20,12 @@
 #include "dialog_msg_cw.h"
 #include "qth.h"
 #include "voice.h"
+#include "dsp/agc.h"
 
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
 params_t params = {
-    .vol_modes              = (1 << VOL_VOL) | (1 << VOL_RFG) | (1 << VOL_FILTER_LOW) | (1 << VOL_FILTER_HIGH) | (1 << VOL_PWR) | (1 << VOL_HMIC),
+    .vol_modes              = (1 << VOL_VOL) | (1 << VOL_AGC) | (1 << VOL_FILTER_LOW) | (1 << VOL_FILTER_HIGH) | (1 << VOL_PWR) | (1 << VOL_HMIC),
     .mfk_modes              = (1 << MFK_SPECTRUM_FACTOR) | (1 << MFK_SPECTRUM_BETA) | (1 << MFK_PEAK_HOLD) | (1<< MFK_PEAK_SPEED),
 
     .brightness_normal      = 9,
@@ -76,10 +77,6 @@ params_t params = {
     .nb_width               = 10,
     .nr                     = false,
     .nr_level               = 0,
-
-    .agc_hang               = false,
-    .agc_knee               = -60,
-    .agc_slope              = 6,
 
     .vox                    = false,
     .vox_ag                 = 0,
@@ -154,7 +151,6 @@ params_band_t params_band = {
         .att            = radio_att_off,
         .pre            = radio_pre_off,
         .mode           = radio_mode_usb,
-        .agc            = radio_agc_fast
     },
 
     .vfo_x[RADIO_VFO_B] = {
@@ -163,7 +159,6 @@ params_band_t params_band = {
         .att            = radio_att_off,
         .pre            = radio_pre_off,
         .mode           = radio_mode_usb,
-        .agc            = radio_agc_fast
     },
 
     .split              = false,
@@ -175,6 +170,7 @@ params_mode_t params_mode = {
     .filter_low         = 50,
     .filter_high        = 2950,
     .filter_transition  = 100,
+    .agc                = AGC_MED,
 
     .freq_step          = 500,
     .spectrum_factor    = 1,
@@ -230,6 +226,8 @@ void params_mode_load() {
             params_mode.freq_step = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "spectrum_factor") == 0) {
             params_mode.spectrum_factor = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "agc") == 0) {
+            params_mode.agc = sqlite3_column_int(stmt, 1);
         }
     }
 
@@ -259,6 +257,7 @@ void params_mode_save() {
     if (params_mode.durty.filter_transition)    params_mode_write_int("filter_transition", params_mode.filter_transition, &params_mode.durty.filter_transition);
     if (params_mode.durty.freq_step)            params_mode_write_int("freq_step", params_mode.freq_step, &params_mode.durty.freq_step);
     if (params_mode.durty.spectrum_factor)      params_mode_write_int("spectrum_factor", params_mode.spectrum_factor, &params_mode.durty.spectrum_factor);
+    if (params_mode.durty.agc)                  params_mode_write_int("agc", params_mode.agc, &params_mode.durty.agc);
 
     params_exec("COMMIT");
 }
@@ -302,7 +301,6 @@ static void params_mb_load(sqlite3_stmt *stmt, bool set_freq) {
     bool copy_att = true;
     bool copy_pre = true;
     bool copy_mode = true;
-    bool copy_agc = true;
 
     memset(params_band.label, 0, sizeof(params_band.label));
     
@@ -324,8 +322,6 @@ static void params_mb_load(sqlite3_stmt *stmt, bool set_freq) {
             params_band.vfo_x[RADIO_VFO_A].pre = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfoa_mode") == 0) {
             params_band.vfo_x[RADIO_VFO_A].mode = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "vfoa_agc") == 0) {
-            params_band.vfo_x[RADIO_VFO_A].agc = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "vfob_freq_rx") == 0) {
             if (set_freq) {
                 uint64_t x = sqlite3_column_int64(stmt, 1);
@@ -343,9 +339,6 @@ static void params_mb_load(sqlite3_stmt *stmt, bool set_freq) {
         } else if (strcmp(name, "vfob_mode") == 0) {
             params_band.vfo_x[RADIO_VFO_B].mode = sqlite3_column_int(stmt, 1);
             copy_mode = false;
-        } else if (strcmp(name, "vfob_agc") == 0) {
-            params_band.vfo_x[RADIO_VFO_B].agc = sqlite3_column_int(stmt, 1);
-            copy_agc = false;
         } else if (strcmp(name, "grid_min") == 0) {
             params_band.grid_min = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "grid_max") == 0) {
@@ -363,7 +356,6 @@ static void params_mb_load(sqlite3_stmt *stmt, bool set_freq) {
     if (copy_att)   params_band.vfo_x[RADIO_VFO_B].att = params_band.vfo_x[RADIO_VFO_A].att;
     if (copy_pre)   params_band.vfo_x[RADIO_VFO_B].pre = params_band.vfo_x[RADIO_VFO_A].pre;
     if (copy_mode)  params_band.vfo_x[RADIO_VFO_B].mode = params_band.vfo_x[RADIO_VFO_A].mode;
-    if (copy_agc)   params_band.vfo_x[RADIO_VFO_B].agc = params_band.vfo_x[RADIO_VFO_A].agc;
 
     sqlite3_finalize(stmt);
     params_mode_load();
@@ -421,7 +413,6 @@ void params_memory_save(uint16_t id) {
         params_band.vfo_x[i].durty.att = true;
         params_band.vfo_x[i].durty.pre = true;
         params_band.vfo_x[i].durty.mode = true;
-        params_band.vfo_x[i].durty.agc = true;
     }
     
     params_band.durty.grid_min = true;
@@ -450,9 +441,6 @@ static bool params_mb_save(uint16_t id) {
     if (params_band.vfo_x[RADIO_VFO_A].durty.mode)
         params_mb_write_int(id, "vfoa_mode", params_band.vfo_x[RADIO_VFO_A].mode, &params_band.vfo_x[RADIO_VFO_A].durty.mode);
         
-    if (params_band.vfo_x[RADIO_VFO_A].durty.agc)
-        params_mb_write_int(id, "vfoa_agc", params_band.vfo_x[RADIO_VFO_A].agc, &params_band.vfo_x[RADIO_VFO_A].durty.agc);
-
     if (params_band.vfo_x[RADIO_VFO_B].durty.freq_rx)
         params_mb_write_int64(id, "vfob_freq", params_band.vfo_x[RADIO_VFO_B].freq_rx, &params_band.vfo_x[RADIO_VFO_B].durty.freq_rx);
 
@@ -468,9 +456,6 @@ static bool params_mb_save(uint16_t id) {
     if (params_band.vfo_x[RADIO_VFO_B].durty.mode)
         params_mb_write_int(id, "vfob_mode", params_band.vfo_x[RADIO_VFO_B].mode, &params_band.vfo_x[RADIO_VFO_B].durty.mode);
         
-    if (params_band.vfo_x[RADIO_VFO_B].durty.agc)
-        params_mb_write_int(id, "vfob_agc", params_band.vfo_x[RADIO_VFO_B].agc, &params_band.vfo_x[RADIO_VFO_B].durty.agc);
-
     if (params_band.durty.grid_min)
         params_mb_write_int(id, "grid_min", params_band.grid_min, &params_band.durty.grid_min);
         
@@ -621,12 +606,6 @@ static bool params_load() {
             params.nr = i;
         } else if (strcmp(name, "nr_level") == 0) {
             params.nr_level = i;
-        } else if (strcmp(name, "agc_hang") == 0) {
-            params.agc_hang = i;
-        } else if (strcmp(name, "agc_knee") == 0) {
-            params.agc_knee = i;
-        } else if (strcmp(name, "agc_slope") == 0) {
-            params.agc_slope = i;
         } else if (strcmp(name, "cw_decoder") == 0) {
             params.cw_decoder = i;
         } else if (strcmp(name, "cw_decoder_snr") == 0) {
@@ -868,10 +847,6 @@ static void params_save() {
     if (params.durty.nb_width)              params_write_int("nb_width", params.nb_width, &params.durty.nb_width);
     if (params.durty.nr)                    params_write_int("nr", params.nr, &params.durty.nr);
     if (params.durty.nr_level)              params_write_int("nr_level", params.nr_level, &params.durty.nr_level);
-
-    if (params.durty.agc_hang)              params_write_int("agc_hang", params.agc_hang, &params.durty.agc_hang);
-    if (params.durty.agc_knee)              params_write_int("agc_knee", params.agc_knee, &params.durty.agc_knee);
-    if (params.durty.agc_slope)             params_write_int("agc_slope", params.agc_slope, &params.durty.agc_slope);
 
     if (params.durty.cw_decoder)            params_write_int("cw_decoder", params.cw_decoder, &params.durty.cw_decoder);
     if (params.durty.cw_decoder_snr)        params_write_int("cw_decoder_snr", params.cw_decoder_snr * 10, &params.durty.cw_decoder_snr);
@@ -1194,7 +1169,6 @@ void params_band_vfo_clone() {
         b->durty.att = true;
         b->durty.pre = true;
         b->durty.mode = true;
-        b->durty.agc = true;
     } else {
         *a = *b;
 
@@ -1203,7 +1177,6 @@ void params_band_vfo_clone() {
         a->durty.att = true;
         a->durty.pre = true;
         a->durty.mode = true;
-        a->durty.agc = true;
     }
 }
 

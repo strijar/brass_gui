@@ -98,7 +98,7 @@ void dsp_init() {
     demod_ssb = firhilbf_create(15, 60.0f);
 
     rx_agc = agc_create(
-        3,          /* mode */
+        AGC_FAST,   /* mode */
         ADC_RATE,   /* sample rate */
         0.001f,     /* tau_attack */
         0.250f,     /* tau_decay */
@@ -118,7 +118,6 @@ void dsp_init() {
         0.100f      /* tau_hang_decay */
     );
 
-    agc_set_mode(rx_agc, AGC_FAST);
 
     spectrum_time = get_time();
     waterfall_time = get_time();
@@ -144,6 +143,24 @@ void dsp_set_filter(float low_freq, float high_freq, float transition, float att
 
     firdes_band_pass(1.0f, 12800.0f, low_freq, high_freq, filter_taps, filter_len);
     filter_need_update = true;
+}
+
+void dsp_set_rx_agc(uint8_t mode) {
+    agc_set_mode(rx_agc, mode);
+}
+
+uint8_t dsp_change_rx_agc(int16_t df) {
+    if (df == 0) {
+        return params_mode.agc;
+    }
+    
+    params_lock();
+    params_mode.agc = limit(params_mode.agc + df, AGC_OFF, AGC_CUSTOM);
+    params_unlock(&params_mode.durty.agc);
+
+    dsp_set_rx_agc(params_mode.agc);
+    
+    return params_mode.agc;
 }
 
 void update_auto(uint64_t now) {

@@ -19,6 +19,7 @@ void dsp_reset();
 
 void dsp_set_spectrum_factor(uint8_t x);
 void dsp_set_filter(float low_freq, float high_freq, float transition, float attenuation);
+void dsp_set_rx_agc(uint8_t mode);
 
 float dsp_get_spectrum_beta();
 void dsp_set_spectrum_beta(float x);
@@ -28,3 +29,4 @@ void dsp_auto_clear();
 
 void dsp_set_vol(uint8_t x);
 uint16_t dsp_change_vol(int16_t df);
+uint8_t dsp_change_rx_agc(int16_t df);

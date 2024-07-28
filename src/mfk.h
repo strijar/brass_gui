@@ -40,9 +40,9 @@ typedef enum {
     MFK_NR,
     MFK_NR_LEVEL,
     
-    MFK_AGC_HANG,
-    MFK_AGC_KNEE,
-    MFK_AGC_SLOPE,
+    MFK_AGC_HANG,   /* Not used */
+    MFK_AGC_KNEE,   /* Not used */
+    MFK_AGC_SLOPE,  /* Not used */
     
     MFK_CW_DECODER,
     MFK_CW_DECODER_SNR,

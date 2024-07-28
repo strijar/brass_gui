@@ -56,7 +56,7 @@ static button_item_t    buttons[] = {
     { .label = "(VOL 1:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_2, .prev = PAGE_MEM_2, .voice = "Volume|page 1" },
     { .label = "Audio\nVol",        .press = button_vol_update_cb,                                  .data = VOL_VOL },
     { .label = "SQL",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SQL },
-    { .label = "RFG",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_RFG },
+    { .label = "AGC",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_AGC },
     { .label = "TX\nPower",         .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_PWR },
 
     { .label = "(VOL 2:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_3, .prev = PAGE_VOL_1, .voice = "Volume|page 2" },
@@ -96,9 +96,9 @@ static button_item_t    buttons[] = {
     { .label = "XIT",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_XIT },
 
     { .label = "(MFK 4:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MEM_1, .prev = PAGE_MFK_3, .voice = "MFK|page 4" },
-    { .label = "AGC\nHang",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_HANG },
-    { .label = "AGC\nKnee",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_KNEE },
-    { .label = "AGC\nSlope",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC_SLOPE },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
 
     { .label = "(MEM 1:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MEM_2, .prev = PAGE_MFK_4, .voice = "Memory|page 1" },
