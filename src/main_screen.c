@@ -50,6 +50,7 @@
 #include "recorder.h"
 #include "voice.h"
 #include "finder.h"
+#include "python/python.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
@@ -1047,7 +1048,7 @@ void main_screen_set_freq(uint64_t freq) {
 lv_obj_t * main_screen() {
     uint16_t y = 0;
 
-    obj = lv_obj_create(NULL);
+    obj = python_main_screen_get();
 
     lv_obj_add_event_cb(obj, main_screen_rotary_cb, EVENT_ROTARY, NULL);
     lv_obj_add_event_cb(obj, main_screen_keypad_cb, EVENT_KEYPAD, NULL);
@@ -1056,9 +1057,6 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_RX, NULL);
     lv_obj_add_event_cb(obj, main_screen_update_cb, EVENT_SCREEN_UPDATE, NULL);
     lv_obj_add_event_cb(obj, main_screen_atu_update_cb, EVENT_ATU_UPDATE, NULL);
-    
-    lv_obj_add_style(obj, &background_style, LV_PART_MAIN);
-    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     
     spectrum = spectrum_init(obj);
     main_screen_keys_enable(true);

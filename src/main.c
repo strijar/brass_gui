@@ -36,6 +36,7 @@
 #include "gps.h"
 #include "fpga/fft.h"
 #include "fpga/adc.h"
+#include "python/python.h"
 
 #define DISP_BUF_SIZE (800 * 480 * 3)
 
@@ -47,6 +48,7 @@ static lv_disp_draw_buf_t   disp_buf;
 static lv_disp_drv_t        disp_drv;
 
 int main(void) {
+
     lv_init();
     lv_png_init();
     
@@ -88,7 +90,8 @@ int main(void) {
 
     params_init();
     styles_init();
-    
+    python_init();
+
     lv_obj_t *main_obj = main_screen();
 
     cw_init();
@@ -106,12 +109,7 @@ int main(void) {
 */
     uint64_t prev_time = get_time();
 
-#if 0    
-    lv_obj_set_style_bg_opa(lv_scr_act(), LV_OPA_0, 0);
-    lv_scr_load_anim(main_obj, LV_SCR_LOAD_ANIM_FADE_IN, 250, 0, false);
-#else
     lv_scr_load(main_obj);
-#endif
 
     while (1) {
         lv_timer_handler();
