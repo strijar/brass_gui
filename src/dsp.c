@@ -255,7 +255,7 @@ void dsp_adc(float complex *data) {
 
     for (int i = 0; i < ADC_SAMPLES; i++) {
         float m_lsb, m_usb;
-        float x = 0.0, y;
+        float x = 0.0f, y;
 
         switch (mode) {
             case radio_mode_lsb:
@@ -268,6 +268,12 @@ void dsp_adc(float complex *data) {
             case radio_mode_cw:
                 firhilbf_c2r_execute(demod_ssb, data[i], &m_lsb, &m_usb);
                 x = m_usb;
+                break;
+                
+            case radio_mode_am:
+                m_lsb = crealf(data[i]);
+                m_usb = cimagf(data[i]);
+                x = sqrtf(m_lsb * m_lsb + m_usb * m_usb);
                 break;
         }
   

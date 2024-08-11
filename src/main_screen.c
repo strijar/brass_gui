@@ -388,64 +388,29 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 dialog_send(EVENT_BAND_DOWN, NULL);
             }
             break;
-            
-        case KEYPAD_MODE_AM:
+
+        case KEYPAD_MODE:
             if (mode_lock) {
                 break;
             }
         
             if (keypad->state == KEYPAD_RELEASE) {
-                radio_change_mode(RADIO_MODE_AM);
-                params_mode_load();
-                radio_mode_set();
-                finder_mode_changed();
-                info_params_set();
-                pannel_visible();
+                radio_change_mode(RADIO_MODE_NEXT);
+            } else if (keypad->state == KEYPAD_LONG) {
+                radio_change_mode(RADIO_MODE_SUBSET);
+            }
 
-                if (params.mag_info.x) {
-                    msg_tiny_set_text_fmt("%s", info_params_mode());
-                }
+            params_mode_load();
+            radio_mode_set();
+            finder_mode_changed();
+            info_params_set();
+            pannel_visible();
+
+            if (params.mag_info.x) {
+                msg_tiny_set_text_fmt("%s", info_params_mode());
             }
             break;
-            
-        case KEYPAD_MODE_CW:
-            if (mode_lock) {
-                break;
-            }
-
-            if (keypad->state == KEYPAD_RELEASE) {
-                radio_change_mode(RADIO_MODE_CW);
-                params_mode_load();
-                radio_mode_set();
-                finder_mode_changed();
-                info_params_set();
-                pannel_visible();
-
-                if (params.mag_info.x) {
-                    msg_tiny_set_text_fmt("%s", info_params_mode());
-                }
-            }
-            break;
-
-        case KEYPAD_MODE_SSB:
-            if (mode_lock) {
-                break;
-            }
-
-            if (keypad->state == KEYPAD_RELEASE) {
-                radio_change_mode(RADIO_MODE_SSB);
-                params_mode_load();
-                radio_mode_set();
-                finder_mode_changed();
-                info_params_set();
-                pannel_visible();
-
-                if (params.mag_info.x) {
-                    msg_tiny_set_text_fmt("%s", info_params_mode());
-                }
-            }
-            break;
-
+        
         case KEYPAD_FST:
             if (keypad->state == KEYPAD_RELEASE) {
                 next_freq_step(true);

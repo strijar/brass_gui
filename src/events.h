@@ -34,9 +34,7 @@ typedef enum {
     KEYPAD_PTT,
     KEYPAD_BAND_DOWN,
     KEYPAD_BAND_UP,
-    KEYPAD_MODE_AM,
-    KEYPAD_MODE_CW,
-    KEYPAD_MODE_SSB,
+    KEYPAD_MODE,
     
     KEYPAD_AB,
     KEYPAD_PRE,

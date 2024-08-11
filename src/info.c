@@ -84,16 +84,8 @@ const char* info_params_mode() {
             str = "LSB";
             break;
             
-        case radio_mode_lsb_dig:
-            str = "LSB-D";
-            break;
-            
         case radio_mode_usb:
             str = "USB";
-            break;
-            
-        case radio_mode_usb_dig:
-            str = "USB-D";
             break;
             
         case radio_mode_cw:

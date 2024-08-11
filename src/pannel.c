@@ -110,8 +110,6 @@ void pannel_visible() {
             
         case radio_mode_usb:
         case radio_mode_lsb:
-        case radio_mode_usb_dig:
-        case radio_mode_lsb_dig:
             on = rtty_get_state() != RTTY_OFF;
             break;
     }

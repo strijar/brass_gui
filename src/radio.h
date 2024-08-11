@@ -22,9 +22,7 @@ typedef enum {
 
 typedef enum {
     radio_mode_lsb = 0,
-    radio_mode_lsb_dig = 1,
     radio_mode_usb = 2,
-    radio_mode_usb_dig = 3,
     radio_mode_cw = 4,
     radio_mode_cwr = 5,
     radio_mode_am = 6,
@@ -32,9 +30,8 @@ typedef enum {
 
     /* Loop by keys */
 
-    RADIO_MODE_AM,
-    RADIO_MODE_CW,
-    RADIO_MODE_SSB,
+    RADIO_MODE_NEXT,
+    RADIO_MODE_SUBSET,
 
     /* Direct set */
 

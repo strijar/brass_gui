@@ -265,7 +265,7 @@ static void frame_parse(uint16_t len) {
                                 break;
                                 
                             case 1:
-                                mode = radio_mode_lsb_dig;
+                                // mode = radio_mode_lsb_dig;
                                 break;
                         }
                         break;
@@ -277,7 +277,7 @@ static void frame_parse(uint16_t len) {
                                 break;
                                 
                             case 1:
-                                mode = radio_mode_usb_dig;
+                                // mode = radio_mode_usb_dig;
                                 break;
                         }
                         break;

@@ -121,16 +121,12 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     event.key = KEYPAD_BAND_UP;
                     break;
 
-                case BTN_TRIGGER_HAPPY10:
-                    event.key = KEYPAD_MODE_AM;
+                case KEY_C:
+                    event.key = KEYPAD_FST;
                     break;
 
-                case BTN_TRIGGER_HAPPY11:
-                    event.key = KEYPAD_MODE_CW;
-                    break;
-
-                case BTN_TRIGGER_HAPPY12:
-                    event.key = KEYPAD_MODE_SSB;
+                case KEY_D:
+                    event.key = KEYPAD_MODE;
                     break;
 
                 case BTN_TRIGGER_HAPPY16:
@@ -149,9 +145,6 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     event.key = KEYPAD_VM;
                     break;
 
-                case KEY_C:
-                    event.key = KEYPAD_FST;
-                    break;
                     
                 default:
                     event.key = KEYPAD_UNKNOWN;
