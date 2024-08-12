@@ -240,6 +240,44 @@ void dsp_fft(float complex *data) {
     update_auto(now);
 }
 
+static float demodulate(float complex in, radio_mode_t mode) {
+    static float    last_phase = 0;
+    float           phase, dphase;
+    float           a, b;
+    float           out = 0.0f;
+
+    switch (mode) {
+        case radio_mode_lsb:
+        case radio_mode_cwr:
+            firhilbf_c2r_execute(demod_ssb, in, &a, &b);
+            out = a;
+            break;
+
+        case radio_mode_usb:
+        case radio_mode_cw:
+            firhilbf_c2r_execute(demod_ssb, in, &a, &b);
+            out = b;
+            break;
+            
+        case radio_mode_am:
+            a = crealf(in);
+            b = cimagf(in);
+            out = sqrtf(a * a + b * b);
+            break;
+            
+        case radio_mode_nfm:
+            phase = atan2f(cimagf(in), crealf(in));
+            dphase = phase - last_phase;
+            while (dphase < -M_PI) dphase += 2 * M_PI;
+            while (dphase > M_PI) dphase -= 2 * M_PI;
+            out = dphase / M_PI;
+            last_phase = phase;
+            break;
+    }
+    
+    return out;
+}
+
 void dsp_adc(float complex *data) {
     radio_mode_t    mode = radio_current_mode();
     float           peak = 0.0f;
@@ -254,29 +292,9 @@ void dsp_adc(float complex *data) {
     }
 
     for (int i = 0; i < ADC_SAMPLES; i++) {
-        float m_lsb, m_usb;
-        float x = 0.0f, y;
+        float x, y;
 
-        switch (mode) {
-            case radio_mode_lsb:
-            case radio_mode_cwr:
-                firhilbf_c2r_execute(demod_ssb, data[i], &m_lsb, &m_usb);
-                x = m_lsb;
-                break;
-
-            case radio_mode_usb:
-            case radio_mode_cw:
-                firhilbf_c2r_execute(demod_ssb, data[i], &m_lsb, &m_usb);
-                x = m_usb;
-                break;
-                
-            case radio_mode_am:
-                m_lsb = crealf(data[i]);
-                m_usb = cimagf(data[i]);
-                x = sqrtf(m_lsb * m_lsb + m_usb * m_usb);
-                break;
-        }
-  
+        x = demodulate(data[i], mode);
         firfilt_rrrf_execute_one(filter, x, &y);
 
         if (fabs(y) > peak) {
