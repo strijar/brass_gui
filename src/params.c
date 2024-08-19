@@ -131,6 +131,7 @@ params_t params = {
     
     .play_gain              = 100,
     .rec_gain               = 100,
+    .rec_format             = REC_FORMAT_WAV,
 
     .voice_mode             = { .x = VOICE_LCD,                                 .name = "voice_mode" },
     .voice_lang             = { .x = 0,   .min = 0,  .max = (VOICES_NUM - 1),   .name = "voice_lang" },

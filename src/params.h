@@ -191,6 +191,10 @@ typedef enum {
     FREQ_MODE_FFT_ONLY
 } rx_freq_mode_t;
 
+typedef enum {
+    REC_FORMAT_WAV = 0,
+    REC_FORMAT_MP3
+} rec_format_t;
 
 /* Params */
 
@@ -335,10 +339,11 @@ typedef struct {
     uint8_t             long_f1;
     uint8_t             long_f2;
     
-    /* Audio play/rec */
+    /* Audio play/rec, recorder */
 
     uint16_t            play_gain;
     uint16_t            rec_gain;
+    rec_format_t        rec_format;
     
     /* Voice */
 

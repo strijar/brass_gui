@@ -34,22 +34,33 @@ static bool create_file() {
 
     memset(&sfinfo, 0, sizeof(sfinfo));
 
-    sfinfo.samplerate = ADC_RATE;
     sfinfo.channels = 1;
-    #if 1
-    sfinfo.format = SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III;
-    #else
-    sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
-    #endif
-    
+
     char        filename[64];
     time_t      now = time(NULL);
     struct tm   *t = localtime(&now);
 
-    snprintf(filename, sizeof(filename),
-        "%s/REC_%04i%02i%02i_%02i%02i%02i.mp3", 
-        recorder_path, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec
-    );
+    switch (params.rec_format) {
+        case REC_FORMAT_MP3:
+            sfinfo.samplerate = ADC_RATE;
+            sfinfo.format = SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III;
+
+            snprintf(filename, sizeof(filename),
+                "%s/REC_%04i%02i%02i_%02i%02i%02i.mp3",
+                recorder_path, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec
+            );
+            break;
+            
+        case REC_FORMAT_WAV:
+            sfinfo.samplerate = ADC_RATE;
+            sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+
+            snprintf(filename, sizeof(filename),
+                "%s/REC_%04i%02i%02i_%02i%02i%02i.wav",
+                recorder_path, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec
+            );
+            break;
+    }
     
     file = sf_open(filename, SFM_WRITE, &sfinfo);
     
