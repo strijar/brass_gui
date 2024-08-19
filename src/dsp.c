@@ -47,6 +47,7 @@ static uint16_t         waterfall_fps_ms = (1000 / 10);
 static uint64_t         waterfall_time;
 
 static firhilbf         demod_ssb;
+static firfilt_rrrf     demod_dcblock;
 static agc_t            *rx_agc;
 
 static size_t           filter_len = 0;
@@ -96,6 +97,7 @@ void dsp_init() {
     buf = (float complex*) malloc(RADIO_SAMPLES * sizeof(float complex));
 
     demod_ssb = firhilbf_create(15, 60.0f);
+    demod_dcblock = firfilt_rrrf_create_dc_blocker(25, 20.0f);
 
     rx_agc = agc_create(
         AGC_FAST,   /* mode */
@@ -260,9 +262,8 @@ static float demodulate(float complex in, radio_mode_t mode) {
             break;
             
         case radio_mode_am:
-            a = crealf(in);
-            b = cimagf(in);
-            out = sqrtf(a * a + b * b);
+            firfilt_rrrf_push(demod_dcblock, cabsf(in));
+            firfilt_rrrf_execute(demod_dcblock, &out);
             break;
             
         case radio_mode_nfm:
