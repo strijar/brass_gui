@@ -13,7 +13,6 @@
 #include "params.h"
 #include "voice.h"
 #include "dsp.h"
-#include "finder.h"
 #include "dsp/agc.h"
 #include "info.h"
 
@@ -91,7 +90,6 @@ void vol_update(int16_t diff, bool voice) {
 
         case VOL_FILTER_LOW:
             x = radio_change_filter_low(diff);
-            finder_mode_changed();
             msg_set_text_fmt("#%3X Filter low: %i Hz", color, x);
 
             if (diff) {
@@ -103,7 +101,6 @@ void vol_update(int16_t diff, bool voice) {
 
         case VOL_FILTER_HIGH:
             x = radio_change_filter_high(diff);
-            finder_mode_changed();
             msg_set_text_fmt("#%3X Filter high: %i Hz", color, x);
 
             if (diff) {

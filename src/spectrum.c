@@ -19,11 +19,13 @@
 #include "meter.h"
 #include "rtty.h"
 #include "recorder.h"
+#include "msgs.h"
 
 float                   spectrum_auto_min;
 float                   spectrum_auto_max;
 
 static lv_obj_t         *obj;
+static lv_obj_t         *finder;
 
 static int              grid_min = -70;
 static int              grid_max = -40;
@@ -130,6 +132,39 @@ static void rx_cb(lv_event_t * e) {
     finder_height += 61;
 }
 
+static void finder_event_cb(lv_event_t * e) {
+    lv_obj_t *finder = lv_event_get_target(e);
+    lv_msg_t *m = lv_event_get_msg(e);
+    
+    switch (lv_msg_get_id(m)) {
+        case MSG_FILTER_CHANGED: {
+            int32_t from, to;
+
+            radio_filter_get(&from, &to);
+            lv_finder_set_offsets(finder, from, to);
+            lv_obj_invalidate(finder);
+        } break;
+        
+        case MSG_FREQ_RX_CHANGED: {
+            const uint64_t *freq = lv_msg_get_payload(m);
+            
+            lv_finder_set_value(finder, *freq);
+            lv_obj_invalidate(finder);
+        } break;
+
+        case MSG_FREQ_FFT_CHANGED: {
+            const uint64_t  *freq = lv_msg_get_payload(m);
+            uint32_t        half = 50000 / params_mode.spectrum_factor;
+
+            lv_finder_set_range(finder, *freq - half, *freq + half);
+            lv_obj_invalidate(finder);
+        } break;
+        
+        default:
+            break;
+    }
+}
+
 lv_obj_t * spectrum_init(lv_obj_t * parent) {
     pthread_mutex_init(&data_mux, NULL);
 
@@ -145,8 +180,28 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
     lv_obj_add_event_cb(obj, tx_cb, EVENT_RADIO_TX, NULL);
     lv_obj_add_event_cb(obj, rx_cb, EVENT_RADIO_RX, NULL);
 
+    /* Finder */
+
+    finder = lv_finder_create(obj);
+    
+    lv_finder_set_cursor(finder, 1, 0);
+    lv_obj_set_y(finder, 40);
+
+    lv_obj_add_style(finder, &rx_finder_style, LV_PART_MAIN);
+
+    lv_obj_set_style_bg_color(finder, bg_color, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
+
+    lv_obj_set_style_line_width(finder, 1, LV_PART_INDICATOR);
+    lv_obj_set_style_line_color(finder, lv_color_white(), LV_PART_INDICATOR);
+    lv_obj_set_style_line_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
+
+    lv_obj_add_event_cb(finder, finder_event_cb, LV_EVENT_MSG_RECEIVED, NULL);
+    lv_msg_subsribe_obj(MSG_FILTER_CHANGED, finder, NULL);
+    lv_msg_subsribe_obj(MSG_FREQ_RX_CHANGED, finder, NULL);
+    lv_msg_subsribe_obj(MSG_FREQ_FFT_CHANGED, finder, NULL);
+
     spectrum_clear();
-    spectrum_band_changed();
 
     return obj;
 }
@@ -176,11 +231,6 @@ void spectrum_data(float *data_buf, uint16_t size) {
 
     pthread_mutex_unlock(&data_mux);
     event_send(obj, LV_EVENT_REFRESH, NULL);
-}
-
-void spectrum_band_changed() {
-    spectrum_set_min(params_band.grid_min);
-    spectrum_set_max(params_band.grid_max);
 }
 
 void spectrum_set_max(int db) {

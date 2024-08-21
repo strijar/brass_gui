@@ -12,6 +12,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "lvgl/lvgl.h"
 #include "util.h"
 #include "radio.h"
 #include "dsp.h"
@@ -28,6 +29,7 @@
 #include "voice.h"
 #include "fpga/control.h"
 #include "audio_adc.h"
+#include "msgs.h"
 
 #define FLOW_RESTART_TIMOUT     300
 
@@ -157,6 +159,7 @@ void radio_vfo_set() {
 
 static void update_filter() {
     dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, 40);
+    lv_msg_send(MSG_FILTER_CHANGED, NULL);
 }
 
 void radio_mode_set() {
@@ -198,6 +201,8 @@ void radio_set_freq_rx(uint64_t freq) {
 
     control_set_rx_freq(freq - shift);
     radio_load_atu();
+
+    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.vfo_x[params_band.vfo].freq_rx);
 }
 
 void radio_set_freq_fft(uint64_t freq) {
@@ -213,6 +218,7 @@ void radio_set_freq_fft(uint64_t freq) {
     params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq_fft);
 
     control_set_fft_freq(freq - shift);
+    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.vfo_x[params_band.vfo].freq_fft);
 }
 
 bool radio_check_freq(uint64_t freq, uint64_t *shift) {
@@ -232,6 +238,14 @@ bool radio_check_freq(uint64_t freq, uint64_t *shift) {
         }
 
     return false;
+}
+
+uint64_t radio_current_freq_rx() {
+    return params_band.vfo_x[params_band.vfo].freq_rx;
+}
+
+uint64_t radio_current_freq_fft() {
+    return params_band.vfo_x[params_band.vfo].freq_fft;
 }
 
 void radio_change_mute() {
@@ -336,6 +350,7 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
 void radio_set_mode(radio_vfo_t vfo, radio_mode_t mode) {
     params_band.vfo_x[vfo].mode = mode;
     params_unlock(&params_band.vfo_x[vfo].durty.mode);
+    lv_msg_send(MSG_MODE_CHANGED, &params_band.vfo_x[vfo].mode);
 }
 
 void radio_restore_mode(radio_mode_t mode) {

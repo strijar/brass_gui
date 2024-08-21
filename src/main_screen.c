@@ -49,8 +49,8 @@
 #include "buttons.h"
 #include "recorder.h"
 #include "voice.h"
-#include "finder.h"
 #include "python/python.h"
+#include "msgs.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
@@ -86,10 +86,6 @@ void mem_load(uint16_t id) {
 
     radio_vfo_set();
     radio_mode_set();
-
-    finder_mode_changed();
-    spectrum_band_changed();
-    waterfall_band_changed();
 
     radio_load_atu();
     info_params_set();
@@ -127,7 +123,7 @@ static uint64_t freq_update() {
         vfo = (vfo == RADIO_VFO_A) ? RADIO_VFO_B : RADIO_VFO_A;
     }
 
-    f = params_band.vfo_x[vfo].freq_fft;
+    f = radio_current_freq_fft();
 
     int32_t half = 50000 / params_mode.spectrum_factor;
 
@@ -137,7 +133,7 @@ static uint64_t freq_update() {
     split_freq(f + half, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
 
-    f = params_band.vfo_x[vfo].freq_rx;
+    f = radio_current_freq_rx();
 
     split_freq(f, &mhz, &khz, &hz);
 
@@ -402,7 +398,6 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
             params_mode_load();
             radio_mode_set();
-            finder_mode_changed();
             info_params_set();
             pannel_visible();
 
@@ -738,8 +733,8 @@ static void freq_shift(int16_t diff) {
         return;
     }
     
-    uint64_t    prev_freq_rx = params_band.vfo_x[params_band.vfo].freq_rx;
-    uint64_t    prev_freq_fft = params_band.vfo_x[params_band.vfo].freq_fft;
+    uint64_t    prev_freq_rx = radio_current_freq_rx();
+    uint64_t    prev_freq_fft = radio_current_freq_fft();
     
     int32_t     df = diff * params_mode.freq_step * freq_accel(abs(diff));
 
@@ -758,8 +753,6 @@ static void freq_shift(int16_t diff) {
 
             band_info_update(freq_rx);
 
-            finder_update_range();
-            finder_update_rx();
             check_cross_band(freq_rx);
             voice_say_freq(freq_rx);
             break;
@@ -776,11 +769,9 @@ static void freq_shift(int16_t diff) {
             if (slided) {
                 radio_set_freq_fft(freq_fft);
                 waterfall_change_freq(freq_fft - prev_freq_fft);
-                finder_update_range();
             }
 
             radio_set_freq_rx(freq_rx);
-            finder_update_rx();
             check_cross_band(freq_rx);
             band_info_update(prev_freq_fft);
             voice_say_freq(freq_rx);
@@ -788,7 +779,6 @@ static void freq_shift(int16_t diff) {
 
         case FREQ_MODE_RX_ONLY:
             radio_set_freq_rx(freq_rx);
-            finder_update_rx();
             check_cross_band(freq_rx);
             voice_say_freq(freq_rx);
             break;
@@ -796,8 +786,6 @@ static void freq_shift(int16_t diff) {
         case FREQ_MODE_FFT_ONLY:
             radio_set_freq_fft(freq_fft);
             waterfall_change_freq(freq_fft - prev_freq_fft);
-            finder_update_range();
-            finder_update_rx();
             band_info_update(freq_fft);
             break;
             
@@ -991,10 +979,6 @@ void main_screen_lock_mode(bool lock) {
 }
 
 void main_screen_set_freq(uint64_t freq) {
-    radio_vfo_t vfo = params_band.vfo;
-    uint64_t    prev_rx = params_band.vfo_x[vfo].freq_rx;
-    uint64_t    prev_fft = params_band.vfo_x[vfo].freq_fft;
-    
     if (params_bands_find(freq, &params.freq_band)) {
         if (params.freq_band.type != 0) {
             if (params.freq_band.id != params.band) {
@@ -1029,8 +1013,6 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(spectrum, spectrum_key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(spectrum, spectrum_pressed_cb, LV_EVENT_PRESSED, NULL);
     
-    spectrum_band_changed();
-
     lv_obj_set_y(spectrum, y);
     
     y += spectrum_height;
@@ -1059,9 +1041,6 @@ lv_obj_t * main_screen() {
 
     waterfall = waterfall_init(obj);
 
-    waterfall_band_changed();
-    finder_init(spectrum, waterfall);
-    
     lv_obj_set_y(waterfall, y);
     waterfall_set_height(480 - y);
     
@@ -1079,6 +1058,14 @@ lv_obj_t * main_screen() {
     tx_info = tx_info_init(obj);
     
     main_screen_band_changed();
+    
+    uint64_t freq;
+    
+    freq = radio_current_freq_rx();
+    lv_msg_send(MSG_FREQ_RX_CHANGED, &freq);
+
+    freq = radio_current_freq_fft();
+    lv_msg_send(MSG_FREQ_FFT_CHANGED, &freq);
 
     msg_set_text_fmt("TRX Brass de R1CBU " VERSION);
     msg_set_timeout(2000);
@@ -1097,18 +1084,12 @@ void main_screen_band_changed() {
     band_info_update_range();
 
     dsp_auto_clear();
-
-    int32_t half = 50000 / params_mode.spectrum_factor;
-
-    finder_set_range(freq - half, freq + half);
-    finder_set_rx(freq);
 }
 
 void main_screen_update_range() {
     params_band.vfo_x[params_band.vfo].freq_fft = params_band.vfo_x[params_band.vfo].freq_rx;
     radio_set_freq_fft(params_band.vfo_x[params_band.vfo].freq_fft);
 
-    finder_update_range();
     band_info_update_range();
     waterfall_update_range();
     spectrum_update_range();

@@ -18,8 +18,8 @@
 #include "meter.h"
 #include "backlight.h"
 #include "dsp.h"
-#include "finder.h"
 #include "fpga/fft.h"
+#include "msgs.h"
 
 #define PX_BYTES    4
 
@@ -28,6 +28,7 @@ float                   waterfall_auto_max;
 
 static lv_obj_t         *obj;
 static lv_obj_t         *img;
+static lv_obj_t         *finder;
 
 static lv_coord_t       width;
 static lv_coord_t       height;
@@ -43,11 +44,65 @@ static lv_color_t       palette[256];
 static int32_t          scroll_hor = 0;
 static int32_t          scroll_hor_surplus = 0;
 
+static void finder_event_cb(lv_event_t * e) {
+    lv_obj_t *finder = lv_event_get_target(e);
+    lv_msg_t *m = lv_event_get_msg(e);
+    
+    switch (lv_msg_get_id(m)) {
+        case MSG_FILTER_CHANGED: {
+            int32_t from, to;
+
+            radio_filter_get(&from, &to);
+            lv_finder_set_offsets(finder, from, to);
+            lv_obj_invalidate(finder);
+        } break;
+        
+        case MSG_FREQ_RX_CHANGED: {
+            const uint64_t *freq = lv_msg_get_payload(m);
+            
+            lv_finder_set_value(finder, *freq);
+            lv_obj_invalidate(finder);
+        } break;
+
+        case MSG_FREQ_FFT_CHANGED: {
+            const uint64_t  *freq = lv_msg_get_payload(m);
+            uint32_t        half = 50000 / params_mode.spectrum_factor;
+
+            lv_finder_set_range(finder, *freq - half, *freq + half);
+            lv_obj_invalidate(finder);
+        } break;
+        
+        default:
+            break;
+    }
+}
+
 lv_obj_t * waterfall_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
     
     lv_obj_add_style(obj, &waterfall_style, 0);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+
+    /* Finder */
+
+    finder = lv_finder_create(obj);
+    
+    lv_finder_set_cursor(finder, 1, 0);
+
+    lv_obj_add_style(finder, &rx_finder_style, LV_PART_MAIN);
+
+    lv_obj_set_style_bg_color(finder, bg_color, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
+
+    lv_obj_set_style_line_width(finder, 1, LV_PART_INDICATOR);
+    lv_obj_set_style_line_color(finder, lv_color_white(), LV_PART_INDICATOR);
+    lv_obj_set_style_line_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
+
+    lv_obj_add_event_cb(finder, finder_event_cb, LV_EVENT_MSG_RECEIVED, NULL);
+    lv_msg_subsribe_obj(MSG_FILTER_CHANGED, finder, NULL);
+    lv_msg_subsribe_obj(MSG_FREQ_RX_CHANGED, finder, NULL);
+    lv_msg_subsribe_obj(MSG_FREQ_FFT_CHANGED, finder, NULL);
+
 
     return obj;
 }
@@ -138,8 +193,8 @@ void waterfall_set_height(lv_coord_t h) {
     lv_obj_set_height(obj, h);
     lv_obj_update_layout(obj);
 
-    lv_obj_set_height(waterfall_finder, h - 62);
-    lv_obj_update_layout(waterfall_finder);
+    lv_obj_set_height(finder, h - 62);
+    lv_obj_update_layout(finder);
 
     width = 2047;
     height = lv_obj_get_height(obj);
@@ -165,8 +220,7 @@ void waterfall_set_height(lv_coord_t h) {
     lv_img_set_src(img, frame);
     lv_obj_add_event_cb(img, do_scroll_cb, LV_EVENT_DRAW_POST, NULL);
 
-    lv_obj_move_foreground(waterfall_finder);
-    waterfall_band_changed();
+    lv_obj_move_foreground(finder);
     band_info_init(obj);
 }
 
@@ -174,11 +228,6 @@ void waterfall_clear() {
     memset(frame->data, 0, frame->data_size);
     scroll_hor = 0;
     scroll_hor_surplus = 0;
-}
-
-void waterfall_band_changed() {
-    grid_min = params_band.grid_min;
-    grid_max = params_band.grid_max;
 }
 
 void waterfall_change_max(int16_t d) {
