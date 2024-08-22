@@ -1013,8 +1013,6 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(spectrum, spectrum_key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(spectrum, spectrum_pressed_cb, LV_EVENT_PRESSED, NULL);
     
-    lv_obj_set_y(spectrum, y);
-    
     y += spectrum_height;
     
     lv_obj_t *f;
