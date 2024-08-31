@@ -10,9 +10,24 @@
 
 #include <stdint.h>
 
+typedef struct {
+    float   min;
+    float   max;
+} msgs_auto_t;
+
+typedef struct {
+    float   *data;
+    size_t  size;
+} msgs_floats_t;
+
 typedef enum {
     MSG_MODE_CHANGED = 1,
     MSG_FILTER_CHANGED,
     MSG_FREQ_RX_CHANGED,
-    MSG_FREQ_FFT_CHANGED
+    MSG_FREQ_FFT_CHANGED,
+    MSG_FREQ_FFT_SHIFT,
+    MSG_RATE_FFT_CHANGED,   /* uint8_t */
+    MSG_SPECTRUM_AUTO,      /* msgs_auto_t */
+    MSG_WATERFALL_AUTO,     /* msgs_auto_t */
+    MSG_SPECTRUM_DATA,      /* msgs_floats_t */
 } msgs_t;

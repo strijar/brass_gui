@@ -13,16 +13,4 @@
 
 #include "lvgl/lvgl.h"
 
-extern float spectrum_auto_min;
-extern float spectrum_auto_max;
-
 lv_obj_t * spectrum_init(lv_obj_t * parent);
-
-void spectrum_data(float *data_buf, uint16_t size);
-
-void spectrum_set_max(int db);
-void spectrum_set_min(int db);
-void spectrum_change_freq(int16_t df);
-
-void spectrum_clear();
-void spectrum_update_range();

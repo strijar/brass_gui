@@ -11,6 +11,7 @@
 #include "events.h"
 #include "params.h"
 #include "spectrum.h"
+#include "msgs.h"
 
 #define NUM_ITEMS   7
 
@@ -19,6 +20,7 @@ static int16_t          max_db = S9_40;
 
 static uint8_t          meter_height = 62;
 static int16_t          meter_db = S1;
+static float            auto_min = S1;
 
 static lv_obj_t         *obj;
 
@@ -67,10 +69,8 @@ static void meter_draw_cb(lv_event_t * e) {
 
     int16_t db = s_items[0].db;
 
-    int16_t min = params.spectrum_auto_min.x ? spectrum_auto_min : params_band.grid_min;
-
     for (uint16_t i = 0; i < count; i++) {
-        if (db <= min) {
+        if (db <= auto_min) {
             rect_dsc.bg_color = lv_color_hex(0x777777);
         } else if (db <= -73) {
             rect_dsc.bg_color = lv_color_hex(0xAAAAAA);
@@ -126,6 +126,18 @@ static void rx_cb(lv_event_t * e) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
 }
 
+static void meter_msg_cb(lv_event_t * e) {
+    lv_msg_t *m = lv_event_get_msg(e);
+    
+    switch (lv_msg_get_id(m)) {
+        case MSG_SPECTRUM_AUTO: {
+            const msgs_auto_t *msg = lv_msg_get_payload(m);
+
+            auto_min = msg->min;
+        } break;
+    }
+}
+
 lv_obj_t * meter_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
 
@@ -136,6 +148,9 @@ lv_obj_t * meter_init(lv_obj_t * parent) {
     lv_obj_add_event_cb(obj, tx_cb, EVENT_RADIO_TX, NULL);
     lv_obj_add_event_cb(obj, rx_cb, EVENT_RADIO_RX, NULL);
     lv_obj_add_event_cb(obj, meter_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
+
+    lv_obj_add_event_cb(obj, meter_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
+    lv_msg_subsribe_obj(MSG_SPECTRUM_AUTO, obj, NULL);
 
     return obj;
 }

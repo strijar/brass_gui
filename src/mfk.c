@@ -35,34 +35,6 @@ void mfk_update(int16_t diff, bool voice) {
     uint32_t    color = mfk_state == MFK_STATE_EDIT ? 0xFFFFFF : 0xBBBBBB;
 
     switch (mfk_mode) {
-        case MFK_MIN_LEVEL:
-            if (diff != 0) {
-                waterfall_change_min(diff);
-                spectrum_set_min(params_band.grid_min);
-            }
-            msg_set_text_fmt("#%3X Min level: %i dB", color, params_band.grid_min);
-            
-            if (diff) {
-                voice_say_int("Spectrum min level", params_band.grid_min);
-            } else if (voice) {
-                voice_say_text_fmt("Spectrum min level");
-            }
-            break;
-            
-        case MFK_MAX_LEVEL:
-            if (diff != 0) {
-                waterfall_change_max(diff);
-                spectrum_set_max(params_band.grid_max);
-            }
-            msg_set_text_fmt("#%3X Max level: %i dB", color, params_band.grid_max);
-
-            if (diff) {
-                voice_say_int("Spectrum max level", params_band.grid_max);
-            } else if (voice) {
-                voice_say_text_fmt("Spectrum max level");
-            }
-            break;
-
         case MFK_SPECTRUM_FACTOR:
             if (diff != 0) {
                 update = false;

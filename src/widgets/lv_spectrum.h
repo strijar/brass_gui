@@ -53,7 +53,7 @@ lv_obj_t * lv_spectrum_create(lv_obj_t * parent);
  * Setter functions
  *====================*/
 
-void lv_spectrum_set_size(lv_obj_t * obj, lv_coord_t w, lv_coord_t h);
+void lv_spectrum_set_data_size(lv_obj_t * obj, uint16_t size);
 void lv_spectrum_clear_data(lv_obj_t * obj);
 void lv_spectrum_scroll_data(lv_obj_t * obj, int16_t delta);
 void lv_spectrum_add_data(lv_obj_t * obj, float * data);

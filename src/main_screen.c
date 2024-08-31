@@ -91,8 +91,6 @@ void mem_load(uint16_t id) {
     info_params_set();
     pannel_visible();
 
-    waterfall_clear();
-    spectrum_clear();
     dsp_auto_clear();
     freq_update();
 
@@ -702,8 +700,6 @@ static void main_screen_update_cb(lv_event_t * e) {
     freq_update();
     info_params_set();
 
-    waterfall_clear();
-    spectrum_clear();
     dsp_auto_clear();
 }
 
@@ -741,15 +737,15 @@ static void freq_shift(int16_t diff) {
     uint64_t    freq_rx = align_long(prev_freq_rx + df, abs(df));
     uint64_t    freq_fft = align_long(prev_freq_fft + df, abs(df));
     int32_t     freq_delta = freq_rx - freq_fft;
-    bool        slided = false;
+    int32_t     freq_shift = 0;
     int32_t     half = 45000 / params_mode.spectrum_factor;
     
     switch (params.freq_mode.x) {
         case FREQ_MODE_JOIN:
             radio_set_freq_rx(freq_rx);
             radio_set_freq_fft(freq_rx);
-            waterfall_change_freq(freq_rx - prev_freq_rx);
-            spectrum_change_freq(freq_rx - prev_freq_rx);
+            freq_shift = freq_rx - prev_freq_rx;
+            lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
 
             band_info_update(freq_rx);
 
@@ -760,15 +756,17 @@ static void freq_shift(int16_t diff) {
         case FREQ_MODE_SLIDE:
             if (freq_delta < -half) {
                 freq_fft += freq_delta + half - df;
-                slided = true;
+                freq_shift = freq_fft - prev_freq_fft;
             } else if (freq_delta > half) {
                 freq_fft += freq_delta - half - df;
-                slided = true;
+                freq_shift = freq_fft - prev_freq_fft;
+            } else {
+                freq_shift = 0;
             }
             
-            if (slided) {
+            if (freq_shift != 0) {
                 radio_set_freq_fft(freq_fft);
-                waterfall_change_freq(freq_fft - prev_freq_fft);
+                lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             }
 
             radio_set_freq_rx(freq_rx);
@@ -785,7 +783,8 @@ static void freq_shift(int16_t diff) {
             
         case FREQ_MODE_FFT_ONLY:
             radio_set_freq_fft(freq_fft);
-            waterfall_change_freq(freq_fft - prev_freq_fft);
+            freq_shift = freq_fft - prev_freq_fft;
+            lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             band_info_update(freq_fft);
             break;
             
@@ -1077,8 +1076,6 @@ void main_screen_band_changed() {
     info_params_set();
     pannel_visible();
 
-    waterfall_update_range();
-    spectrum_update_range();
     band_info_update_range();
 
     dsp_auto_clear();
@@ -1089,7 +1086,5 @@ void main_screen_update_range() {
     radio_set_freq_fft(params_band.vfo_x[params_band.vfo].freq_fft);
 
     band_info_update_range();
-    waterfall_update_range();
-    spectrum_update_range();
     freq_update();
 }

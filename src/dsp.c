@@ -29,6 +29,7 @@
 #include "fpga/control.h"
 #include "dsp/firdes.h"
 #include "dsp/agc.h"
+#include "msgs.h"
 
 const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
 
@@ -36,10 +37,11 @@ static pthread_mutex_t  spectrum_mux;
 
 static float            *spectrum_psd;
 static uint16_t         spectrum_psd_count = 0;
-static float            *spectrum_psd_filtered;
 static float            spectrum_beta = 0.7f;
-static uint16_t         spectrum_fps_ms = (1000 / 30);
+static uint16_t         spectrum_fps_ms = (1000 / 20);
 static uint64_t         spectrum_time;
+static msgs_auto_t      spectrum_auto_msg;
+static msgs_floats_t    spectrum_data_msg;
 
 static float            *waterfall_psd;
 static uint16_t         waterfall_psd_count = 0;
@@ -85,11 +87,13 @@ static void calc_auto();
 void dsp_init() {
     pthread_mutex_init(&spectrum_mux, NULL);
 
-    spectrum_psd = (float *) malloc(FFT_SAMPLES * sizeof(float));
-    spectrum_psd_filtered = (float *) malloc(FFT_SAMPLES * sizeof(float));
+    spectrum_data_msg.size = 800;
+    spectrum_data_msg.data = (float *) malloc(spectrum_data_msg.size * sizeof(float));
 
-    for (uint16_t i = 0; i < FFT_SAMPLES; i++)
-        spectrum_psd_filtered[i] = S_MIN;
+    for (uint16_t i = 0; i < spectrum_data_msg.size; i++)
+        spectrum_data_msg.data[i] = S_MIN;
+
+    spectrum_psd = (float *) malloc(spectrum_data_msg.size * sizeof(float));
 
     waterfall_psd = (float *) malloc(FFT_SAMPLES * sizeof(float));
     auto_psd = (float *) malloc(FFT_SAMPLES * sizeof(float));
@@ -180,22 +184,25 @@ void update_auto(uint64_t now) {
 }
 
 void update_spectrum(uint64_t now) {
-    spectrum_psd_count++;
-
-    if (now - spectrum_time > spectrum_fps_ms) {
-        for (uint16_t i = 0; i < FFT_SAMPLES; i++) {
+    if (now - spectrum_time > spectrum_fps_ms && spectrum_psd_count > 0) {
+        for (uint16_t i = 0; i < spectrum_data_msg.size; i++) {
             float x = spectrum_psd[i] / spectrum_psd_count;
             float mag = 20.0f * log10f(x) - 96.0f;
             
             spectrum_psd[i] = mag;
-            lpf(&spectrum_psd_filtered[i], mag, spectrum_beta);
+            lpf(&spectrum_data_msg.data[i], mag, spectrum_beta);
         }
 
-        spectrum_data(spectrum_psd_filtered + fft_over, 800);
- 
+        lv_msg_send(MSG_SPECTRUM_DATA, &spectrum_data_msg);
+
         spectrum_psd_count = 0;
-        memset(spectrum_psd, 0, FFT_SAMPLES * sizeof(float));
+        memset(spectrum_psd, 0, spectrum_data_msg.size * sizeof(float));
         spectrum_time = now;
+    } else {
+        for (size_t i = 0; i < spectrum_data_msg.size; i++)
+            spectrum_psd[i] += fft_buf[i + fft_over];
+
+        spectrum_psd_count++;
     }
 }
 
@@ -230,7 +237,6 @@ void dsp_fft(float complex *data) {
     for (size_t i = 0; i < FFT_SAMPLES; i++) {
         float x = fft_buf[i];
     
-        spectrum_psd[i] += x;
         waterfall_psd[i] += x;
         auto_psd[i] += x;
     }
@@ -355,6 +361,7 @@ void dsp_adc(float complex *data) {
 
 void dsp_set_spectrum_factor(uint8_t x) {
     control_set_fft_rate(240 * x);
+    lv_msg_send(MSG_RATE_FFT_CHANGED, &x);
 }
 
 float dsp_get_spectrum_beta() {
@@ -420,20 +427,22 @@ static void calc_auto() {
     min -= 3.0f;
 
     if (auto_clear) {
-        spectrum_auto_min = min;
-        spectrum_auto_max = max;
+        spectrum_auto_msg.min = min;
+        spectrum_auto_msg.max = max;
 
         waterfall_auto_min = min;
         waterfall_auto_max = max;
 
         auto_clear = false;
     } else {
-        lpf(&spectrum_auto_min, min, 0.8f);
-        lpf(&spectrum_auto_max, max, 0.8f);
+        lpf(&spectrum_auto_msg.min, min, 0.8f);
+        lpf(&spectrum_auto_msg.max, max, 0.8f);
 
         lpf(&waterfall_auto_min, min, 0.5f);
         lpf(&waterfall_auto_max, max, 0.5f);
     }
+
+    lv_msg_send(MSG_SPECTRUM_AUTO, &spectrum_auto_msg);
 }
 
 void dsp_set_vol(uint8_t x) {

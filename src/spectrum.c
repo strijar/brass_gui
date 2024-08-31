@@ -23,9 +23,6 @@
 #include "widgets/lv_spectrum.h"
 #include "widgets/lv_finder.h"
 
-float                   spectrum_auto_min;
-float                   spectrum_auto_max;
-
 static lv_obj_t         *obj;
 static lv_obj_t         *finder;
 
@@ -73,6 +70,63 @@ static void finder_event_cb(lv_event_t * e) {
     }
 }
 
+static void shift_freq(int32_t df) {
+    uint16_t    div = width_hz / spectrum_size / params_mode.spectrum_factor;
+    int16_t     surplus = df % div;
+    int32_t     delta = df / div;
+
+    if (surplus) {
+        delta_surplus += surplus;
+    } else {
+        delta_surplus = 0;
+    }
+
+    if (abs(delta_surplus) > div) {
+        delta += delta_surplus / div;
+        delta_surplus = delta_surplus % div;
+    }
+
+    if (delta == 0) {
+        return;
+    }
+
+    lv_spectrum_scroll_data(obj, delta);
+}
+
+static void spectrum_msg_cb(lv_event_t * e) {
+    lv_obj_t *spectrum = lv_event_get_target(e);
+    lv_msg_t *m = lv_event_get_msg(e);
+    
+    switch (lv_msg_get_id(m)) {
+        case MSG_FREQ_FFT_SHIFT: {
+            const int32_t *df = lv_msg_get_payload(m);
+
+            shift_freq(*df);
+        } break;
+        
+        case MSG_RATE_FFT_CHANGED: {
+            const uint8_t *zoom = lv_msg_get_payload(m);
+
+            width_hz = 100000 / *zoom;
+            lv_spectrum_clear_data(spectrum);
+        } break;
+
+        case MSG_SPECTRUM_AUTO: {
+            const msgs_auto_t *msg = lv_msg_get_payload(m);
+
+            lv_spectrum_set_min(obj, msg->min + 3.0f);
+            lv_spectrum_set_max(obj, msg->max + 10.0f);
+        } break;
+
+        case MSG_SPECTRUM_DATA: {
+            const msgs_floats_t *msg = lv_msg_get_payload(m);
+
+            lv_spectrum_add_data(obj, msg->data);
+            event_send(obj, LV_EVENT_REFRESH, NULL);
+        } break;
+    }
+}
+
 lv_obj_t * spectrum_init(lv_obj_t * parent) {
     obj = lv_spectrum_create(parent);
 
@@ -85,11 +139,23 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
     lv_obj_set_style_line_width(obj, 1, LV_PART_TICKS);
     lv_obj_set_style_line_color(obj, lv_color_hex(0x555555), LV_PART_TICKS);
 
+    lv_obj_add_event_cb(obj, spectrum_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
+    lv_msg_subsribe_obj(MSG_FREQ_FFT_SHIFT, obj, NULL);
+    lv_msg_subsribe_obj(MSG_RATE_FFT_CHANGED, obj, NULL);
+    lv_msg_subsribe_obj(MSG_SPECTRUM_AUTO, obj, NULL);
+    lv_msg_subsribe_obj(MSG_SPECTRUM_DATA, obj, NULL);
+
     lv_obj_add_event_cb(obj, tx_cb, EVENT_RADIO_TX, NULL);
     lv_obj_add_event_cb(obj, rx_cb, EVENT_RADIO_RX, NULL);
 
-    lv_spectrum_set_size(obj, 800, 480 / 3);
+    lv_spectrum_set_data_size(obj, 800);
     lv_spectrum_clear_data(obj);
+
+    /*
+    lv_spectrum_set_peak(obj, true);
+    lv_spectrum_set_peak_hold(obj, 2000);
+    lv_spectrum_set_peak_speed(obj, 0.5);
+    */
 
     /* Finder */
 
@@ -113,51 +179,4 @@ lv_obj_t * spectrum_init(lv_obj_t * parent) {
     lv_msg_subsribe_obj(MSG_FREQ_FFT_CHANGED, finder, NULL);
 
     return obj;
-}
-
-void spectrum_data(float *data_buf, uint16_t size) {
-    lv_spectrum_add_data(obj, data_buf);
-    lv_spectrum_set_min(obj, spectrum_auto_min + 3.0f);
-    lv_spectrum_set_max(obj, spectrum_auto_max + 10.0f);
-    event_send(obj, LV_EVENT_REFRESH, NULL);
-}
-
-void spectrum_set_max(int db) {
-    lv_spectrum_set_max(obj, db);
-}
-
-void spectrum_set_min(int db) {
-    lv_spectrum_set_min(obj, db);
-}
-
-void spectrum_clear() {
-    lv_spectrum_clear_data(obj);
-}
-
-void spectrum_change_freq(int16_t df) {
-    uint16_t    div = width_hz / spectrum_size / params_mode.spectrum_factor;
-    int16_t     surplus = df % div;
-    int32_t     delta = df / div;
-
-    if (surplus) {
-        delta_surplus += surplus;
-    } else {
-        delta_surplus = 0;
-    }
-
-    if (abs(delta_surplus) > div) {
-        delta += delta_surplus / div;
-        delta_surplus = delta_surplus % div;
-    }
-
-    if (delta == 0) {
-        return;
-    }
-
-    lv_spectrum_scroll_data(obj, delta);
-}
-
-void spectrum_update_range() {
-    width_hz = 100000 / params_mode.spectrum_factor;
-    spectrum_clear();
 }

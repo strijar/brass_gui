@@ -11,8 +11,8 @@
 #include <stdint.h>
 
 typedef enum {
-    MFK_MIN_LEVEL = 0,
-    MFK_MAX_LEVEL,
+    MFK_MIN_LEVEL = 0,      /* Not used */
+    MFK_MAX_LEVEL,          /* Not used */
     MFK_SPECTRUM_FACTOR,
     MFK_SPECTRUM_BETA,
     MFK_PEAK_HOLD,

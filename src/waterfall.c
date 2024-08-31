@@ -20,6 +20,7 @@
 #include "dsp.h"
 #include "fpga/fft.h"
 #include "msgs.h"
+#include "widgets/lv_finder.h"
 
 #define PX_BYTES    4
 
@@ -77,11 +78,60 @@ static void finder_event_cb(lv_event_t * e) {
     }
 }
 
+static void shift_freq(int32_t df) {
+    uint16_t    div = width_hz / 800;
+    int16_t     surplus = df % div;
+
+    scroll_hor += df / div;
+    
+    if (surplus) {
+        scroll_hor_surplus += surplus;
+    } else {
+        scroll_hor_surplus = 0;
+    }
+    
+    if (abs(scroll_hor_surplus) > div) {
+        scroll_hor += scroll_hor_surplus / div;
+        scroll_hor_surplus = scroll_hor_surplus % div;
+    }
+
+    if (scroll_hor) {
+        lv_obj_invalidate(img);
+    }
+}
+
+static void waterfall_msg_cb(lv_event_t * e) {
+    lv_obj_t *waterfall = lv_event_get_target(e);
+    lv_msg_t *m = lv_event_get_msg(e);
+    
+    switch (lv_msg_get_id(m)) {
+        case MSG_FREQ_FFT_SHIFT: {
+            const int32_t *df = lv_msg_get_payload(m);
+
+            shift_freq(*df);
+        } break;
+
+        case MSG_RATE_FFT_CHANGED: {
+            const uint8_t *zoom = lv_msg_get_payload(m);
+
+            width_hz = 100000 / *zoom;
+
+            memset(frame->data, 0, frame->data_size);
+            scroll_hor = 0;
+            scroll_hor_surplus = 0;
+        } break;
+    }
+}
+
 lv_obj_t * waterfall_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
     
     lv_obj_add_style(obj, &waterfall_style, 0);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_add_event_cb(obj, waterfall_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
+    lv_msg_subsribe_obj(MSG_FREQ_FFT_SHIFT, obj, NULL);
+    lv_msg_subsribe_obj(MSG_RATE_FFT_CHANGED, obj, NULL);
 
     /* Finder */
 
@@ -102,7 +152,6 @@ lv_obj_t * waterfall_init(lv_obj_t * parent) {
     lv_msg_subsribe_obj(MSG_FILTER_CHANGED, finder, NULL);
     lv_msg_subsribe_obj(MSG_FREQ_RX_CHANGED, finder, NULL);
     lv_msg_subsribe_obj(MSG_FREQ_FFT_CHANGED, finder, NULL);
-
 
     return obj;
 }
@@ -222,69 +271,4 @@ void waterfall_set_height(lv_coord_t h) {
 
     lv_obj_move_foreground(finder);
     band_info_init(obj);
-}
-
-void waterfall_clear() {
-    memset(frame->data, 0, frame->data_size);
-    scroll_hor = 0;
-    scroll_hor_surplus = 0;
-}
-
-void waterfall_change_max(int16_t d) {
-    int16_t x = params_band.grid_max + d;
-
-    if (x > S9_40) {
-        x = S9_40;
-    } else if (x < S8) {
-        x = S8;
-    }
-
-    params_lock();
-    params_band.grid_max = x;
-    params_unlock(&params_band.durty.grid_max);
-
-    grid_max = x;
-}
-
-void waterfall_change_min(int16_t d) {
-    int16_t x = params_band.grid_min + d;
-
-    if (x > S7) {
-        x = S7;
-    } else if (x < S_MIN) {
-        x = S_MIN;
-    }
-
-    params_lock();
-    params_band.grid_min = x;
-    params_unlock(&params_band.durty.grid_min);
-
-    grid_min = x;
-}
-
-void waterfall_change_freq(int16_t df) {
-    uint16_t    div = width_hz / 800;
-    int16_t     surplus = df % div;
-
-    scroll_hor += df / div;
-    
-    if (surplus) {
-        scroll_hor_surplus += surplus;
-    } else {
-        scroll_hor_surplus = 0;
-    }
-    
-    if (abs(scroll_hor_surplus) > div) {
-        scroll_hor += scroll_hor_surplus / div;
-        scroll_hor_surplus = scroll_hor_surplus % div;
-    }
-
-    if (scroll_hor) {
-        lv_obj_invalidate(img);
-    }
-}
-
-void waterfall_update_range() {
-    width_hz = 100000 / params_mode.spectrum_factor;
-    waterfall_clear();
 }

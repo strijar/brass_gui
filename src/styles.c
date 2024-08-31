@@ -72,6 +72,8 @@ void styles_init() {
     lv_style_set_radius(&spectrum_style, 0);
     lv_style_set_x(&spectrum_style, 0);
     lv_style_set_y(&spectrum_style, 0);
+    lv_style_set_width(&spectrum_style, 800);
+    lv_style_set_height(&spectrum_style, 480 / 3);
     lv_style_set_pad_hor(&spectrum_style, 0);
 
     lv_style_init(&rx_finder_style);

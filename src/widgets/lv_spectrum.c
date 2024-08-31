@@ -51,15 +51,14 @@ lv_obj_t * lv_spectrum_create(lv_obj_t * parent) {
  * Setter functions
  *====================*/
 
-void lv_spectrum_set_size(lv_obj_t * obj, lv_coord_t w, lv_coord_t h) {
+void lv_spectrum_set_data_size(lv_obj_t * obj, uint16_t size) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
-    lv_obj_set_size(obj, w, h);
 
     lv_spectrum_t * spectrum = (lv_spectrum_t *)obj;
 
-    spectrum->data_size = w;
-    spectrum->data_buf = lv_mem_realloc(spectrum->data_buf, w * sizeof(float));
-    spectrum->peak_buf = lv_mem_realloc(spectrum->peak_buf, w * sizeof(lv_spectrum_peak_t));
+    spectrum->data_size = size;
+    spectrum->data_buf = lv_mem_realloc(spectrum->data_buf, size * sizeof(float));
+    spectrum->peak_buf = lv_mem_realloc(spectrum->peak_buf, size * sizeof(lv_spectrum_peak_t));
 }
 
 void lv_spectrum_clear_data(lv_obj_t * obj) {
@@ -260,7 +259,7 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         
         float range = spectrum->max - spectrum->min;
 
-        for (uint16_t i = 0; i < spectrum->data_size; i++) {
+        for (uint16_t i = 0; i < w; i++) {
             float       v = (spectrum->data_buf[i] - spectrum->min) / range;
             uint16_t    x = i * w / spectrum->data_size;
 
