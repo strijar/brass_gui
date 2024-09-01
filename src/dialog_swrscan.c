@@ -192,7 +192,7 @@ static void draw_cb(lv_event_t * e) {
     line_dsc.color = lv_color_white();
     line_dsc.width = 4;
 
-    for (uint16_t i = 0; i < STEPS; i++) {
+    for (uint16_t i = 1; i < STEPS; i++) {
         a.x = x1 + (i - 1) * w / STEPS;
         a.y = y1 + calc_y(data_filtered[i-1]);
 
@@ -236,7 +236,7 @@ static void key_cb(lv_event_t * e) {
 
     switch (key) {
         case LV_KEY_ESC:
-            dialog_destruct(&dialog);
+            dialog_destruct();
             break;
             
         case KEY_VOL_LEFT_EDIT:

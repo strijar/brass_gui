@@ -59,12 +59,12 @@ static void key_cb(lv_event_t * e) {
 
     switch (key) {
         case LV_KEY_ESC:
-            dialog_destruct(&dialog);
+            dialog_destruct();
             break;
 
         case LV_KEY_ENTER:
             edit_ok();
-            dialog_destruct(&dialog);
+            dialog_destruct();
             break;
             
         case KEY_VOL_LEFT_EDIT:

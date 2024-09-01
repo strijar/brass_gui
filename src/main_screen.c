@@ -59,7 +59,6 @@ static bool         freq_lock = false;
 static bool         mode_lock = false;
 static bool         band_lock = false;
 
-static lv_obj_t     *spectrum;
 static lv_obj_t     *freq[3];
 static lv_obj_t     *waterfall;
 static lv_obj_t     *msg;
@@ -691,7 +690,6 @@ static void main_screen_radio_cb(lv_event_t * e) {
     
     lv_event_send(meter, code, NULL);
     lv_event_send(tx_info, code, NULL);
-    lv_event_send(spectrum, code, NULL);
     
     dialog_send(code, NULL);
 }
@@ -803,7 +801,7 @@ static void main_screen_rotary_cb(lv_event_t * e) {
     dialog_rotary(diff);
 }
 
-static void spectrum_key_cb(lv_event_t * e) {
+static void main_screen_key_cb(lv_event_t * e) {
     uint32_t key = *((uint32_t *)lv_event_get_param(e));
 
     switch (key) {
@@ -933,7 +931,7 @@ static void spectrum_key_cb(lv_event_t * e) {
     }
 }
 
-static void spectrum_pressed_cb(lv_event_t * e) {
+static void main_screen_pressed_cb(lv_event_t * e) {
     switch (mfk_state) {
         case MFK_STATE_EDIT:
             mfk_state = MFK_STATE_SELECT;
@@ -949,7 +947,7 @@ static void spectrum_pressed_cb(lv_event_t * e) {
 }
 
 static void keys_enable_cb(lv_timer_t *t) {
-    lv_group_add_obj(keyboard_group, spectrum);
+    lv_group_add_obj(keyboard_group, obj);
     lv_group_set_editing(keyboard_group, true);
 }
 
@@ -958,7 +956,7 @@ void main_screen_keys_enable(bool value) {
         lv_timer_t *timer = lv_timer_create(keys_enable_cb, 100, NULL);
         lv_timer_set_repeat_count(timer, 1);
     } else {
-        lv_group_remove_obj(spectrum);
+        lv_group_remove_obj(obj);
         lv_group_set_editing(keyboard_group, false);
     }
 }
@@ -1005,12 +1003,11 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_RX, NULL);
     lv_obj_add_event_cb(obj, main_screen_update_cb, EVENT_SCREEN_UPDATE, NULL);
     lv_obj_add_event_cb(obj, main_screen_atu_update_cb, EVENT_ATU_UPDATE, NULL);
-    
-    spectrum = spectrum_init(obj);
+
+    lv_obj_add_event_cb(obj, main_screen_key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(obj, main_screen_pressed_cb, LV_EVENT_PRESSED, NULL);
+
     main_screen_keys_enable(true);
-    
-    lv_obj_add_event_cb(spectrum, spectrum_key_cb, LV_EVENT_KEY, NULL);
-    lv_obj_add_event_cb(spectrum, spectrum_pressed_cb, LV_EVENT_PRESSED, NULL);
     
     y += spectrum_height;
     
@@ -1053,6 +1050,7 @@ lv_obj_t * main_screen() {
     
     meter = meter_init(obj);
     tx_info = tx_info_init(obj);
+
     
     main_screen_band_changed();
     

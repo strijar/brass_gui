@@ -10,8 +10,4 @@
 
 #include <python3.11/Python.h>
 
-#include "lvgl/lvgl.h"
-
-PyMODINIT_FUNC PyInit_lv();
-
-lv_obj_t * python_lv_get_obj(PyObject *obj);
+PyMODINIT_FUNC PyInit_trx();

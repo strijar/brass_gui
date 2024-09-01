@@ -30,6 +30,9 @@ void dialog_construct(dialog_t *dialog, lv_obj_t *parent) {
 void dialog_destruct() {
     if (current_dialog && current_dialog->run) {
         current_dialog->run = false;
+
+        main_screen_keys_enable(true);
+        main_screen_dialog_deleted_cb();
         
         if (current_dialog->destruct_cb) {
             current_dialog->destruct_cb();
@@ -37,9 +40,9 @@ void dialog_destruct() {
 
         if (current_dialog->obj) {
             lv_obj_del(current_dialog->obj);
+            current_dialog->obj = NULL;
         }
-        main_screen_dialog_deleted_cb();
-        main_screen_keys_enable(true);
+
         current_dialog = NULL;
     }
 }
@@ -65,7 +68,7 @@ bool dialog_is_run() {
 
 lv_obj_t * dialog_init(lv_obj_t *parent) {
     obj = lv_obj_create(parent);
-    
+
     lv_obj_remove_style_all(obj);
     lv_obj_add_style(obj, &dialog_style, 0);
 

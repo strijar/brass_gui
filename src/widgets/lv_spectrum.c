@@ -8,6 +8,7 @@
  *      INCLUDES
  *********************/
 
+#include <stdlib.h>
 #include "lv_spectrum.h"
 
 /*********************
@@ -72,14 +73,35 @@ void lv_spectrum_clear_data(lv_obj_t * obj) {
         spectrum->peak_buf[i].val = spectrum->min;
         spectrum->peak_buf[i].time = now;
     }
+    
+    spectrum->delta_surplus = 0;
 }
 
-void lv_spectrum_scroll_data(lv_obj_t * obj, int16_t delta) {
+void lv_spectrum_scroll_data(lv_obj_t * obj, int32_t df) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_spectrum_t       *spectrum = (lv_spectrum_t *)obj;
     lv_spectrum_peak_t  *from, *to;
     uint32_t            now = lv_tick_get();
+
+    uint16_t            div = spectrum->span / spectrum->data_size;
+    int16_t             surplus = df % div;
+    int32_t             delta = df / div;
+    
+    if (surplus) {
+        spectrum->delta_surplus += surplus;
+    } else {
+        spectrum->delta_surplus = 0;
+    }
+    
+    if (abs(spectrum->delta_surplus) > 0) {
+        delta += spectrum->delta_surplus / div;
+        spectrum->delta_surplus = spectrum->delta_surplus % div;
+    }
+
+    if (delta == 0) {
+        return;
+    }
 
     if (delta > 0) {
         for (int16_t i = 0; i < spectrum->data_size - 1; i++) {
@@ -134,6 +156,14 @@ void lv_spectrum_add_data(lv_obj_t * obj, float * data) {
             }
         }
     }
+}
+
+void lv_spectrum_set_span(lv_obj_t * obj, int32_t hz) {
+    LV_ASSERT_OBJ(obj, MY_CLASS);
+
+    lv_spectrum_t * spectrum = (lv_spectrum_t *)obj;
+
+    spectrum->span = hz;
 }
 
 void lv_spectrum_set_max(lv_obj_t * obj, int16_t db) {
@@ -201,6 +231,8 @@ static void lv_spectrum_constructor(const lv_obj_class_t * class_p, lv_obj_t * o
     spectrum->peak_buf = NULL;
     spectrum->min = -40;
     spectrum->max = 0;
+    spectrum->span = 100000;
+    spectrum->delta_surplus = 0;
     
     LV_TRACE_OBJ_CREATE("finished");
 }

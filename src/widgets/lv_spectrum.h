@@ -31,6 +31,8 @@ typedef struct {
 
     int16_t             min;
     int16_t             max;
+    int32_t             span;
+    int16_t             delta_surplus;
     bool                filled;
     bool                peak_on;
     uint16_t            peak_hold;
@@ -55,8 +57,9 @@ lv_obj_t * lv_spectrum_create(lv_obj_t * parent);
 
 void lv_spectrum_set_data_size(lv_obj_t * obj, uint16_t size);
 void lv_spectrum_clear_data(lv_obj_t * obj);
-void lv_spectrum_scroll_data(lv_obj_t * obj, int16_t delta);
+void lv_spectrum_scroll_data(lv_obj_t * obj, int32_t df);
 void lv_spectrum_add_data(lv_obj_t * obj, float * data);
+void lv_spectrum_set_span(lv_obj_t * obj, int32_t hz);
 void lv_spectrum_set_max(lv_obj_t * obj, int16_t db);
 void lv_spectrum_set_min(lv_obj_t * obj, int16_t db);
 void lv_spectrum_set_filled(lv_obj_t * obj, bool on);

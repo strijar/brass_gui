@@ -8,6 +8,7 @@
 
 #include "python.h"
 #include "python_lv.h"
+#include "python_trx.h"
 
 static PyObject *module;
 static PyObject *py_main_screen;
@@ -17,6 +18,10 @@ void python_init() {
 
     if (PyImport_AppendInittab("lv", PyInit_lv) == -1) {
         LV_LOG_ERROR("LV could not extend in-built modules table");
+    }
+
+    if (PyImport_AppendInittab("trx", PyInit_trx) == -1) {
+        LV_LOG_ERROR("TRX could not extend in-built modules table");
     }
     
     Py_Initialize();
