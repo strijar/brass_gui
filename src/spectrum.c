@@ -121,7 +121,7 @@ static void spectrum_msg_cb(lv_event_t * e) {
         case MSG_SPECTRUM_DATA: {
             const msgs_floats_t *msg = lv_msg_get_payload(m);
 
-            lv_spectrum_add_data(obj, msg->data);
+            lv_spectrum_add_data(obj, msg->data, msg->size);
             event_send(obj, LV_EVENT_REFRESH, NULL);
         } break;
     }

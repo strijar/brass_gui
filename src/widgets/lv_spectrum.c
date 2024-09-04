@@ -132,16 +132,18 @@ void lv_spectrum_scroll_data(lv_obj_t * obj, int32_t df) {
     }
 }
 
-void lv_spectrum_add_data(lv_obj_t * obj, float * data) {
+void lv_spectrum_add_data(lv_obj_t * obj, float * data, size_t size) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_spectrum_t * spectrum = (lv_spectrum_t *)obj;
 
-    uint32_t now = lv_tick_get();
+    uint32_t    now = lv_tick_get();
     
     for (uint16_t i = 0; i < spectrum->data_size; i++) {
-        spectrum->data_buf[i] = data[i];
-        
+        size_t index = i * size / spectrum->data_size;
+
+        spectrum->data_buf[i] = data[index];
+
         if (spectrum->peak_on) {
             float               v = spectrum->data_buf[i];
             lv_spectrum_peak_t  *peak = &spectrum->peak_buf[i];
@@ -293,7 +295,7 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
 
         for (uint16_t i = 0; i < w; i++) {
             float       v = (spectrum->data_buf[i] - spectrum->min) / range;
-            uint16_t    x = i * w / spectrum->data_size;
+            int32_t     x = i * w / spectrum->data_size;
 
             /* Peak */
         
@@ -317,7 +319,7 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
                 main_b.x = main_a.x;
                 main_b.y = y1 + h;
             }
-        
+
             lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
         
             if (!spectrum->filled) {

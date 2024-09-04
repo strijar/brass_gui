@@ -34,8 +34,10 @@ void python_init() {
         PyErr_Print();
         return;
     }
-    
+
+    LV_LOG_INFO("begin");
     py_main_screen = python_call("main");
+    LV_LOG_INFO("finish");
 }
 
 PyObject * python_call(const char *func_name) {

@@ -58,7 +58,7 @@ lv_obj_t * lv_spectrum_create(lv_obj_t * parent);
 void lv_spectrum_set_data_size(lv_obj_t * obj, uint16_t size);
 void lv_spectrum_clear_data(lv_obj_t * obj);
 void lv_spectrum_scroll_data(lv_obj_t * obj, int32_t df);
-void lv_spectrum_add_data(lv_obj_t * obj, float * data);
+void lv_spectrum_add_data(lv_obj_t * obj, float * data, size_t size);
 void lv_spectrum_set_span(lv_obj_t * obj, int32_t hz);
 void lv_spectrum_set_max(lv_obj_t * obj, int16_t db);
 void lv_spectrum_set_min(lv_obj_t * obj, int16_t db);

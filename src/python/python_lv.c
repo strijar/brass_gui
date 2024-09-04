@@ -8,6 +8,7 @@
 
 #include "python_lv.h"
 #include "src/widgets/lv_spectrum.h"
+#include "src/widgets/lv_finder.h"
 
 /* Style */
 
@@ -164,6 +165,18 @@ static PyObject * style_set_line_color(style_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * style_set_line_opa(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_opa_t opa;
+    
+    if (PyArg_ParseTuple(args, "b", &opa)) {
+        lv_style_set_line_opa(&self->style, opa);
+    }
+    
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef style_methods[] = {
     { "set_bg_color", (PyCFunction) style_set_bg_color, METH_VARARGS, "" },
     { "set_bg_opa", (PyCFunction) style_set_bg_opa, METH_VARARGS, "" },
@@ -176,6 +189,7 @@ static PyMethodDef style_methods[] = {
     { "set_pad_ver", (PyCFunction) style_set_pad_ver, METH_VARARGS, "" },
     { "set_line_width", (PyCFunction) style_set_line_width, METH_VARARGS, "" },
     { "set_line_color", (PyCFunction) style_set_line_color, METH_VARARGS, "" },
+    { "set_line_opa", (PyCFunction) style_set_line_opa, METH_VARARGS, "" },
     { NULL }
 };
 
@@ -403,6 +417,53 @@ static PyTypeObject spectrum_type = {
     .tp_methods = spectrum_methods,
 };
 
+/* Finder */
+
+static int finder_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+    lv_obj_t    *parent = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        parent = python_lv_get_obj(obj);
+    }
+
+    self->obj = lv_finder_create(parent);
+
+    return 0;
+}
+
+static PyObject * finder_set_cursor(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    uint8_t index;
+    int     hz;    
+    
+    if (PyArg_ParseTuple(args, "bi", &index, &hz)) {
+        lv_finder_set_cursor(self->obj, index, hz);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef finder_methods[] = {
+    { "set_cursor", (PyCFunction) finder_set_cursor, METH_VARARGS, "" },
+    { NULL }
+};
+
+static PyTypeObject finder_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_base = &obj_type,
+    .tp_name = "lv.finder",
+    .tp_doc = PyDoc_STR("LVGL finder"),
+    .tp_basicsize = sizeof(obj_object_t),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_init = (initproc) finder_init,
+    .tp_methods = finder_methods,
+};
+
 /* * */
 
 static PyModuleDef lv_module = {
@@ -416,6 +477,7 @@ PyMODINIT_FUNC PyInit_lv() {
     PyType_Ready(&style_type);
     PyType_Ready(&obj_type);
     PyType_Ready(&spectrum_type);
+    PyType_Ready(&finder_type);
 
     PyObject *m = PyModule_Create(&lv_module);
 
@@ -426,6 +488,7 @@ PyMODINIT_FUNC PyInit_lv() {
     PyModule_AddObjectRef(m, "style", (PyObject *) &style_type);
     PyModule_AddObjectRef(m, "obj", (PyObject *) &obj_type);
     PyModule_AddObjectRef(m, "spectrum", (PyObject *) &spectrum_type);
+    PyModule_AddObjectRef(m, "finder", (PyObject *) &finder_type);
     
     return m;
 }

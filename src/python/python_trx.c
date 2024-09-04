@@ -11,7 +11,9 @@
 #include "python_trx.h"
 #include "src/msgs.h"
 #include "src/events.h"
+#include "src/params.h"
 #include "src/widgets/lv_spectrum.h"
+#include "src/widgets/lv_finder.h"
 
 /* Spectrum */
 
@@ -43,7 +45,7 @@ static void spectrum_msg_cb(lv_event_t * e) {
         case MSG_SPECTRUM_DATA: {
             const msgs_floats_t *msg = lv_msg_get_payload(m);
 
-            lv_spectrum_add_data(spectrum, msg->data);
+            lv_spectrum_add_data(spectrum, msg->data, msg->size);
             event_send(spectrum, LV_EVENT_REFRESH, NULL);
         } break;
     }
@@ -67,12 +69,65 @@ static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-static PyMethodDef trx_methods[] = {
-    { "connect_spectrum", (PyCFunction) trx_connect_spectrum, METH_VARARGS, "" },
-    { NULL }
-};
+/* RX Finder */
+
+static void rx_finder_event_cb(lv_event_t * e) {
+    lv_obj_t *finder = lv_event_get_target(e);
+    lv_msg_t *m = lv_event_get_msg(e);
+    
+    switch (lv_msg_get_id(m)) {
+        case MSG_FILTER_CHANGED: {
+            int32_t from, to;
+
+            radio_filter_get(&from, &to);
+            lv_finder_set_offsets(finder, from, to);
+            lv_obj_invalidate(finder);
+        } break;
+        
+        case MSG_FREQ_RX_CHANGED: {
+            const uint64_t *freq = lv_msg_get_payload(m);
+            
+            lv_finder_set_value(finder, *freq);
+            lv_obj_invalidate(finder);
+        } break;
+
+        case MSG_FREQ_FFT_CHANGED: {
+            const uint64_t  *freq = lv_msg_get_payload(m);
+            uint32_t        half = 50000 / params_mode.spectrum_factor;
+
+            lv_finder_set_range(finder, *freq - half, *freq + half);
+            lv_obj_invalidate(finder);
+        } break;
+        
+        default:
+            break;
+    }
+}
+
+static PyObject * trx_connect_rx_finder(PyObject *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        lv_obj_t *finder = python_lv_get_obj(obj);
+    
+        lv_obj_add_event_cb(finder, rx_finder_event_cb, LV_EVENT_MSG_RECEIVED, NULL);
+        lv_msg_subsribe_obj(MSG_FILTER_CHANGED, finder, NULL);
+        lv_msg_subsribe_obj(MSG_FREQ_RX_CHANGED, finder, NULL);
+        lv_msg_subsribe_obj(MSG_FREQ_FFT_CHANGED, finder, NULL);
+    }
+
+    Py_RETURN_NONE;
+}
 
 /* * */
+
+static PyMethodDef trx_methods[] = {
+    { "connect_spectrum", (PyCFunction) trx_connect_spectrum, METH_VARARGS, "" },
+    { "connect_rx_finder", (PyCFunction) trx_connect_rx_finder, METH_VARARGS, "" },
+    { NULL }
+};
 
 static PyModuleDef trx_module = {
     PyModuleDef_HEAD_INIT,

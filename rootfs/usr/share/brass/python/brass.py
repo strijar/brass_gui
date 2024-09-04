@@ -2,6 +2,38 @@ import trx
 import lv
 from lv_const import *
 
+class RXFinder(lv.finder):
+	def __init__(self, y, parent = None):
+		lv.finder.__init__(self, parent)
+
+		self.set_cursor(1, 0)
+		self.makeMainStyle(y)
+		self.makeIndicatorStyle()
+
+	def makeMainStyle(self, y):
+		style = lv.style()
+
+		style.set_bg_opa(LV_OPA_0)
+		style.set_radius(0)
+		style.set_x(0)
+		style.set_y(y)
+		style.set_width(800)
+		style.set_height(100)
+
+		self.add_style(style, LV_PART_MAIN)
+
+	def makeIndicatorStyle(self):
+		style = lv.style()
+
+		style.set_bg_color(0x0040A0)
+		style.set_bg_opa(LV_OPA_50)
+
+		style.set_line_width(1)
+		style.set_line_color(0xFFFFFF)
+		style.set_line_opa(LV_OPA_50)
+
+		self.add_style(style, LV_PART_INDICATOR)
+
 class MainSpectrum(lv.spectrum):
 	def __init__(self, parent = None):
 		lv.spectrum.__init__(self, parent)
@@ -12,8 +44,12 @@ class MainSpectrum(lv.spectrum):
 
 		self.clear_flag(LV_OBJ_FLAG_SCROLLABLE)
 
-		self.set_data_size(800)
+		self.set_data_size(400)
 		self.clear_data()
+
+		self.rx_finder = RXFinder(60, self)
+
+		trx.connect_rx_finder(self.rx_finder)
 
 #		self.set_peak(True)
 #		self.set_peak_hold(2000)
