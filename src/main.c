@@ -20,7 +20,6 @@
 #include "dsp.h"
 #include "util.h"
 #include "keyboard.h"
-#include "spectrum.h"
 #include "waterfall.h"
 #include "keypad.h"
 #include "params.h"
@@ -29,7 +28,6 @@
 #include "audio_adc.h"
 #include "cw.h"
 #include "pannel.h"
-#include "cat.h"
 #include "rtty.h"
 #include "backlight.h"
 #include "events.h"
@@ -103,7 +101,6 @@ int main(void) {
 
 /*
     backlight_init();
-    cat_init();
     pannel_visible();
     gps_init();
 */

@@ -10,7 +10,6 @@
 #include "styles.h"
 #include "events.h"
 #include "params.h"
-#include "spectrum.h"
 #include "msgs.h"
 
 #define NUM_ITEMS   7

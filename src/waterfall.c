@@ -200,8 +200,8 @@ void waterfall_data(float *data_buf, size_t size) {
 
     scroll_down();
 
-    float min = params.waterfall_auto_min.x ? waterfall_auto_min + 3.0f : grid_min;
-    float max = params.waterfall_auto_max.x ? waterfall_auto_max + 3.0f : grid_max;
+    float min = waterfall_auto_min + 3.0f;
+    float max = waterfall_auto_max + 3.0f;
 
     for (size_t x = 0; x < width; x++) {
         float       v = (data_buf[x] - min) / (max - min);

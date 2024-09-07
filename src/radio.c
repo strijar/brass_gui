@@ -131,29 +131,14 @@ bool radio_tick() {
     return false;
 }
 
-void radio_vfo_set() {
+void radio_freq_set() {
     uint64_t shift;
-    uint64_t freq = params_band.vfo_x[params_band.vfo].freq_rx;
+    uint64_t freq = params_band.freq_rx;
 
     radio_check_freq(freq, &shift);
     control_set_rx_freq(freq - shift);
     control_set_fft_freq(freq - shift);
 
-    /*
-    for (int i = 0; i < 2; i++) {
-        x6100_control_vfo_mode_set(i, params_band.vfo_x[i].mode);
-        x6100_control_vfo_agc_set(i, params_band.vfo_x[i].agc);
-        x6100_control_vfo_pre_set(i, params_band.vfo_x[i].pre);
-        x6100_control_vfo_att_set(i, params_band.vfo_x[i].att);
-        
-        radio_check_freq(params_band.vfo_x[i].freq, &shift);
-        x6100_control_vfo_freq_set(i, params_band.vfo_x[i].freq - shift);
-        params_band.vfo_x[i].shift = (shift != 0);
-    }
-
-    x6100_control_vfo_set(params_band.vfo);
-    x6100_control_split_set(params_band.split);
-    */
     params_bands_find(freq, &params.freq_band);
 }
 
@@ -177,7 +162,7 @@ void radio_init(lv_obj_t *obj) {
     control_init();
     dsp_set_spectrum_factor(params_mode.spectrum_factor);
 
-    radio_vfo_set();
+    radio_freq_set();
     radio_mode_set();
     radio_load_atu();
 }
@@ -195,14 +180,14 @@ void radio_set_freq_rx(uint64_t freq) {
     }
 
     params_lock();
-    params_band.vfo_x[params_band.vfo].freq_rx = freq;
-    params_band.vfo_x[params_band.vfo].shift = (shift != 0);
-    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq_rx);
+    params_band.freq_rx = freq;
+    params_band.shift = (shift != 0);
+    params_unlock(&params_band.durty.freq_rx);
 
     control_set_rx_freq(freq - shift);
     radio_load_atu();
 
-    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.vfo_x[params_band.vfo].freq_rx);
+    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
 }
 
 void radio_set_freq_fft(uint64_t freq) {
@@ -214,11 +199,11 @@ void radio_set_freq_fft(uint64_t freq) {
     }
 
     params_lock();
-    params_band.vfo_x[params_band.vfo].freq_fft = freq;
-    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq_fft);
+    params_band.freq_fft = freq;
+    params_unlock(&params_band.durty.freq_fft);
 
     control_set_fft_freq(freq - shift);
-    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.vfo_x[params_band.vfo].freq_fft);
+    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.freq_fft);
 }
 
 bool radio_check_freq(uint64_t freq, uint64_t *shift) {
@@ -241,11 +226,11 @@ bool radio_check_freq(uint64_t freq, uint64_t *shift) {
 }
 
 uint64_t radio_current_freq_rx() {
-    return params_band.vfo_x[params_band.vfo].freq_rx;
+    return params_band.freq_rx;
 }
 
 uint64_t radio_current_freq_fft() {
-    return params_band.vfo_x[params_band.vfo].freq_fft;
+    return params_band.freq_fft;
 }
 
 void radio_change_mute() {
@@ -290,25 +275,23 @@ uint16_t radio_change_sql(int16_t df) {
 }
 
 bool radio_change_pre() {
-    bool vfoa = (params_band.vfo == RADIO_VFO_A);
-
     params_lock();
     
-    params_band.vfo_x[params_band.vfo].pre = !params_band.vfo_x[params_band.vfo].pre;
-    params_unlock(&params_band.vfo_x[params_band.vfo].durty.pre);
+    params_band.pre = !params_band.pre;
+    params_unlock(&params_band.durty.pre);
 
-    voice_say_text_fmt("Preamplifier %s", params_band.vfo_x[params_band.vfo].pre ? "On" : "Off");
-    return params_band.vfo_x[params_band.vfo].pre;
+    voice_say_text_fmt("Preamplifier %s", params_band.pre ? "On" : "Off");
+    return params_band.pre;
 }
 
 bool radio_change_att() {
     params_lock();
     
-    params_band.vfo_x[params_band.vfo].att = !params_band.vfo_x[params_band.vfo].att;
-    params_unlock(&params_band.vfo_x[params_band.vfo].durty.att);
+    params_band.att = !params_band.att;
+    params_unlock(&params_band.durty.att);
 
-    voice_say_text_fmt("Attenuator %s", params_band.vfo_x[params_band.vfo].att ? "On" : "Off");
-    return params_band.vfo_x[params_band.vfo].att;
+    voice_say_text_fmt("Attenuator %s", params_band.att ? "On" : "Off");
+    return params_band.att;
 }
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
@@ -347,18 +330,16 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
     }
 }
 
-void radio_set_mode(radio_vfo_t vfo, radio_mode_t mode) {
-    params_band.vfo_x[vfo].mode = mode;
-    params_unlock(&params_band.vfo_x[vfo].durty.mode);
-    lv_msg_send(MSG_MODE_CHANGED, &params_band.vfo_x[vfo].mode);
+void radio_set_mode(radio_mode_t mode) {
+    params_band.mode = mode;
+    params_unlock(&params_band.durty.mode);
+    lv_msg_send(MSG_MODE_CHANGED, &params_band.mode);
 }
 
 void radio_restore_mode(radio_mode_t mode) {
-    radio_vfo_t vfo = params_band.vfo;
-
     params_lock();
-    params_band.vfo_x[vfo].mode = mode;
-    params_unlock(&params_band.vfo_x[vfo].durty.mode);
+    params_band.mode = mode;
+    params_unlock(&params_band.durty.mode);
 }
 
 void radio_change_mode(radio_mode_t select) {
@@ -430,11 +411,11 @@ void radio_change_mode(radio_mode_t select) {
     }
 
     params_mode_save();
-    radio_set_mode(params_band.vfo, mode);
+    radio_set_mode(mode);
 }
 
 radio_mode_t radio_current_mode() {
-    return params_band.vfo_x[params_band.vfo].mode;
+    return params_band.mode;
 }
 
 uint32_t radio_change_filter_low(int32_t df) {
@@ -545,7 +526,7 @@ void radio_stop_swrscan() {
 
 void radio_load_atu() {
     if (params.atu) {
-        if (params_band.vfo_x[params_band.vfo].shift) {
+        if (params_band.shift) {
             info_atu_update();
 
             return;
@@ -765,21 +746,6 @@ uint8_t radio_change_imic(int16_t d) {
     params_unlock(&params.durty.imic);
     
     return params.imic;
-}
-
-radio_vfo_t radio_set_vfo(radio_vfo_t vfo) {
-    params_lock();
-    params_band.vfo = vfo;
-    params_unlock(&params_band.durty.vfo);
-}
-
-radio_vfo_t radio_change_vfo() {
-    radio_vfo_t vfo = (params_band.vfo == RADIO_VFO_A) ? RADIO_VFO_B : RADIO_VFO_A;
-
-    radio_set_vfo(vfo);
-    voice_say_text_fmt("V F O %s", (params_band.vfo == RADIO_VFO_A) ? "A" : "B");
-    
-    return params_band.vfo;
 }
 
 void radio_change_split() {

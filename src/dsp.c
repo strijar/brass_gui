@@ -11,7 +11,6 @@
 #include <math.h>
 
 #include "dsp.h"
-#include "spectrum.h"
 #include "waterfall.h"
 #include "util.h"
 #include "radio.h"

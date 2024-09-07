@@ -64,7 +64,7 @@ void info_atu_update() {
         lv_obj_set_style_bg_color(items[INFO_ATU], lv_color_black(), 0);
         lv_obj_set_style_bg_opa(items[INFO_ATU], LV_OPA_0, 0);
     } else {
-        if (params_band.vfo_x[params_band.vfo].shift) {
+        if (params_band.shift) {
             lv_obj_set_style_text_color(items[INFO_ATU], lv_color_hex(0xAAAAAA), 0);
             lv_obj_set_style_bg_opa(items[INFO_ATU], LV_OPA_20, 0);
         } else {
@@ -148,32 +148,19 @@ const char* info_params_agc() {
     return str;
 }
 
-const char* info_params_vfo() {
-    char            *str;
-
-    if (params_band.split) {
-        str = params_band.vfo == RADIO_VFO_A ? "SPL-A" : "SPL-B";
-    } else {
-        str = params_band.vfo == RADIO_VFO_A ? "VFO-A" : "VFO-B";
-    }
-    
-    return str;
-}
-
 bool info_params_att() {
-    radio_att_t     att = params_band.vfo_x[params_band.vfo].att;
+    radio_att_t     att = params_band.att;
 
     return att == radio_att_on;
 }
 
 bool info_params_pre() {
-    radio_pre_t     pre = params_band.vfo_x[params_band.vfo].pre;
+    radio_pre_t     pre = params_band.pre;
     
     return pre == radio_pre_on;
 }
 
 void info_params_set() {
-    lv_label_set_text(items[INFO_VFO], info_params_vfo());
     lv_label_set_text(items[INFO_MODE], info_params_mode());
     lv_label_set_text(items[INFO_AGC], info_params_agc());
 

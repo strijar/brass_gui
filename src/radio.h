@@ -16,11 +16,6 @@
 #define RADIO_FFT       (1024)
 
 typedef enum {
-    RADIO_VFO_A = 0,
-    RADIO_VFO_B
-} radio_vfo_t;
-
-typedef enum {
     radio_mode_lsb = 0,
     radio_mode_usb = 2,
     radio_mode_cw = 4,
@@ -94,13 +89,10 @@ bool radio_check_freq(uint64_t freq, uint64_t *shift);
 uint64_t radio_current_freq_rx();
 uint64_t radio_current_freq_fft();
 
-void radio_set_mode(radio_vfo_t vfo,  radio_mode_t mode);
+void radio_set_mode(radio_mode_t mode);
 void radio_change_mode(radio_mode_t select);
 void radio_restore_mode(radio_mode_t mode);
 radio_mode_t radio_current_mode();
-
-radio_vfo_t radio_set_vfo(radio_vfo_t vfo);
-radio_vfo_t radio_change_vfo();
 
 uint16_t radio_change_rfg(int16_t df);
 uint16_t radio_change_sql(int16_t df);
@@ -146,7 +138,7 @@ void radio_load_atu();
 bool radio_start_swrscan();
 void radio_stop_swrscan();
 
-void radio_vfo_set();
+void radio_freq_set();
 void radio_mode_set();
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq);

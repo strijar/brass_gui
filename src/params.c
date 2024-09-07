@@ -38,10 +38,6 @@ params_t params = {
     .spectrum_peak          = true,
     .spectrum_peak_hold     = 5000,
     .spectrum_peak_speed    = 0.5f,
-    .spectrum_auto_min      = { .x = true,  .name = "spectrum_auto_min",    .voice = "Auto minimum of spectrum" },
-    .spectrum_auto_max      = { .x = true,  .name = "spectrum_auto_max",    .voice = "Auto maximum of spectrum" },
-    .waterfall_auto_min     = { .x = true,  .name = "waterfall_auto_min",   .voice = "Auto minimum of waterfall" },
-    .waterfall_auto_max     = { .x = true,  .name = "waterfall_auto_max",   .voice = "Auto maximum of waterfall" },
     .mag_freq               = { .x = true,  .name = "mag_freq",             .voice = "Magnification of frequency" },
     .mag_info               = { .x = true,  .name = "mag_info",             .voice = "Magnification of info" },
     .mag_alc                = { .x = true,  .name = "mag_alc",              .voice = "Magnification of A L C" },
@@ -144,27 +140,13 @@ params_t params = {
 };
 
 params_band_t params_band = {
-    .vfo                = RADIO_VFO_A,
+    .freq_rx        = 14000000,
+    .freq_fft       = 14000000,
+    .att            = radio_att_off,
+    .pre            = radio_pre_off,
+    .mode           = radio_mode_usb,
 
-    .vfo_x[RADIO_VFO_A] = {
-        .freq_rx        = 14000000,
-        .freq_fft       = 14000000,
-        .att            = radio_att_off,
-        .pre            = radio_pre_off,
-        .mode           = radio_mode_usb,
-    },
-
-    .vfo_x[RADIO_VFO_B] = {
-        .freq_rx        = 14100000,
-        .freq_fft       = 14100000,
-        .att            = radio_att_off,
-        .pre            = radio_pre_off,
-        .mode           = radio_mode_usb,
-    },
-
-    .split              = false,
-    .grid_min           = -121,
-    .grid_max           = -73,
+    .split              = false
 };
 
 params_mode_t params_mode = {
@@ -298,65 +280,40 @@ void params_band_load(bool set_freq) {
 }
 
 static void params_mb_load(sqlite3_stmt *stmt, bool set_freq) {
-    bool copy_freq = true;
-    bool copy_att = true;
-    bool copy_pre = true;
-    bool copy_mode = true;
-
     memset(params_band.label, 0, sizeof(params_band.label));
     
     while (sqlite3_step(stmt) != SQLITE_DONE) {
         const char *name = sqlite3_column_text(stmt, 0);
 
-        if (strcmp(name, "vfo") == 0) {
-            params_band.vfo = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "vfoa_freq") == 0) {
+        if (strcmp(name, "freq") == 0) {
             if (set_freq) {
                 uint64_t x = sqlite3_column_int64(stmt, 1);
         
-                params_band.vfo_x[RADIO_VFO_A].freq_rx = x;
-                params_band.vfo_x[RADIO_VFO_A].freq_fft = x;
+                params_band.freq_rx = x;
+                params_band.freq_fft = x;
             }
-        } else if (strcmp(name, "vfoa_att") == 0) {
-            params_band.vfo_x[RADIO_VFO_A].att = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "vfoa_pre") == 0) {
-            params_band.vfo_x[RADIO_VFO_A].pre = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "vfoa_mode") == 0) {
-            params_band.vfo_x[RADIO_VFO_A].mode = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "vfob_freq_rx") == 0) {
+        } else if (strcmp(name, "att") == 0) {
+            params_band.att = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "pre") == 0) {
+            params_band.pre = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "mode") == 0) {
+            params_band.mode = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "freq_rx") == 0) {
             if (set_freq) {
                 uint64_t x = sqlite3_column_int64(stmt, 1);
         
-                params_band.vfo_x[RADIO_VFO_B].freq_rx = x;
-                params_band.vfo_x[RADIO_VFO_B].freq_fft = x;
-                copy_freq = false;
+                params_band.freq_rx = x;
             }
-        } else if (strcmp(name, "vfob_att") == 0) {
-            params_band.vfo_x[RADIO_VFO_B].att = sqlite3_column_int(stmt, 1);
-            copy_att = false;
-        } else if (strcmp(name, "vfob_pre") == 0) {
-            params_band.vfo_x[RADIO_VFO_B].pre = sqlite3_column_int(stmt, 1);
-            copy_pre = false;
-        } else if (strcmp(name, "vfob_mode") == 0) {
-            params_band.vfo_x[RADIO_VFO_B].mode = sqlite3_column_int(stmt, 1);
-            copy_mode = false;
-        } else if (strcmp(name, "grid_min") == 0) {
-            params_band.grid_min = sqlite3_column_int(stmt, 1);
-        } else if (strcmp(name, "grid_max") == 0) {
-            params_band.grid_max = sqlite3_column_int(stmt, 1);
+        } else if (strcmp(name, "freq_fft") == 0) {
+            if (set_freq) {
+                uint64_t x = sqlite3_column_int64(stmt, 1);
+        
+                params_band.freq_fft = x;
+            }
         } else if (strcmp(name, "label") == 0) {
             strncpy(params_band.label, sqlite3_column_text(stmt, 1), sizeof(params_band.label) - 1);
         }
     }
-
-    if (copy_freq) {
-        params_band.vfo_x[RADIO_VFO_B].freq_rx = params_band.vfo_x[RADIO_VFO_A].freq_rx;
-        params_band.vfo_x[RADIO_VFO_B].freq_fft = params_band.vfo_x[RADIO_VFO_A].freq_fft;
-    }
-
-    if (copy_att)   params_band.vfo_x[RADIO_VFO_B].att = params_band.vfo_x[RADIO_VFO_A].att;
-    if (copy_pre)   params_band.vfo_x[RADIO_VFO_B].pre = params_band.vfo_x[RADIO_VFO_A].pre;
-    if (copy_mode)  params_band.vfo_x[RADIO_VFO_B].mode = params_band.vfo_x[RADIO_VFO_A].mode;
 
     sqlite3_finalize(stmt);
     params_mode_load();
@@ -406,63 +363,32 @@ void params_memory_save(uint16_t id) {
 
     sqlite3_prepare_v2(db, "INSERT INTO memory(id, name, val) VALUES(?, ?, ?)", -1, &write_mb_stmt, 0);
 
-    params_band.durty.vfo = true;
-    
-    for (uint8_t i = RADIO_VFO_A; i <= RADIO_VFO_B; i++) {
-        params_band.vfo_x[i].durty.freq_rx = true;
-        params_band.vfo_x[i].durty.freq_fft = true;
-        params_band.vfo_x[i].durty.att = true;
-        params_band.vfo_x[i].durty.pre = true;
-        params_band.vfo_x[i].durty.mode = true;
-    }
-    
-    params_band.durty.grid_min = true;
-    params_band.durty.grid_max = true;
+    params_band.durty.freq_rx = true;
+    params_band.durty.freq_fft = true;
+    params_band.durty.att = true;
+    params_band.durty.pre = true;
+    params_band.durty.mode = true;
     
     params_mb_save(id);
     sqlite3_finalize(write_mb_stmt);
 }
 
 static bool params_mb_save(uint16_t id) {
-    if (params_band.durty.vfo)
-        params_mb_write_int(id, "vfo", params_band.vfo, &params_band.durty.vfo);
-    
-    if (params_band.vfo_x[RADIO_VFO_A].durty.freq_rx)
-        params_mb_write_int64(id, "vfoa_freq", params_band.vfo_x[RADIO_VFO_A].freq_rx, &params_band.vfo_x[RADIO_VFO_A].durty.freq_rx);
+    if (params_band.durty.freq_rx)
+        params_mb_write_int64(id, "freq_rx", params_band.freq_rx, &params_band.durty.freq_rx);
 
-    if (params_band.vfo_x[RADIO_VFO_A].durty.freq_fft)
-        params_mb_write_int64(id, "vfoa_freq_fft", params_band.vfo_x[RADIO_VFO_A].freq_fft, &params_band.vfo_x[RADIO_VFO_A].durty.freq_fft);
+    if (params_band.durty.freq_fft)
+        params_mb_write_int64(id, "freq_fft", params_band.freq_fft, &params_band.durty.freq_fft);
         
-    if (params_band.vfo_x[RADIO_VFO_A].durty.att)
-        params_mb_write_int(id, "vfoa_att", params_band.vfo_x[RADIO_VFO_A].att, &params_band.vfo_x[RADIO_VFO_A].durty.att);
+    if (params_band.durty.att)
+        params_mb_write_int(id, "att", params_band.att, &params_band.durty.att);
         
-    if (params_band.vfo_x[RADIO_VFO_A].durty.pre)
-        params_mb_write_int(id, "vfoa_pre", params_band.vfo_x[RADIO_VFO_A].pre, &params_band.vfo_x[RADIO_VFO_A].durty.pre);
+    if (params_band.durty.pre)
+        params_mb_write_int(id, "pre", params_band.pre, &params_band.durty.pre);
         
-    if (params_band.vfo_x[RADIO_VFO_A].durty.mode)
-        params_mb_write_int(id, "vfoa_mode", params_band.vfo_x[RADIO_VFO_A].mode, &params_band.vfo_x[RADIO_VFO_A].durty.mode);
+    if (params_band.durty.mode)
+        params_mb_write_int(id, "mode", params_band.mode, &params_band.durty.mode);
         
-    if (params_band.vfo_x[RADIO_VFO_B].durty.freq_rx)
-        params_mb_write_int64(id, "vfob_freq", params_band.vfo_x[RADIO_VFO_B].freq_rx, &params_band.vfo_x[RADIO_VFO_B].durty.freq_rx);
-
-    if (params_band.vfo_x[RADIO_VFO_B].durty.freq_fft)
-        params_mb_write_int64(id, "vfob_freq_fft", params_band.vfo_x[RADIO_VFO_B].freq_fft, &params_band.vfo_x[RADIO_VFO_B].durty.freq_fft);
-        
-    if (params_band.vfo_x[RADIO_VFO_B].durty.att)
-        params_mb_write_int(id, "vfob_att", params_band.vfo_x[RADIO_VFO_B].att, &params_band.vfo_x[RADIO_VFO_B].durty.att);
-        
-    if (params_band.vfo_x[RADIO_VFO_B].durty.pre)
-        params_mb_write_int(id, "vfob_pre", params_band.vfo_x[RADIO_VFO_B].pre, &params_band.vfo_x[RADIO_VFO_B].durty.pre);
-        
-    if (params_band.vfo_x[RADIO_VFO_B].durty.mode)
-        params_mb_write_int(id, "vfob_mode", params_band.vfo_x[RADIO_VFO_B].mode, &params_band.vfo_x[RADIO_VFO_B].durty.mode);
-        
-    if (params_band.durty.grid_min)
-        params_mb_write_int(id, "grid_min", params_band.grid_min, &params_band.durty.grid_min);
-        
-    if (params_band.durty.grid_max)
-        params_mb_write_int(id, "grid_max", params_band.grid_max, &params_band.durty.grid_max);
-
     if (!params_exec("COMMIT")) {
         return false;
     }
@@ -698,10 +624,6 @@ static bool params_load() {
         if (params_load_bool(&params.mag_freq, name, i)) continue;
         if (params_load_bool(&params.mag_info, name, i)) continue;
         if (params_load_bool(&params.mag_alc, name, i)) continue;
-        if (params_load_bool(&params.spectrum_auto_min, name, i)) continue;
-        if (params_load_bool(&params.spectrum_auto_max, name, i)) continue;
-        if (params_load_bool(&params.waterfall_auto_min, name, i)) continue;
-        if (params_load_bool(&params.waterfall_auto_max, name, i)) continue;
         if (params_load_bool(&params.ft8_auto, name, i)) continue;
 
         if (params_load_uint8(&params.voice_mode, name, i)) continue;
@@ -920,10 +842,6 @@ static void params_save() {
     params_save_bool(&params.mag_freq);
     params_save_bool(&params.mag_info);
     params_save_bool(&params.mag_alc);
-    params_save_bool(&params.spectrum_auto_min);
-    params_save_bool(&params.spectrum_auto_max);
-    params_save_bool(&params.waterfall_auto_min);
-    params_save_bool(&params.waterfall_auto_max);
     params_save_bool(&params.ft8_auto);
 
     params_save_str(&params.qth);
@@ -1107,19 +1025,19 @@ void params_unlock(bool *durty) {
 void params_band_freq_rx_set(uint64_t freq) {
     params_lock();
 
-    params_band.vfo_x[params_band.vfo].freq_rx = freq;
-    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq_rx);
+    params_band.freq_rx = freq;
+    params_unlock(&params_band.durty.freq_rx);
 }
 
 void params_band_freq_fft_set(uint64_t freq) {
     params_lock();
 
-    params_band.vfo_x[params_band.vfo].freq_fft = freq;
-    params_unlock(&params_band.vfo_x[params_band.vfo].durty.freq_fft);
+    params_band.freq_fft = freq;
+    params_unlock(&params_band.durty.freq_fft);
 }
 
 void params_atu_save(uint32_t val) {
-    uint64_t freq = params_band.vfo_x[params_band.vfo].freq_rx;
+    uint64_t freq = params_band.freq_rx;
 
     params_lock();
 
@@ -1136,7 +1054,7 @@ void params_atu_save(uint32_t val) {
 
 uint32_t params_atu_load(bool *loaded) {
     uint32_t    res = 0;
-    uint64_t    freq = params_band.vfo_x[params_band.vfo].freq_rx;
+    uint64_t    freq = params_band.freq_rx;
     
     *loaded = false;
 
@@ -1156,29 +1074,6 @@ uint32_t params_atu_load(bool *loaded) {
     params_unlock(NULL);
     
     return res;
-}
-
-void params_band_vfo_clone() {
-    params_vfo_t *a = &params_band.vfo_x[RADIO_VFO_A];
-    params_vfo_t *b = &params_band.vfo_x[RADIO_VFO_B];
-
-    if (params_band.vfo == RADIO_VFO_A) {
-        *b = *a;
-        
-        b->durty.freq_rx = true;
-        b->durty.freq_fft = true;
-        b->durty.att = true;
-        b->durty.pre = true;
-        b->durty.mode = true;
-    } else {
-        *a = *b;
-
-        a->durty.freq_rx = true;
-        a->durty.freq_fft = true;
-        a->durty.att = true;
-        a->durty.pre = true;
-        a->durty.mode = true;
-    }
 }
 
 void params_msg_cw_load() {

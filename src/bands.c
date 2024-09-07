@@ -11,7 +11,6 @@
 #include "params.h"
 #include "radio.h"
 #include "info.h"
-#include "spectrum.h"
 #include "waterfall.h"
 #include "main_screen.h"
 #include "pannel.h"
@@ -29,9 +28,9 @@ void bands_activate(band_t *band, bool touch_freq) {
     params_unlock(&params.durty.band);
 
     if (touch_freq) {
-        radio_set_freq_rx(params_band.vfo_x[params_band.vfo].freq_rx);
-        radio_set_freq_fft(params_band.vfo_x[params_band.vfo].freq_fft);
-        band_info_update(params_band.vfo_x[params_band.vfo].freq_fft);
+        radio_set_freq_rx(params_band.freq_rx);
+        radio_set_freq_fft(params_band.freq_fft);
+        band_info_update(params_band.freq_fft);
     }
 
     radio_mode_set();
@@ -41,10 +40,10 @@ void bands_activate(band_t *band, bool touch_freq) {
 void bands_change(bool up) {
     band_t band = { .name = NULL };
 
-    params_band_freq_rx_set(params_band.vfo_x[params_band.vfo].freq_rx);
-    params_band_freq_fft_set(params_band.vfo_x[params_band.vfo].freq_fft);
+    params_band_freq_rx_set(params_band.freq_rx);
+    params_band_freq_fft_set(params_band.freq_fft);
     
-    if (params_bands_find_next(params_band.vfo_x[params_band.vfo].freq_rx, up, &band)) {
+    if (params_bands_find_next(params_band.freq_rx, up, &band)) {
         bands_activate(&band, true);
         main_screen_band_changed();
             

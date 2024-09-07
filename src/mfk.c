@@ -10,7 +10,6 @@
 #include "mfk.h"
 #include "params.h"
 #include "main_screen.h"
-#include "spectrum.h"
 #include "waterfall.h"
 #include "msg.h"
 #include "dsp.h"

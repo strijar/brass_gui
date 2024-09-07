@@ -59,7 +59,7 @@ static void do_init() {
     }
 
     freq_index = 0;
-    freq_center = params_band.vfo_x[params_band.vfo].freq_rx;
+    freq_center = params_band.freq_rx;
         
     freq_start = freq_center - params.swrscan_span / 2;
     freq_stop = freq_center + params.swrscan_span / 2;

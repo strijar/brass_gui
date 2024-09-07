@@ -12,7 +12,6 @@
 
 #include "main_screen.h"
 #include "styles.h"
-#include "spectrum.h"
 #include "waterfall.h"
 #include "util.h"
 #include "radio.h"
@@ -73,7 +72,7 @@ static uint64_t freq_update();
 void mem_load(uint16_t id) {
     params_memory_load(id);
 
-    if (params_bands_find(params_band.vfo_x[params_band.vfo].freq_rx, &params.freq_band)) {
+    if (params_bands_find(params_band.freq_rx, &params.freq_band)) {
         if (params.freq_band.type != 0) {
             params.band = params.freq_band.id;
         } else {
@@ -83,7 +82,7 @@ void mem_load(uint16_t id) {
         params.band = -1;
     }
 
-    radio_vfo_set();
+    radio_freq_set();
     radio_mode_set();
 
     radio_load_atu();
@@ -112,13 +111,8 @@ void mem_save(uint16_t id) {
 
 static uint64_t freq_update() {
     uint64_t    f;
-    radio_vfo_t vfo = params_band.vfo;
     uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;
     uint16_t    mhz, khz, hz;
-
-    if (params_band.split && radio_get_state() == RADIO_TX) {
-        vfo = (vfo == RADIO_VFO_A) ? RADIO_VFO_B : RADIO_VFO_A;
-    }
 
     f = radio_current_freq_fft();
 
@@ -142,9 +136,9 @@ static uint64_t freq_update() {
         }
     }
 
-    if (params_band.split) {
+    if (params_band.split) {    /* FIXME */
         uint16_t    mhz2, khz2, hz2;
-        uint64_t    f2 = params_band.vfo_x[(vfo == RADIO_VFO_A) ? RADIO_VFO_B : RADIO_VFO_A].freq_rx;
+        uint64_t    f2 = params_band.freq_rx;
 
         split_freq(f2, &mhz2, &khz2, &hz2);
         
@@ -1080,8 +1074,8 @@ void main_screen_band_changed() {
 }
 
 void main_screen_update_range() {
-    params_band.vfo_x[params_band.vfo].freq_fft = params_band.vfo_x[params_band.vfo].freq_rx;
-    radio_set_freq_fft(params_band.vfo_x[params_band.vfo].freq_fft);
+    params_band.freq_fft = params_band.freq_rx;
+    radio_set_freq_fft(params_band.freq_fft);
 
     band_info_update_range();
     freq_update();

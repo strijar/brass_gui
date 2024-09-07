@@ -122,6 +122,11 @@ typedef struct {
     radio_att_t     att;
     radio_pre_t     pre;
     radio_mode_t    mode;
+
+    bool            split;
+    char            label[64];
+
+    /* durty flags */
     
     struct {
         bool    freq_rx;
@@ -129,26 +134,8 @@ typedef struct {
         bool    att;
         bool    pre;
         bool    mode;
-    } durty;
-} params_vfo_t;
 
-typedef struct {
-    radio_vfo_t     vfo;
-
-    params_vfo_t    vfo_x[2];
-
-    bool            split;
-    int16_t         grid_min;
-    int16_t         grid_max;
-    char            label[64];
-
-    /* durty flags */
-    
-    struct {
-        bool    vfo;
         bool    split;
-        bool    grid_min;
-        bool    grid_max;
         bool    label;
     } durty;
 } params_band_t;
@@ -265,10 +252,6 @@ typedef struct {
     uint16_t            spectrum_peak_hold;
     float               spectrum_peak_speed;
     bool                spectrum_filled;
-    params_bool_t       spectrum_auto_min;
-    params_bool_t       spectrum_auto_max;
-    params_bool_t       waterfall_auto_min;
-    params_bool_t       waterfall_auto_max;
     params_bool_t       mag_freq;
     params_bool_t       mag_info;
     params_bool_t       mag_alc;
@@ -500,8 +483,6 @@ void params_band_freq_fft_set(uint64_t freq);
 
 void params_atu_save(uint32_t val);
 uint32_t params_atu_load(bool *loaded);
-
-void params_band_vfo_clone();
 
 void params_msg_cw_load();
 void params_msg_cw_new(const char *val);
