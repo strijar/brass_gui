@@ -56,6 +56,28 @@ void lv_finder_set_range(lv_obj_t * obj, uint64_t freq_min, uint64_t freq_max) {
     
     finder->range_min = freq_min;
     finder->range_max = freq_max;
+    finder->center = (freq_min + freq_max) / 2;
+    finder->span = freq_max - freq_min;
+}
+
+void lv_finder_set_span(lv_obj_t * obj, int32_t hz) {
+    LV_ASSERT_OBJ(obj, MY_CLASS);
+
+    lv_finder_t * finder = (lv_finder_t *)obj;
+    
+    finder->span = hz;
+    finder->range_min = finder->center - finder->span / 2;
+    finder->range_max = finder->center + finder->span / 2;
+}
+
+void lv_finder_set_center(lv_obj_t * obj, uint64_t hz) {
+    LV_ASSERT_OBJ(obj, MY_CLASS);
+
+    lv_finder_t * finder = (lv_finder_t *)obj;
+    
+    finder->center = hz;
+    finder->range_min = finder->center - finder->span / 2;
+    finder->range_max = finder->center + finder->span / 2;
 }
 
 void lv_finder_set_cursor(lv_obj_t * obj, uint8_t index, int16_t hz) {
@@ -114,6 +136,9 @@ static void lv_finder_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj
     finder->range_min = 50;
     finder->range_max = 3000;
     finder->cursor_num = 0;
+
+    finder->center = (50 + 3000) / 2;
+    finder->span = 3000 - 50;
     
     LV_TRACE_OBJ_CREATE("finished");
 }

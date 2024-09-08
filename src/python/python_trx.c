@@ -80,6 +80,13 @@ static void rx_finder_event_cb(void *s, lv_msg_t *m) {
             lv_finder_set_offsets(finder, from, to);
             lv_obj_invalidate(finder);
         } break;
+
+        case MSG_RATE_FFT_CHANGED: {
+            const uint8_t *zoom = lv_msg_get_payload(m);
+
+            lv_finder_set_span(finder, 100000 / *zoom);
+            lv_obj_invalidate(finder);
+        } break;
         
         case MSG_FREQ_RX_CHANGED: {
             const uint64_t *freq = lv_msg_get_payload(m);
@@ -90,9 +97,8 @@ static void rx_finder_event_cb(void *s, lv_msg_t *m) {
 
         case MSG_FREQ_FFT_CHANGED: {
             const uint64_t  *freq = lv_msg_get_payload(m);
-            uint32_t        half = 50000 / params_mode.spectrum_factor;
 
-            lv_finder_set_range(finder, *freq - half, *freq + half);
+            lv_finder_set_center(finder, *freq);
             lv_obj_invalidate(finder);
         } break;
         
@@ -110,6 +116,7 @@ static PyObject * trx_connect_rx_finder(PyObject *self, PyObject *args) {
         lv_obj_t *finder = python_lv_get_obj(obj);
     
         lv_msg_subsribe(MSG_FILTER_CHANGED, rx_finder_event_cb, finder);
+        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, rx_finder_event_cb, finder);
         lv_msg_subsribe(MSG_FREQ_RX_CHANGED, rx_finder_event_cb, finder);
         lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, rx_finder_event_cb, finder);
     }
