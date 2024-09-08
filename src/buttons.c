@@ -25,6 +25,7 @@
 #include "dialog_msg_voice.h"
 #include "dialog_recorder.h"
 #include "voice.h"
+#include "events.h"
 
 #define BUTTONS     5
 
@@ -408,7 +409,7 @@ void buttons_press(uint8_t n, bool hold) {
             item->hold(item);
         }
     } else {
-        lv_event_send(btn[n].obj, LV_EVENT_PRESSED, NULL);
-        lv_event_send(btn[n].obj, LV_EVENT_RELEASED, NULL);
+        event_send(btn[n].obj, LV_EVENT_PRESSED, NULL);
+        event_send(btn[n].obj, LV_EVENT_RELEASED, NULL);
     }
 }

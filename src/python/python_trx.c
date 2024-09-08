@@ -17,9 +17,8 @@
 
 /* Spectrum */
 
-static void spectrum_msg_cb(lv_event_t * e) {
-    lv_obj_t *spectrum = lv_event_get_target(e);
-    lv_msg_t *m = lv_event_get_msg(e);
+static void spectrum_msg_cb(void *s, lv_msg_t *m) {
+    lv_obj_t *spectrum = lv_msg_get_user_data(m);
     
     switch (lv_msg_get_id(m)) {
         case MSG_FREQ_FFT_SHIFT: {
@@ -59,11 +58,10 @@ static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *spectrum = python_lv_get_obj(obj);
     
-        lv_obj_add_event_cb(spectrum, spectrum_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
-        lv_msg_subsribe_obj(MSG_FREQ_FFT_SHIFT, spectrum, NULL);
-        lv_msg_subsribe_obj(MSG_RATE_FFT_CHANGED, spectrum, NULL);
-        lv_msg_subsribe_obj(MSG_SPECTRUM_AUTO, spectrum, NULL);
-        lv_msg_subsribe_obj(MSG_SPECTRUM_DATA, spectrum, NULL);
+        lv_msg_subsribe(MSG_FREQ_FFT_SHIFT, spectrum_msg_cb, spectrum);
+        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, spectrum_msg_cb, spectrum);
+        lv_msg_subsribe(MSG_SPECTRUM_AUTO, spectrum_msg_cb, spectrum);
+        lv_msg_subsribe(MSG_SPECTRUM_DATA, spectrum_msg_cb, spectrum);
     }
 
     Py_RETURN_NONE;
@@ -71,9 +69,8 @@ static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
 
 /* RX Finder */
 
-static void rx_finder_event_cb(lv_event_t * e) {
-    lv_obj_t *finder = lv_event_get_target(e);
-    lv_msg_t *m = lv_event_get_msg(e);
+static void rx_finder_event_cb(void *s, lv_msg_t *m) {
+    lv_obj_t *finder = lv_msg_get_user_data(m);
     
     switch (lv_msg_get_id(m)) {
         case MSG_FILTER_CHANGED: {
@@ -112,10 +109,9 @@ static PyObject * trx_connect_rx_finder(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *finder = python_lv_get_obj(obj);
     
-        lv_obj_add_event_cb(finder, rx_finder_event_cb, LV_EVENT_MSG_RECEIVED, NULL);
-        lv_msg_subsribe_obj(MSG_FILTER_CHANGED, finder, NULL);
-        lv_msg_subsribe_obj(MSG_FREQ_RX_CHANGED, finder, NULL);
-        lv_msg_subsribe_obj(MSG_FREQ_FFT_CHANGED, finder, NULL);
+        lv_msg_subsribe(MSG_FILTER_CHANGED, rx_finder_event_cb, finder);
+        lv_msg_subsribe(MSG_FREQ_RX_CHANGED, rx_finder_event_cb, finder);
+        lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, rx_finder_event_cb, finder);
     }
 
     Py_RETURN_NONE;
