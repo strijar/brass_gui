@@ -137,6 +137,7 @@ void radio_freq_set() {
 
     radio_check_freq(freq, &shift);
     control_set_rx_freq(freq - shift);
+    control_set_tx_freq(params_band.freq_tx - shift);
     control_set_fft_freq(freq - shift);
 
     params_bands_find(freq, &params.freq_band);
@@ -190,6 +191,49 @@ void radio_set_freq_rx(uint64_t freq) {
     lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
 }
 
+void radio_set_freq_tx(uint64_t freq) {
+    uint64_t shift = 0;
+    
+    if (!radio_check_freq(freq, &shift)) {
+        LV_LOG_ERROR("Freq %llu incorrect", freq);
+        return;
+    }
+
+    params_lock();
+    params_band.freq_tx = freq;
+    params_band.shift = (shift != 0);
+    params_unlock(&params_band.durty.freq_tx);
+
+    control_set_tx_freq(freq - shift);
+    radio_load_atu();
+
+    lv_msg_send(MSG_FREQ_TX_CHANGED, &params_band.freq_tx);
+}
+
+uint64_t radio_set_freqs(uint64_t rx, uint64_t tx) {
+    uint64_t ret = 0;
+
+    switch (params_band.split) {
+        case SPLIT_NONE:
+            radio_set_freq_rx(rx);
+            radio_set_freq_tx(tx);
+            ret = rx;
+            break;
+        
+        case SPLIT_RX:
+            radio_set_freq_rx(rx);
+            ret = rx;
+            break;
+            
+        case SPLIT_TX:
+            radio_set_freq_tx(tx);
+            ret = tx;
+    }
+
+    voice_say_freq(ret);
+    return ret;
+}
+
 void radio_set_freq_fft(uint64_t freq) {
     uint64_t shift = 0;
     
@@ -225,12 +269,16 @@ bool radio_check_freq(uint64_t freq, uint64_t *shift) {
     return false;
 }
 
-uint64_t radio_current_freq_rx() {
-    return params_band.freq_rx;
-}
+split_mode_t radio_change_split(int16_t d) {
+    if (d == 0) {
+        return params_band.split;
+    }
 
-uint64_t radio_current_freq_fft() {
-    return params_band.freq_fft;
+    params_lock();
+    params_band.split = limit(params_band.split + d, 0, 2);
+    params_unlock(&params_band.durty.split);
+    
+    return params_band.split;
 }
 
 void radio_change_mute() {
@@ -748,14 +796,6 @@ uint8_t radio_change_imic(int16_t d) {
     return params.imic;
 }
 
-void radio_change_split() {
-    params_lock();
-    params_band.split = !params_band.split;
-    params_unlock(&params_band.durty.split);
-    
-    voice_say_text_fmt("Split %s", params_band.split ? "On" : "Off");
-}
-
 void radio_poweroff() {
     if (params.charger == RADIO_CHARGER_SHADOW) {
     }
@@ -886,30 +926,6 @@ uint8_t radio_change_nr_level(int16_t d) {
 }
 
 void radio_set_ptt(bool tx) {
-}
-
-int16_t radio_change_rit(int16_t d) {
-    if (d == 0) {
-        return params.rit;
-    }
-    
-    params_lock();
-    params.rit = limit(align_int(params.rit + d * 10, 10), -1500, +1500);
-    params_unlock(&params.durty.rit);
-
-    return params.rit;
-}
-
-int16_t radio_change_xit(int16_t d) {
-    if (d == 0) {
-        return params.xit;
-    }
-    
-    params_lock();
-    params.xit = limit(align_int(params.xit + d * 10, 10), -1500, +1500);
-    params_unlock(&params.durty.xit);
-
-    return params.xit;
 }
 
 void radio_set_line_in(uint8_t d) {

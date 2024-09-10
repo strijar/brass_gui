@@ -141,12 +141,13 @@ params_t params = {
 
 params_band_t params_band = {
     .freq_rx        = 14000000,
+    .freq_tx        = 14000000,
     .freq_fft       = 14000000,
     .att            = radio_att_off,
     .pre            = radio_pre_off,
     .mode           = radio_mode_usb,
 
-    .split              = false
+    .split          = SPLIT_NONE
 };
 
 params_mode_t params_mode = {
@@ -290,6 +291,7 @@ static void params_mb_load(sqlite3_stmt *stmt, bool set_freq) {
                 uint64_t x = sqlite3_column_int64(stmt, 1);
         
                 params_band.freq_rx = x;
+                params_band.freq_tx = x;
                 params_band.freq_fft = x;
             }
         } else if (strcmp(name, "att") == 0) {
@@ -304,12 +306,20 @@ static void params_mb_load(sqlite3_stmt *stmt, bool set_freq) {
         
                 params_band.freq_rx = x;
             }
+        } else if (strcmp(name, "freq_tx") == 0) {
+            if (set_freq) {
+                uint64_t x = sqlite3_column_int64(stmt, 1);
+        
+                params_band.freq_tx = x;
+            }
         } else if (strcmp(name, "freq_fft") == 0) {
             if (set_freq) {
                 uint64_t x = sqlite3_column_int64(stmt, 1);
         
                 params_band.freq_fft = x;
             }
+        } else if (strcmp(name, "split") == 0) {
+            params_band.split = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "label") == 0) {
             strncpy(params_band.label, sqlite3_column_text(stmt, 1), sizeof(params_band.label) - 1);
         }
@@ -377,6 +387,9 @@ static bool params_mb_save(uint16_t id) {
     if (params_band.durty.freq_rx)
         params_mb_write_int64(id, "freq_rx", params_band.freq_rx, &params_band.durty.freq_rx);
 
+    if (params_band.durty.freq_tx)
+        params_mb_write_int64(id, "freq_tx", params_band.freq_tx, &params_band.durty.freq_tx);
+
     if (params_band.durty.freq_fft)
         params_mb_write_int64(id, "freq_fft", params_band.freq_fft, &params_band.durty.freq_fft);
         
@@ -388,6 +401,9 @@ static bool params_mb_save(uint16_t id) {
         
     if (params_band.durty.mode)
         params_mb_write_int(id, "mode", params_band.mode, &params_band.durty.mode);
+
+    if (params_band.durty.split)
+        params_mb_write_int(id, "split", params_band.split, &params_band.durty.split);
         
     if (!params_exec("COMMIT")) {
         return false;

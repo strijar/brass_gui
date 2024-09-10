@@ -117,19 +117,21 @@ typedef struct {
 
 typedef struct {
     uint64_t        freq_rx;
+    uint64_t        freq_tx;
     uint64_t        freq_fft;
     bool            shift;
     radio_att_t     att;
     radio_pre_t     pre;
     radio_mode_t    mode;
 
-    bool            split;
+    split_mode_t    split;
     char            label[64];
 
     /* durty flags */
     
     struct {
         bool    freq_rx;
+        bool    freq_tx;
         bool    freq_fft;
         bool    att;
         bool    pre;

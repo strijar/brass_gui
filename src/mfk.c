@@ -318,28 +318,32 @@ void mfk_update(int16_t diff, bool voice) {
             }
             break;
 
-        case MFK_RIT:
-            i = radio_change_rit(diff);
-            msg_set_text_fmt("#%3X RIT: %c%i", color, i < 0 ? '-' : '+', abs(i));
-
-            if (diff) {
-                voice_say_int("RIT", i);
-            } else if (voice) {
-                voice_say_text_fmt("RIT");
-            }
-            break;
-
-        case MFK_XIT:
-            i = radio_change_xit(diff);
-            msg_set_text_fmt("#%3X XIT: %c%i", color, i < 0 ? '-' : '+', abs(i));
-
-            if (diff) {
-                voice_say_int("XIT", i);
-            } else if (voice) {
-                voice_say_text_fmt("XIT");
-            }
-            break;
+        case MFK_SPLIT:
+            i = radio_change_split(diff);
             
+            switch (i) {
+                case SPLIT_NONE:
+                    str = "RX/TX";
+                    break;
+                    
+                case SPLIT_RX:
+                    str = "RX";
+                    break;
+                    
+                case SPLIT_TX:
+                    str = "TX";
+                    break;
+            }
+            msg_set_text_fmt("#%3X Split: %s", color, str);
+
+            if (diff) {
+                info_params_set();
+                voice_say_text("Split mode", str);
+            } else if (voice) {
+                voice_say_text_fmt("Split mode selector");
+            }
+            break;
+
         case MFK_DNF:
             b = radio_change_dnf(diff);
             msg_set_text_fmt("#%3X DNF: %s", color, b ? "On" : "Off");

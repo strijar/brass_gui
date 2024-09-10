@@ -3,14 +3,14 @@ import lv
 from lv_const import *
 
 class RXFinder(lv.finder):
-	def __init__(self, y, parent = None):
+	def __init__(self, y, height, parent = None):
 		lv.finder.__init__(self, parent)
 
 		self.set_cursor(1, 0)
-		self.makeMainStyle(y)
+		self.makeMainStyle(y, height)
 		self.makeIndicatorStyle()
 
-	def makeMainStyle(self, y):
+	def makeMainStyle(self, y, height):
 		style = lv.style()
 
 		style.set_bg_opa(LV_OPA_0)
@@ -18,7 +18,7 @@ class RXFinder(lv.finder):
 		style.set_x(0)
 		style.set_y(y)
 		style.set_width(800)
-		style.set_height(100)
+		style.set_height(height)
 
 		self.add_style(style, LV_PART_MAIN)
 
@@ -26,6 +26,38 @@ class RXFinder(lv.finder):
 		style = lv.style()
 
 		style.set_bg_color(0x0040A0)
+		style.set_bg_opa(LV_OPA_50)
+
+		style.set_line_width(1)
+		style.set_line_color(0xFFFFFF)
+		style.set_line_opa(LV_OPA_50)
+
+		self.add_style(style, LV_PART_INDICATOR)
+
+class TXFinder(lv.finder):
+	def __init__(self, y, height, parent = None):
+		lv.finder.__init__(self, parent)
+
+		self.set_cursor(1, 0)
+		self.makeMainStyle(y, height)
+		self.makeIndicatorStyle()
+
+	def makeMainStyle(self, y, height):
+		style = lv.style()
+
+		style.set_bg_opa(LV_OPA_0)
+		style.set_radius(0)
+		style.set_x(0)
+		style.set_y(y)
+		style.set_width(800)
+		style.set_height(height)
+
+		self.add_style(style, LV_PART_MAIN)
+
+	def makeIndicatorStyle(self):
+		style = lv.style()
+
+		style.set_bg_color(0xFF40A0)
 		style.set_bg_opa(LV_OPA_50)
 
 		style.set_line_width(1)
@@ -47,8 +79,10 @@ class MainSpectrum(lv.spectrum):
 		self.set_data_size(400)
 		self.clear_data()
 
-		self.rx_finder = RXFinder(60, self)
+		self.tx_finder = TXFinder(60, 50, self)
+		trx.connect_tx_finder(self.tx_finder)
 
+		self.rx_finder = RXFinder(60 + 50, 50, self)
 		trx.connect_rx_finder(self.rx_finder)
 
 #		self.set_peak(True)

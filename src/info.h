@@ -17,7 +17,7 @@ void info_atu_update();
 
 const char* info_params_mode();
 const char* info_params_agc();
-const char* info_params_vfo();
+const char* info_params_split();
 bool info_params_att();
 bool info_params_pre();
 

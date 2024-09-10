@@ -14,5 +14,6 @@ void control_init();
 void control_update();
 
 void control_set_rx_freq(uint64_t freq);
+void control_set_tx_freq(uint64_t freq);
 void control_set_fft_freq(uint64_t freq);
 void control_set_fft_rate(uint32_t rate);

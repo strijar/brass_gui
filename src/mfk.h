@@ -50,8 +50,8 @@ typedef enum {
     MFK_CW_DECODER_NOISE_BETA,
 
     MFK_ANT,
-    MFK_RIT,
-    MFK_XIT,
+    MFK_SPLIT,
+    MFK_XIT,        /* Not used */
 
     MFK_LAST,
 

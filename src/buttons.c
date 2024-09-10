@@ -93,8 +93,8 @@ static button_item_t    buttons[] = {
     { .label = "(MFK 3:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_4, .prev = PAGE_MFK_2, .voice = "MFK|page 3" },
     { .label = "Charger",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CHARGER },
     { .label = "Antenna",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_ANT },
-    { .label = "RIT",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_RIT },
-    { .label = "XIT",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_XIT },
+    { .label = "Split",             .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPLIT },
+    { .label = "",                  .press = NULL },
 
     { .label = "(MFK 4:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MEM_1, .prev = PAGE_MFK_3, .voice = "MFK|page 4" },
     { .label = "",                  .press = NULL },

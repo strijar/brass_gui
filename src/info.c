@@ -12,7 +12,7 @@
 #include "dsp/agc.h"
 
 typedef enum {
-    INFO_VFO = 0,
+    INFO_SPLIT = 0,
     INFO_MODE,
     INFO_AGC,
     INFO_PRE,
@@ -73,6 +73,30 @@ void info_atu_update() {
         }
         lv_obj_set_style_bg_color(items[INFO_ATU], lv_color_white(), 0);
     }
+}
+
+const char* info_params_split() {
+    char            *str;
+
+    switch (params_band.split) {
+        case SPLIT_NONE:
+            str = "RX/TX";
+            break;
+            
+        case SPLIT_RX:
+            str = "RX";
+            break;
+            
+        case SPLIT_TX:
+            str = "TX";
+            break;
+            
+        default:
+            str = "?";
+            break;
+    }
+
+    return str;
 }
 
 const char* info_params_mode() {
@@ -161,6 +185,7 @@ bool info_params_pre() {
 }
 
 void info_params_set() {
+    lv_label_set_text(items[INFO_SPLIT], info_params_split());
     lv_label_set_text(items[INFO_MODE], info_params_mode());
     lv_label_set_text(items[INFO_AGC], info_params_agc());
 

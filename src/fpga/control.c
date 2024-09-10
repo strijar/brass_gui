@@ -21,12 +21,14 @@ typedef struct {
     uint32_t    fft_dds_step;
     uint32_t    fft_rate;
     uint32_t    adc_dds_step;
+    uint32_t    dac_dds_step;
 } control_reg_t;
 
 static int              fd;
 static control_reg_t    *control_reg;
 
 static uint64_t         rx_freq;
+static uint64_t         tx_freq;
 static uint64_t         fft_freq;
 
 void control_init() {
@@ -47,6 +49,7 @@ void control_init() {
 
 void control_update() {
     control_set_rx_freq(rx_freq);
+    control_set_tx_freq(tx_freq);
     control_set_fft_freq(fft_freq);
 }
 
@@ -55,6 +58,13 @@ void control_set_rx_freq(uint64_t freq) {
 
     rx_freq = freq;
     control_reg->adc_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
+}
+
+void control_set_tx_freq(uint64_t freq) {
+    float txo = 122880000.0f + params.txo_offset.x;
+
+    tx_freq = freq;
+    control_reg->dac_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
 }
 
 void control_set_fft_freq(uint64_t freq) {

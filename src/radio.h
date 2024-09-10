@@ -79,15 +79,22 @@ typedef enum {
     RADIO_CHARGER_SHADOW
 } radio_charger_t;
 
+typedef enum {
+    SPLIT_NONE = 0,
+    SPLIT_RX,
+    SPLIT_TX
+} split_mode_t;
+
 void radio_init(lv_obj_t *obj);
 bool radio_tick();
 radio_state_t radio_get_state();
 
 void radio_set_freq_rx(uint64_t freq);
+void radio_set_freq_tx(uint64_t freq);
+uint64_t radio_set_freqs(uint64_t rx, uint64_t tx);
 void radio_set_freq_fft(uint64_t freq);
 bool radio_check_freq(uint64_t freq, uint64_t *shift);
-uint64_t radio_current_freq_rx();
-uint64_t radio_current_freq_fft();
+split_mode_t radio_change_split(int16_t d);
 
 void radio_set_mode(radio_mode_t mode);
 void radio_change_mode(radio_mode_t select);
@@ -106,7 +113,6 @@ void radio_change_mute();
 bool radio_change_pre();
 bool radio_change_att();
 void radio_change_atu();
-void radio_change_split();
 float radio_change_pwr(int16_t d);
 
 uint16_t radio_change_key_speed(int16_t d);
@@ -144,9 +150,6 @@ void radio_mode_set();
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq);
 void radio_poweroff();
 void radio_set_ptt(bool tx);
-
-int16_t radio_change_xit(int16_t d);
-int16_t radio_change_rit(int16_t d);
 
 void radio_set_line_in(uint8_t d);
 void radio_set_line_out(uint8_t d);

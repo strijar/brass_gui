@@ -114,7 +114,7 @@ static uint64_t freq_update() {
     uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;
     uint16_t    mhz, khz, hz;
 
-    f = radio_current_freq_fft();
+    f = params_band.freq_fft;
 
     int32_t half = 50000 / params_mode.spectrum_factor;
 
@@ -124,7 +124,7 @@ static uint64_t freq_update() {
     split_freq(f + half, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
 
-    f = radio_current_freq_rx();
+    f = params_band.freq_rx;
 
     split_freq(f, &mhz, &khz, &hz);
 
@@ -136,9 +136,9 @@ static uint64_t freq_update() {
         }
     }
 
-    if (params_band.split) {    /* FIXME */
+    if (params_band.freq_rx != params_band.freq_tx) {
         uint16_t    mhz2, khz2, hz2;
-        uint64_t    f2 = params_band.freq_rx;
+        uint64_t    f2 = params_band.freq_tx;
 
         split_freq(f2, &mhz2, &khz2, &hz2);
         
@@ -721,21 +721,33 @@ static void freq_shift(int16_t diff) {
         return;
     }
     
-    uint64_t    prev_freq_rx = radio_current_freq_rx();
-    uint64_t    prev_freq_fft = radio_current_freq_fft();
+    uint64_t    prev_freq_rx = params_band.freq_rx;
+    uint64_t    prev_freq_tx = params_band.freq_tx;
+    uint64_t    prev_freq_fft = params_band.freq_fft;
     
     int32_t     df = diff * params_mode.freq_step * freq_accel(abs(diff));
 
     uint64_t    freq_rx = align_long(prev_freq_rx + df, abs(df));
+    uint64_t    freq_tx = align_long(prev_freq_tx + df, abs(df));
     uint64_t    freq_fft = align_long(prev_freq_fft + df, abs(df));
-    int32_t     freq_delta = freq_rx - freq_fft;
+    int32_t     freq_delta = 0;
     int32_t     freq_shift = 0;
     int32_t     half = 45000 / params_mode.spectrum_factor;
     
+    switch (params_band.split) {
+        case SPLIT_NONE:
+        case SPLIT_RX:
+            freq_delta = freq_rx - freq_fft;
+            break;
+            
+        case SPLIT_TX:
+            freq_delta = freq_tx - freq_fft;
+            break;
+    }
+    
     switch (params.freq_mode.x) {
         case FREQ_MODE_JOIN:
-            radio_set_freq_rx(freq_rx);
-            radio_set_freq_fft(freq_rx);
+            radio_set_freqs(freq_rx, freq_tx);
             freq_shift = freq_rx - prev_freq_rx;
             lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
 
@@ -761,16 +773,12 @@ static void freq_shift(int16_t diff) {
                 lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             }
 
-            radio_set_freq_rx(freq_rx);
-            check_cross_band(freq_rx);
+            check_cross_band(radio_set_freqs(freq_rx, freq_tx));
             band_info_update(prev_freq_fft);
-            voice_say_freq(freq_rx);
             break;
 
         case FREQ_MODE_RX_ONLY:
-            radio_set_freq_rx(freq_rx);
-            check_cross_band(freq_rx);
-            voice_say_freq(freq_rx);
+            check_cross_band(radio_set_freqs(freq_rx, freq_tx));
             break;
             
         case FREQ_MODE_FFT_ONLY:
@@ -1044,17 +1052,12 @@ lv_obj_t * main_screen() {
     
     meter = meter_init(obj);
     tx_info = tx_info_init(obj);
-
     
     main_screen_band_changed();
     
-    uint64_t freq;
-    
-    freq = radio_current_freq_rx();
-    lv_msg_send(MSG_FREQ_RX_CHANGED, &freq);
-
-    freq = radio_current_freq_fft();
-    lv_msg_send(MSG_FREQ_FFT_CHANGED, &freq);
+    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
+    lv_msg_send(MSG_FREQ_TX_CHANGED, &params_band.freq_tx);
+    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.freq_fft);
 
     msg_set_text_fmt("TRX Brass de R1CBU " VERSION);
     msg_set_timeout(2000);
