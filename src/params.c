@@ -374,10 +374,12 @@ void params_memory_save(uint16_t id) {
     sqlite3_prepare_v2(db, "INSERT INTO memory(id, name, val) VALUES(?, ?, ?)", -1, &write_mb_stmt, 0);
 
     params_band.durty.freq_rx = true;
+    params_band.durty.freq_tx = true;
     params_band.durty.freq_fft = true;
     params_band.durty.att = true;
     params_band.durty.pre = true;
     params_band.durty.mode = true;
+    params_band.durty.split = true;
     
     params_mb_save(id);
     sqlite3_finalize(write_mb_stmt);

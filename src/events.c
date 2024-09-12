@@ -11,6 +11,7 @@
 #include "events.h"
 #include "backlight.h"
 #include "keyboard.h"
+#include "dialog.h"
 
 #define QUEUE_SIZE  32
 
@@ -29,16 +30,16 @@ uint32_t        EVENT_GPS;
 uint32_t        EVENT_BAND_UP;
 uint32_t        EVENT_BAND_DOWN;
 
-typedef struct {
+typedef struct item_t {
     lv_obj_t        *obj;
     lv_event_code_t event_code;
     void            *param;
+    struct item_t   *next;
 } item_t;
 
-static item_t           *queue[QUEUE_SIZE];
-static uint8_t          queue_write = 0;
-static uint8_t          queue_read = 0;
-static pthread_mutex_t  queue_mux;
+static struct item_t    *head = NULL;
+static struct item_t    *tail = NULL;
+static pthread_mutex_t  mux;
 
 void event_init() {
     EVENT_ROTARY = lv_event_register_id();
@@ -56,64 +57,61 @@ void event_init() {
     EVENT_BAND_UP = lv_event_register_id();
     EVENT_BAND_DOWN = lv_event_register_id();
 
-    for (uint8_t i = 0; i < QUEUE_SIZE; i++)
-        queue[i] = NULL;
-
-    pthread_mutex_init(&queue_mux, NULL);
+    pthread_mutex_init(&mux, NULL);
 }
 
 void event_obj_check() {
-    while (queue_read != queue_write) {
-        pthread_mutex_lock(&queue_mux);
-        queue_read = (queue_read + 1) % QUEUE_SIZE;
+    pthread_mutex_lock(&mux);
+
+    while (head != NULL) {
+        item_t *item = head;
+
+        pthread_mutex_unlock(&mux);
         
-        item_t *item = queue[queue_read];
-        pthread_mutex_unlock(&queue_mux);
-        
-        if (item) {
-            if (item->event_code == LV_EVENT_REFRESH) {
-                if (backlight_is_on()) {
-                    lv_obj_invalidate(item->obj);
-                }
-            } else {
-                lv_event_send(item->obj, item->event_code, item->param);
+        if (item->event_code == LV_EVENT_REFRESH) {
+            if (backlight_is_on()) {
+                lv_obj_invalidate(item->obj);
             }
-
-            pthread_mutex_lock(&queue_mux);
-
-            if (item->param != NULL) {
-                free(item->param);
-            }
-        
-            free(item);
-            queue[queue_read] = NULL;
-
-            pthread_mutex_unlock(&queue_mux);
+        } else {
+            lv_event_send(item->obj, item->event_code, item->param);
         }
+
+        pthread_mutex_lock(&mux);
+
+        if (head == tail) {
+            head = tail = NULL;
+        } else {
+            head = head->next;
+        }
+
+        if (item->param != NULL) {
+            free(item->param);
+        }
+        
+        free(item);
     }
+
+    pthread_mutex_unlock(&mux);
 }
 
 void event_send(lv_obj_t *obj, lv_event_code_t event_code, void *param) {
-    pthread_mutex_lock(&queue_mux);
-
-    uint8_t next = (queue_write + 1) % QUEUE_SIZE;
-
-    if (queue[next]) {
-        pthread_mutex_unlock(&queue_mux);
-        LV_LOG_ERROR("Overflow");
-        return;
-    }
-
     item_t *item = malloc(sizeof(item_t));
-    
+
     item->obj = obj;
     item->event_code = event_code;
     item->param = param;
+    item->next = NULL;
 
-    queue[next] = item;
-    queue_write = next;
+    pthread_mutex_lock(&mux);
+    
+    if (head == NULL && tail == NULL) {
+        head = tail = item;
+    } else {
+        tail->next = item;
+        tail = item;
+    }
 
-    pthread_mutex_unlock(&queue_mux);
+    pthread_mutex_unlock(&mux);
 }
 
 void event_send_key(int32_t key) {
