@@ -496,20 +496,18 @@ msg_voice_state_t dialog_msg_voice_get_state() {
     return state;
 }
 
-void dialog_msg_voice_put_audio_samples(size_t nsamples, int16_t *samples) {
-    int16_t *out_samples = audio_gain(samples, nsamples, params.rec_gain);
-    int16_t peak = 0;
+void dialog_msg_voice_put_audio_samples(size_t nsamples, float *samples) {
+    float peak = 0;
     
     for (uint16_t i = 0; i < nsamples; i++) {
-        int16_t x = abs(out_samples[i]);
+        float x = fabs(samples[i]);
         
         if (x > peak) {
             peak = x;
         }
     }
 
-    peak = S1 + (peak / 32768.0) * (S9_40 - S1);
+    peak = S1 + peak * (S9_40 - S1);
     meter_update(peak, 0.25f);
-    sf_write_short(file, out_samples, nsamples);
-    free(out_samples);
+    sf_write_float(file, samples, nsamples);
 }

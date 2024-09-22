@@ -29,4 +29,4 @@ void dialog_msg_voice_rename_cb(lv_event_t * e);
 void dialog_msg_voice_delete_cb(lv_event_t * e);
 
 msg_voice_state_t dialog_msg_voice_get_state();
-void dialog_msg_voice_put_audio_samples(size_t nsamples, int16_t *samples);
+void dialog_msg_voice_put_audio_samples(size_t nsamples, float *samples);

@@ -80,8 +80,8 @@ params_t params = {
     .vox_gain               = 50,
 
     .key_speed              = 15,
-    .key_mode               = radio_key_manual,
-    .iambic_mode            = radio_iambic_a,
+    .key_mode               = cw_key_manual,
+    .iambic_mode            = cw_key_iambic_a,
     .key_tone               = 700,
     .key_vol                = 10,
     .key_train              = false,
@@ -137,6 +137,10 @@ params_t params = {
 
     .qth                    = { .x = "",  .max_len = 6, .name = "qth" },
     .callsign               = { .x = "",  .max_len = 12, .name = "callsign" },
+
+    .mic_filter_low         = { .x = 150,   .min = 100,     .max = 300,     .name = "mic_filter_low" },
+    .mic_filter_high        = { .x = 2900,  .min = 1000,    .max = 3200,    .name = "mic_filter_high" },
+    .mic_filter_transition  = { .x = 100,   .min = 50,      .max = 200,     .name = "mic_filter_transition" },
 };
 
 params_band_t params_band = {

@@ -27,6 +27,7 @@
 #include "audio.h"
 #include "audio_adc.h"
 #include "cw.h"
+#include "cw_key.h"
 #include "pannel.h"
 #include "rtty.h"
 #include "backlight.h"
@@ -34,7 +35,9 @@
 #include "gps.h"
 #include "fpga/fft.h"
 #include "fpga/adc.h"
+#include "fpga/dac.h"
 #include "python/python.h"
+#include "mic.h"
 
 #define DISP_BUF_SIZE (800 * 480 * 3)
 
@@ -46,11 +49,13 @@ static lv_disp_draw_buf_t   disp_buf;
 static lv_disp_drv_t        disp_drv;
 
 int main(void) {
+    params_init();
 
     lv_init();
     lv_png_init();
     
     fbdev_init();
+    mic_init();
     audio_init();
     audio_adc_init();
     event_init();
@@ -78,7 +83,7 @@ int main(void) {
     mfk = encoder_init("/dev/input/event1");
     rotary_t *main = rotary_init("/dev/input/event2", 8);
     keypad_t *keypad = keypad_init("/dev/input/event3");
-//    keypad_t *power = keypad_init("/dev/input/event4");
+    keypad_t *gpio = keypad_init("/dev/input/event4");
 
     vol->left[VOL_EDIT] = KEY_VOL_LEFT_EDIT;
     vol->right[VOL_EDIT] = KEY_VOL_RIGHT_EDIT;
@@ -86,18 +91,19 @@ int main(void) {
     vol->left[VOL_SELECT] = KEY_VOL_LEFT_SELECT;
     vol->right[VOL_SELECT] = KEY_VOL_RIGHT_SELECT;
 
-    params_init();
     styles_init();
     python_init();
 
     lv_obj_t *main_obj = main_screen();
 
     cw_init();
+    cw_key_init();
     dsp_init();
     rtty_init();
     radio_init(main_obj);
     fft_init();
     adc_init();
+    dac_init();
 
 /*
     backlight_init();

@@ -15,6 +15,7 @@
 void dsp_init();
 void dsp_adc(float complex *data);
 void dsp_fft(float complex *data);
+size_t dsp_dac(float complex *data, size_t max_size);
 void dsp_reset();
 
 void dsp_set_spectrum_factor(uint8_t x);
@@ -24,7 +25,6 @@ void dsp_set_rx_agc(uint8_t mode);
 float dsp_get_spectrum_beta();
 void dsp_set_spectrum_beta(float x);
 
-void dsp_put_audio_samples(size_t nsamples, int16_t *samples);
 void dsp_auto_clear();
 
 void dsp_set_vol(uint8_t x);

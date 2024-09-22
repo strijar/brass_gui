@@ -16,6 +16,7 @@
 #include "radio.h"
 #include "clock.h"
 #include "voice.h"
+#include "cw_key.h"
 
 /* Params items */
 
@@ -46,6 +47,8 @@ typedef struct {
     char        *name;
     char        *voice;
     int8_t      x;
+    int8_t      min;
+    int8_t      max;
     bool        durty;
 } params_int8_t;
 
@@ -53,6 +56,8 @@ typedef struct {
     char        *name;
     char        *voice;
     uint16_t    x;
+    uint16_t    min;
+    uint16_t    max;
     bool        durty;
 } params_uint16_t;
 
@@ -262,11 +267,11 @@ typedef struct {
     uint8_t             clock_power_timeout;    /* seconds */
     uint8_t             clock_tx_timeout;       /* seconds */
     
-    /* key */
+    /* CW key */
     
     uint8_t             key_speed;
-    radio_key_mode_t    key_mode;
-    radio_iambic_mode_t iambic_mode;
+    cw_key_mode_t       key_mode;
+    cw_key_iambic_mode_t iambic_mode;
     uint16_t            key_tone;
     uint16_t            key_vol;
     bool                key_train;
@@ -341,6 +346,12 @@ typedef struct {
     params_str_t        qth;
     params_str_t        callsign;
     
+    /* Mic */
+
+    params_uint16_t     mic_filter_low;
+    params_uint16_t     mic_filter_high;
+    params_uint16_t     mic_filter_transition;
+
     /* durty flags */
     
     struct {

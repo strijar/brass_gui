@@ -14,6 +14,7 @@
 #include "msg.h"
 #include "dsp.h"
 #include "radio.h"
+#include "cw_key.h"
 #include "cw.h"
 #include "rtty.h"
 #include "util.h"
@@ -164,7 +165,7 @@ void mfk_update(int16_t diff, bool voice) {
             break;
             
         case MFK_KEY_SPEED:
-            i = radio_change_key_speed(diff);
+            i = cw_key_change_speed(diff);
             msg_set_text_fmt("#%3X Key speed: %i wpm", color, i);
 
             if (diff) {
@@ -175,18 +176,18 @@ void mfk_update(int16_t diff, bool voice) {
             break;
 
         case MFK_KEY_MODE:
-            i = radio_change_key_mode(diff);
+            i = cw_key_change_mode(diff);
             
             switch (i) {
-                case radio_key_manual:
+                case cw_key_manual:
                     str = "Manual";
                     break;
 
-                case radio_key_auto_left:
+                case cw_key_auto_left:
                     str = "Auto-L";
                     break;
 
-                case radio_key_auto_right:
+                case cw_key_auto_right:
                     str = "Auto-R";
                     break;
             }
@@ -200,14 +201,14 @@ void mfk_update(int16_t diff, bool voice) {
             break;
             
         case MFK_IAMBIC_MODE:
-            i = radio_change_iambic_mode(diff);
+            i = cw_key_change_iambic_mode(diff);
             
             switch (i) {
-                case radio_iambic_a:
+                case cw_key_iambic_a:
                     str = "A";
                     break;
 
-                case radio_iambic_b:
+                case cw_key_iambic_b:
                     str = "B";
                     break;
             }
@@ -221,7 +222,7 @@ void mfk_update(int16_t diff, bool voice) {
             break;
             
         case MFK_KEY_TONE:
-            i = radio_change_key_tone(diff);
+            i = cw_key_change_tone(diff);
             msg_set_text_fmt("#%3X Key tone: %i Hz", color, i);
 
             if (diff) {
@@ -232,7 +233,7 @@ void mfk_update(int16_t diff, bool voice) {
             break;
 
         case MFK_KEY_VOL:
-            i = radio_change_key_vol(diff);
+            i = cw_key_change_vol(diff);
             msg_set_text_fmt("#%3X Key volume: %i", color, i);
 
             if (diff) {
@@ -243,7 +244,7 @@ void mfk_update(int16_t diff, bool voice) {
             break;
 
         case MFK_KEY_TRAIN:
-            b = radio_change_key_train(diff);
+            b = cw_key_change_train(diff);
             msg_set_text_fmt("#%3X Key train: %s", color, b ? "On" : "Off");
 
             if (diff) {
@@ -254,7 +255,7 @@ void mfk_update(int16_t diff, bool voice) {
             break;
 
         case MFK_QSK_TIME:
-            i = radio_change_qsk_time(diff);
+            i = cw_key_change_qsk_time(diff);
             msg_set_text_fmt("#%3X QSK time: %i ms", color, i);
 
             if (diff) {
@@ -265,7 +266,7 @@ void mfk_update(int16_t diff, bool voice) {
             break;
 
         case MFK_KEY_RATIO:
-            i = radio_change_key_ratio(diff);
+            i = cw_key_change_ratio(diff);
             msg_set_text_fmt("#%3X Key ratio: %.1f", color, i * 0.1f);
 
             if (diff) {

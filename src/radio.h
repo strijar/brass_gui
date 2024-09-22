@@ -12,9 +12,6 @@
 
 #include "lvgl/lvgl.h"
 
-#define RADIO_SAMPLES   (256)
-#define RADIO_FFT       (1024)
-
 typedef enum {
     radio_mode_lsb = 0,
     radio_mode_usb = 2,
@@ -33,17 +30,6 @@ typedef enum {
     RADIO_MODE_USB,
     RADIO_MODE_LSB
 } radio_mode_t;
-
-typedef enum {
-    radio_key_manual = 0,
-    radio_key_auto_left = 1,
-    radio_key_auto_right = 2
-} radio_key_mode_t;
-
-typedef enum {
-    radio_iambic_a = 0,
-    radio_iambic_b = 1
-} radio_iambic_mode_t;
 
 typedef enum {
     radio_mic_builtin = 0,
@@ -115,14 +101,6 @@ bool radio_change_att();
 void radio_change_atu();
 float radio_change_pwr(int16_t d);
 
-uint16_t radio_change_key_speed(int16_t d);
-radio_key_mode_t radio_change_key_mode(int16_t d);
-radio_iambic_mode_t radio_change_iambic_mode(int16_t d);
-uint16_t radio_change_key_tone(int16_t d);
-uint16_t radio_change_key_vol(int16_t d);
-bool radio_change_key_train(int16_t d);
-uint16_t radio_change_qsk_time(int16_t d);
-uint8_t radio_change_key_ratio(int16_t d);
 radio_charger_t radio_change_charger(int16_t d);
 
 radio_mic_sel_t radio_change_mic(int16_t d);

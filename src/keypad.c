@@ -15,6 +15,7 @@
 #include "main.h"
 #include "backlight.h"
 #include "keyboard.h"
+#include "msgs.h"
 
 #define KEYPAD_LONG_TIME 1000
 
@@ -36,6 +37,12 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
             backlight_tick();
         
             switch (in.code) {
+                /* PTT */
+            
+                case KEY_CONNECT:
+                    lv_msg_send(MSG_PTT, &in.value);
+                    return;
+            
                 /* Rotary VOL */
                 
                 case BTN_NORTH:

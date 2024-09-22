@@ -157,6 +157,19 @@ void radio_mode_set() {
     dsp_set_spectrum_factor(params_mode.spectrum_factor);
 }
 
+static void radio_msg_cb(void *s, lv_msg_t *m) {
+    switch (lv_msg_get_id(m)) {
+        case MSG_PTT: {
+            const int *on = lv_msg_get_payload(m);
+
+            state = *on ? RADIO_TX : RADIO_RX;
+        } break;
+
+        default:
+            break;
+    }
+}
+
 void radio_init(lv_obj_t *obj) {
     main_obj = obj;
 
@@ -166,6 +179,8 @@ void radio_init(lv_obj_t *obj) {
     radio_freq_set();
     radio_mode_set();
     radio_load_atu();
+
+    lv_msg_subsribe(MSG_PTT, radio_msg_cb, NULL);
 }
 
 radio_state_t radio_get_state() {
@@ -605,145 +620,6 @@ float radio_change_pwr(int16_t d) {
     params_unlock(&params.durty.pwr);
 
     return params.pwr;
-}
-
-uint16_t radio_change_key_speed(int16_t d) {
-    if (d == 0) {
-        return params.key_speed;
-    }
-    
-    params_lock();
-    params.key_speed = limit(params.key_speed + d, 5, 50);
-    params_unlock(&params.durty.key_speed);
-
-    return params.key_speed;
-}
-
-radio_key_mode_t radio_change_key_mode(int16_t d) {
-    if (d == 0) {
-        return params.key_mode;
-    }
-
-    params_lock();
-
-    switch (params.key_mode) {
-        case radio_key_manual:
-            params.key_mode = d > 0 ? radio_key_auto_left : radio_key_auto_right;
-            break;
-            
-        case radio_key_auto_left:
-            params.key_mode = d > 0 ? radio_key_auto_right : radio_key_manual;
-            break;
-            
-        case radio_key_auto_right:
-            params.key_mode = d > 0 ? radio_key_manual : radio_key_auto_left;
-            break;
-    }
-
-    params_unlock(&params.durty.key_mode);
-
-    return params.key_mode;
-}
-
-radio_iambic_mode_t radio_change_iambic_mode(int16_t d) {
-    if (d == 0) {
-        return params.iambic_mode;
-    }
-
-    params_lock();
-
-    params.iambic_mode = (params.iambic_mode == radio_iambic_a) ? radio_iambic_b : radio_iambic_a;
-
-    params_unlock(&params.durty.iambic_mode);
-
-    return params.iambic_mode;
-}
-
-uint16_t radio_change_key_tone(int16_t d) {
-    if (d == 0) {
-        return params.key_tone;
-    }
-
-    params_lock();
-
-    params.key_tone += (d > 0) ? 10 : -10;
-
-    if (params.key_tone < 400) {
-        params.key_tone = 400;
-    } else if (params.key_tone > 1200) {
-        params.key_tone = 1200;
-    }
-
-    params_unlock(&params.durty.key_tone);
-
-    return params.key_tone;
-}
-
-uint16_t radio_change_key_vol(int16_t d) {
-    if (d == 0) {
-        return params.key_vol;
-    }
-
-    params_lock();
-
-    params.key_vol = limit(params.key_vol + d, 0, 32);
-    params_unlock(&params.durty.key_vol);
-
-    return params.key_vol;
-}
-
-bool radio_change_key_train(int16_t d) {
-    if (d == 0) {
-        return params.key_train;
-    }
-
-    params_lock();
-    params.key_train = !params.key_train;
-    params_unlock(&params.durty.key_train);
-
-    return params.key_train;
-}
-
-uint16_t radio_change_qsk_time(int16_t d) {
-    if (d == 0) {
-        return params.qsk_time;
-    }
-
-    params_lock();
-
-    int16_t x = params.qsk_time;
-    
-    if (d > 0) {
-        x += 10;
-    } else {
-        x -= 10;
-    }
-    
-    params.qsk_time = limit(x, 0, 1000);
-    params_unlock(&params.durty.qsk_time);
-
-    return params.qsk_time;
-}
-
-uint8_t radio_change_key_ratio(int16_t d) {
-    if (d == 0) {
-        return params.key_ratio;
-    }
-
-    params_lock();
-
-    int16_t x = params.key_ratio;
-
-    if (d > 0) {
-        x += 5;
-    } else {
-        x -= 5;
-    }
-
-    params.key_ratio = limit(x, 25, 45);
-    params_unlock(&params.durty.key_ratio);
-
-    return params.key_ratio;
 }
 
 radio_mic_sel_t radio_change_mic(int16_t d) {

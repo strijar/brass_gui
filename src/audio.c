@@ -20,8 +20,10 @@
 #include "meter.h"
 #include "dsp.h"
 #include "params.h"
+#include "mic.h"
 
-#define AUDIO_RATE_MS   100
+#define PLAY_RATE_MS    100
+#define CAPTURE_RATE_MS 10
 
 static pa_threaded_mainloop *mloop;
 static pa_mainloop_api      *mlapi;
@@ -41,7 +43,7 @@ static void read_callback(pa_stream *s, size_t nbytes, void *udata) {
     int16_t *buf = NULL;
 
     pa_stream_peek(capture_stm, &buf, &nbytes);
-    dsp_put_audio_samples(nbytes / 2, buf);
+    mic_put_audio_samples(nbytes / 2, buf);
     pa_stream_drop(capture_stm);
 }
 
@@ -75,7 +77,7 @@ void audio_init() {
     /* Play */
 
     spec.rate = AUDIO_PLAY_RATE,
-    attr.fragsize = pa_usec_to_bytes(AUDIO_RATE_MS * PA_USEC_PER_MSEC, &spec);
+    attr.fragsize = pa_usec_to_bytes(PLAY_RATE_MS * PA_USEC_PER_MSEC, &spec);
     attr.tlength = attr.fragsize * 8;
 
     play_stm = pa_stream_new(ctx, "Brass GUI Play", &spec, NULL);
@@ -87,7 +89,7 @@ void audio_init() {
     /* Capture */
 
     spec.rate = AUDIO_CAPTURE_RATE,
-    attr.fragsize = attr.tlength = pa_usec_to_bytes(AUDIO_RATE_MS * PA_USEC_PER_MSEC, &spec);
+    attr.fragsize = attr.tlength = pa_usec_to_bytes(CAPTURE_RATE_MS * PA_USEC_PER_MSEC, &spec);
 
     capture_stm = pa_stream_new(ctx, "Brass GUI Capture", &spec, NULL);
     
