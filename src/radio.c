@@ -138,7 +138,7 @@ void radio_freq_set() {
     radio_check_freq(freq, &shift);
     control_set_rx_freq(freq - shift);
     control_set_tx_freq(params_band.freq_tx - shift);
-    control_set_fft_freq(freq - shift);
+    control_set_fft_freq(params_band.freq_fft - shift);
 
     params_bands_find(freq, &params.freq_band);
 }

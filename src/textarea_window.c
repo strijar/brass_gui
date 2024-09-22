@@ -26,7 +26,7 @@ static void ok() {
     }
 
     textarea_window_close();
- }
+}
 
 static void cancel() {
     if (cancel_cb) {
@@ -62,13 +62,13 @@ static void text_cb(lv_event_t * e) {
     }
 }
 
-
 static void keyboard_cb(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
-    uint32_t        key = *((uint32_t *)lv_event_get_param(e));
-    
+
     switch (code) {
-        case LV_EVENT_KEY:
+        case LV_EVENT_KEY: {
+            uint32_t key = *((uint32_t *)lv_event_get_param(e));
+
             switch (key) {
                 case KEY_VOL_LEFT_EDIT:
                 case KEY_VOL_LEFT_SELECT:
@@ -80,7 +80,7 @@ static void keyboard_cb(lv_event_t * e) {
                     dsp_change_vol(1);
                     break;
             }
-            break;
+        } break;
 
         case LV_EVENT_READY:
             ok();
