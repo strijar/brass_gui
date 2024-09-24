@@ -21,7 +21,7 @@
 #include "adc.h"
 #include "dma-proxy.h"
 
-#define ADC_BUFS                4
+#define ADC_BUFS                8
 
 static int                      fd;
 static int                      buf_id = 0;

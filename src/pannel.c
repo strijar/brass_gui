@@ -91,7 +91,7 @@ lv_obj_t * pannel_init(lv_obj_t *parent) {
 }
 
 void pannel_add_text(const char * text) {
-    event_send(obj, EVENT_PANNEL_UPDATE, strdup(text));
+    lv_event_send(obj, EVENT_PANNEL_UPDATE, strdup(text));
 }
 
 void pannel_hide() {

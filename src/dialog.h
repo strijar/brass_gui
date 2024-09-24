@@ -34,6 +34,8 @@ bool dialog_is_run();
 
 lv_obj_t * dialog_init(lv_obj_t *parent);
 void dialog_item(dialog_t *dialog, lv_obj_t *obj);
+void dialog_rotary(int32_t diff);
+
+/* From thread */
 
 void dialog_audio_samples(float complex *samples, size_t n);
-void dialog_rotary(int32_t diff);

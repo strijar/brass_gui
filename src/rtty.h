@@ -19,7 +19,6 @@ typedef enum {
 } rtty_state_t;
 
 void rtty_init();
-void rtty_put_audio_samples(float complex *samples, size_t n);
 
 void rtty_set_state(rtty_state_t state);
 rtty_state_t rtty_get_state();
@@ -28,3 +27,7 @@ float rtty_change_rate(int16_t df);
 uint16_t rtty_change_shift(int16_t df);
 uint16_t rtty_change_center(int16_t df);
 bool rtty_change_reverse(int16_t df);
+
+/* From thread */
+
+void rtty_put_audio_samples(float complex *samples, size_t n);

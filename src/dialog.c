@@ -12,6 +12,7 @@
 #include "main_screen.h"
 #include "keyboard.h"
 #include "events.h"
+#include "main.h"
 
 static lv_obj_t     *obj;
 static dialog_t     *current_dialog = NULL;
@@ -49,7 +50,7 @@ void dialog_destruct() {
 
 void dialog_send(lv_event_code_t event_code, void *param) {
     if (dialog_is_run()) {
-        event_send(current_dialog->obj, event_code, param);
+        lv_event_send(current_dialog->obj, event_code, param);
     }
 }
 

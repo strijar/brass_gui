@@ -13,6 +13,7 @@
 #include "events.h"
 #include "msg_tiny.h"
 #include "params.h"
+#include "main.h"
 
 #define NUM_PWR_ITEMS   6
 #define NUM_VSWR_ITEMS  5
@@ -214,7 +215,7 @@ void tx_info_update(float p, float s, float a) {
         vswr = max_swr;
     }
 
-    event_send(obj, LV_EVENT_REFRESH, NULL);
+    lv_obj_invalidate(obj);
     
     if (params.mag_alc.x) {
         msg_tiny_set_text_fmt("ALC: %.1f", alc);

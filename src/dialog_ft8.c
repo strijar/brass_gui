@@ -31,6 +31,7 @@
 #include "msg.h"
 #include "util.h"
 #include "recorder.h"
+#include "main.h"
 
 #include "widgets/lv_waterfall.h"
 #include "widgets/lv_finder.h"
@@ -324,7 +325,7 @@ static void send_info(const char * fmt, ...) {
     msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_RX_INFO;
 
-    event_send(table, EVENT_FT8_MSG, msg);
+    lv_event_send(table, EVENT_FT8_MSG, msg);
 }
 
 static const char * find_qth(const char *str) {
@@ -379,7 +380,7 @@ static void send_rx_text(int16_t snr, const char * text) {
         msg->cell->dist = 0;
     }
 
-    event_send(table, EVENT_FT8_MSG, msg);
+    lv_event_send(table, EVENT_FT8_MSG, msg);
 }
 
 static void send_tx_text(const char * text) {
@@ -390,7 +391,7 @@ static void send_tx_text(const char * text) {
     msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_TX_MSG;
 
-    event_send(table, EVENT_FT8_MSG, msg);
+    lv_event_send(table, EVENT_FT8_MSG, msg);
 }
 
 static void decode() {
@@ -450,7 +451,8 @@ void static waterfall_process(float complex *frame, const size_t size) {
         spgramcf_get_psd(waterfall_sg, waterfall_psd);
 
         lv_waterfall_add_data(waterfall, &waterfall_psd[low_bin], high_bin - low_bin);
-        event_send(waterfall, LV_EVENT_REFRESH, NULL);
+        
+        lv_obj_invalidate(waterfall);
 
         waterfall_time = now;
         spgramcf_reset(waterfall_sg);

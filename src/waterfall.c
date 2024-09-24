@@ -21,6 +21,7 @@
 #include "fpga/fft.h"
 #include "msgs.h"
 #include "widgets/lv_finder.h"
+#include "main.h"
 
 #define PX_BYTES    4
 
@@ -44,6 +45,7 @@ static lv_img_dsc_t     *frame;
 static lv_color_t       palette[256];
 static int32_t          scroll_hor = 0;
 static int32_t          scroll_hor_surplus = 0;
+static int32_t          delay = 0;
 
 static void finder_event_cb(lv_event_t * e) {
     lv_obj_t *finder = lv_event_get_target(e);
@@ -69,7 +71,6 @@ static void finder_event_cb(lv_event_t * e) {
             const uint64_t *freq = lv_msg_get_payload(m);
             
             lv_finder_set_value(finder, *freq);
-            lv_obj_invalidate(finder);
         } break;
 
         case MSG_FREQ_FFT_CHANGED: {
@@ -102,6 +103,7 @@ static void shift_freq(int32_t df) {
     }
 
     if (scroll_hor) {
+        delay = 2;
         lv_obj_invalidate(img);
     }
 }
@@ -201,7 +203,8 @@ static void scroll_left(int16_t px) {
 }
 
 void waterfall_data(float *data_buf, size_t size) {
-    if (scroll_hor) {
+    if (delay) {
+        delay--;
         return;
     }
 
@@ -220,11 +223,15 @@ void waterfall_data(float *data_buf, size_t size) {
         }
         
         uint8_t id = v * 255;
-        
+
+        lv_lock();
         lv_img_buf_set_px_color(frame, x, 0, palette[id]);
+        lv_unlock();
     }
-    
-    event_send(img, LV_EVENT_REFRESH, NULL);
+
+    lv_lock();
+    lv_obj_invalidate(img);
+    lv_unlock();
 }
 
 static void do_scroll_cb(lv_event_t * event) {
@@ -232,17 +239,13 @@ static void do_scroll_cb(lv_event_t * event) {
         return;
     }
 
-    int16_t px = (abs(scroll_hor) / 4) + 1;
-
     if (scroll_hor > 0) {
-        scroll_right(px);
-        scroll_hor -= px;
+        scroll_right(scroll_hor);
     } else {
-        scroll_left(px);
-        scroll_hor += px;
+        scroll_left(-scroll_hor);
     }
-    
-    event_send(img, LV_EVENT_REFRESH, NULL);
+
+    scroll_hor = 0;
 }
 
 void waterfall_set_height(lv_coord_t h) {

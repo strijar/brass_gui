@@ -22,6 +22,7 @@
 #include "keyboard.h"
 #include "main_screen.h"
 #include "dsp.h"
+#include "main.h"
 
 #define STEPS   50
 
@@ -85,7 +86,7 @@ static void do_step(float vswr) {
         data_filtered[i] /= 5.0f;
     }
 
-    event_send(chart, LV_EVENT_REFRESH, NULL);
+    lv_obj_invalidate(chart);
 
     freq_index++;
     
@@ -272,7 +273,7 @@ void dialog_swrscan_scale_cb(lv_event_t * e) {
     params.swrscan_linear = !params.swrscan_linear;
     params_unlock(&params.durty.swrscan_linear);
 
-    event_send(chart, LV_EVENT_REFRESH, NULL);
+    lv_obj_invalidate(chart);
 }
 
 void dialog_swrscan_span_cb(lv_event_t * e) {
@@ -302,7 +303,8 @@ void dialog_swrscan_span_cb(lv_event_t * e) {
 
     params_unlock(&params.durty.swrscan_span);
     do_init();
-    event_send(chart, LV_EVENT_REFRESH, NULL);
+    
+    lv_obj_invalidate(chart);
 }
 
 void dialog_swrscan_update(float vswr) {

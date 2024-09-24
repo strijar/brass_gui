@@ -14,6 +14,7 @@
 #include "src/params.h"
 #include "src/widgets/lv_spectrum.h"
 #include "src/widgets/lv_finder.h"
+#include "src/main.h"
 
 /* Spectrum */
 
@@ -45,7 +46,7 @@ static void spectrum_msg_cb(void *s, lv_msg_t *m) {
             const msgs_floats_t *msg = lv_msg_get_payload(m);
 
             lv_spectrum_add_data(spectrum, msg->data, msg->size);
-            event_send(spectrum, LV_EVENT_REFRESH, NULL);
+            lv_obj_invalidate(spectrum);
         } break;
     }
 }
@@ -71,7 +72,7 @@ static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
 
 static void finder_event_cb(void *s, lv_msg_t *m) {
     lv_obj_t *finder = lv_msg_get_user_data(m);
-    
+
     switch (lv_msg_get_id(m)) {
         case MSG_FILTER_CHANGED: {
             int32_t from, to;
@@ -88,13 +89,6 @@ static void finder_event_cb(void *s, lv_msg_t *m) {
             lv_obj_invalidate(finder);
         } break;
         
-        case MSG_FREQ_RX_CHANGED: {
-            const uint64_t *freq = lv_msg_get_payload(m);
-            
-            lv_finder_set_value(finder, *freq);
-            lv_obj_invalidate(finder);
-        } break;
-
         case MSG_FREQ_FFT_CHANGED: {
             const uint64_t  *freq = lv_msg_get_payload(m);
 
@@ -115,7 +109,6 @@ static void rx_finder_event_cb(void *s, lv_msg_t *m) {
             const uint64_t *freq = lv_msg_get_payload(m);
             
             lv_finder_set_value(finder, *freq);
-            lv_obj_invalidate(finder);
         } break;
 
         default:
@@ -131,7 +124,6 @@ static void tx_finder_event_cb(void *s, lv_msg_t *m) {
             const uint64_t *freq = lv_msg_get_payload(m);
             
             lv_finder_set_value(finder, *freq);
-            lv_obj_invalidate(finder);
         } break;
 
         default:

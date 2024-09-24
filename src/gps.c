@@ -32,7 +32,7 @@ static void * gps_thread(void *arg) {
                         struct gps_data_t *msg = malloc(sizeof(struct gps_data_t));
                         
                         memcpy(msg, &gpsdata, sizeof(*msg));
-                        event_send(dialog_gps->obj, EVENT_GPS, msg);
+                        lv_event_send(dialog_gps->obj, EVENT_GPS, msg);
                     }
                 }
             }

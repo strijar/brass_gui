@@ -77,7 +77,7 @@ void msg_tiny_set_text_fmt(const char * fmt, ...) {
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
 
-    event_send(obj, EVENT_MSG_UPDATE, NULL);
+    lv_event_send(obj, EVENT_MSG_UPDATE, NULL);
 }
 
 void msg_tiny_set_timeout(uint16_t x) {

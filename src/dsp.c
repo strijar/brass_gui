@@ -33,6 +33,7 @@
 #include "msgs.h"
 #include "generator.h"
 #include "mic.h"
+#include "main.h"
 
 const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
 
@@ -191,7 +192,9 @@ void update_spectrum(uint64_t now) {
             lpf(&spectrum_data_msg.data[i], mag, spectrum_beta);
         }
 
+        lv_lock();
         lv_msg_send(MSG_SPECTRUM_DATA, &spectrum_data_msg);
+        lv_unlock();
 
         spectrum_psd_count = 0;
         memset(spectrum_psd, 0, spectrum_data_msg.size * sizeof(float));
@@ -429,7 +432,9 @@ static void calc_auto() {
         lpf(&waterfall_auto_max, max, 0.5f);
     }
 
+    lv_lock();
     lv_msg_send(MSG_SPECTRUM_AUTO, &spectrum_auto_msg);
+    lv_unlock();
 }
 
 void dsp_set_vol(uint8_t x) {

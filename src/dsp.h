@@ -13,9 +13,6 @@
 #include <liquid/liquid.h>
 
 void dsp_init();
-void dsp_adc(float complex *data);
-void dsp_fft(float complex *data);
-size_t dsp_dac(float complex *data, size_t max_size);
 void dsp_reset();
 
 void dsp_set_spectrum_factor(uint8_t x);
@@ -30,3 +27,9 @@ void dsp_auto_clear();
 void dsp_set_vol(uint8_t x);
 uint16_t dsp_change_vol(int16_t df);
 uint8_t dsp_change_rx_agc(int16_t df);
+
+/* From thread */
+
+void dsp_adc(float complex *data);
+void dsp_fft(float complex *data);
+size_t dsp_dac(float complex *data, size_t max_size);

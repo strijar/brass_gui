@@ -132,7 +132,3 @@ extern uint32_t EVENT_BAND_UP;
 extern uint32_t EVENT_BAND_DOWN;
 
 void event_init();
-
-void event_obj_check();
-void event_send(lv_obj_t *obj, lv_event_code_t event_code, void *param);
-void event_send_key(int32_t key);

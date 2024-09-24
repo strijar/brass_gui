@@ -22,6 +22,8 @@
 static void lv_finder_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj);
 static void lv_finder_event(const lv_obj_class_t * class_p, lv_event_t * e);
 
+static void finder_invalidate(lv_obj_t * obj);
+
 /**********************
  *  STATIC VARIABLES
  **********************/
@@ -58,6 +60,8 @@ void lv_finder_set_range(lv_obj_t * obj, uint64_t freq_min, uint64_t freq_max) {
     finder->range_max = freq_max;
     finder->center = (freq_min + freq_max) / 2;
     finder->span = freq_max - freq_min;
+
+    finder_invalidate(obj);
 }
 
 void lv_finder_set_span(lv_obj_t * obj, int32_t hz) {
@@ -68,6 +72,8 @@ void lv_finder_set_span(lv_obj_t * obj, int32_t hz) {
     finder->span = hz;
     finder->range_min = finder->center - finder->span / 2;
     finder->range_max = finder->center + finder->span / 2;
+
+    finder_invalidate(obj);
 }
 
 void lv_finder_set_center(lv_obj_t * obj, uint64_t hz) {
@@ -78,6 +84,8 @@ void lv_finder_set_center(lv_obj_t * obj, uint64_t hz) {
     finder->center = hz;
     finder->range_min = finder->center - finder->span / 2;
     finder->range_max = finder->center + finder->span / 2;
+
+    finder_invalidate(obj);
 }
 
 void lv_finder_set_cursor(lv_obj_t * obj, uint8_t index, int16_t hz) {
@@ -92,6 +100,8 @@ void lv_finder_set_cursor(lv_obj_t * obj, uint8_t index, int16_t hz) {
             finder->cursor_num = index;
         }
     }
+
+    finder_invalidate(obj);
 }
 
 void lv_finder_set_width(lv_obj_t * obj, uint16_t hz) {
@@ -101,6 +111,8 @@ void lv_finder_set_width(lv_obj_t * obj, uint16_t hz) {
     
     finder->offset_min = -hz/2;
     finder->offset_max = hz/2;
+
+    finder_invalidate(obj);
 }
 
 void lv_finder_set_offsets(lv_obj_t * obj, int16_t min, int16_t max) {
@@ -110,6 +122,8 @@ void lv_finder_set_offsets(lv_obj_t * obj, int16_t min, int16_t max) {
     
     finder->offset_min = min;
     finder->offset_max = max;
+
+    finder_invalidate(obj);
 };
 
 void lv_finder_set_value(lv_obj_t * obj, uint64_t freq) {
@@ -118,11 +132,36 @@ void lv_finder_set_value(lv_obj_t * obj, uint64_t freq) {
     lv_finder_t * finder = (lv_finder_t *)obj;
     
     finder->value = freq;
+    
+    finder_invalidate(obj);
 }
 
 /**********************
  *   STATIC FUNCTIONS
  **********************/
+
+static void finder_invalidate(lv_obj_t * obj) {
+    lv_finder_t * finder = (lv_finder_t *)obj;
+    lv_area_t area;
+
+    lv_coord_t      x1 = obj->coords.x1;
+    lv_coord_t      y1 = obj->coords.y1;
+    lv_coord_t      w = lv_obj_get_width(obj);
+    lv_coord_t      h = lv_obj_get_height(obj);
+    uint16_t        border = lv_obj_get_style_border_width(obj, LV_PART_INDICATOR);
+
+    uint64_t        size_hz = finder->range_max - finder->range_min;
+    int64_t         f = finder->value - finder->range_min;
+    int64_t         f1 = w * (f + finder->offset_min) / size_hz;
+    int64_t         f2 = w * (f + finder->offset_max) / size_hz;
+
+    area.x1 = x1 + f1;
+    area.y1 = y1 + border;
+    area.x2 = x1 + f2;
+    area.y2 = area.y1 + h - border * 2;
+
+    lv_obj_invalidate_area(obj, &area);
+}
 
 static void lv_finder_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj) {
     LV_UNUSED(class_p);

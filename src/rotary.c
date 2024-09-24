@@ -14,6 +14,7 @@
 #include "rotary.h"
 #include "keyboard.h"
 #include "backlight.h"
+#include "main.h"
 
 static void rotary_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     struct input_event  in;

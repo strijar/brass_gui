@@ -17,7 +17,9 @@ extern float waterfall_auto_min;
 extern float waterfall_auto_max;
 
 lv_obj_t * waterfall_init(lv_obj_t * parent);
-void waterfall_data(float *data_buf, size_t size);
 void waterfall_set_height(lv_coord_t h);
-
 void waterfall_update_band(uint64_t f);
+
+/* From thread */
+
+void waterfall_data(float *data_buf, size_t size);

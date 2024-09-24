@@ -682,8 +682,8 @@ static void main_screen_radio_cb(lv_event_t * e) {
         freq_update();
     }
     
-    event_send(meter, code, NULL);
-    event_send(tx_info, code, NULL);
+    lv_event_send(meter, code, NULL);
+    lv_event_send(tx_info, code, NULL);
     
     dialog_send(code, NULL);
 }
@@ -990,7 +990,7 @@ void main_screen_set_freq(uint64_t freq) {
 
     radio_set_freq_rx(freq);
     radio_set_freq_fft(freq);
-    event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
+    lv_event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
 }
 
 lv_obj_t * main_screen() {

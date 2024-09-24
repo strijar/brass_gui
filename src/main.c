@@ -47,8 +47,19 @@ encoder_t                   *mfk;
 static lv_color_t           buf[DISP_BUF_SIZE];
 static lv_disp_draw_buf_t   disp_buf;
 static lv_disp_drv_t        disp_drv;
+static pthread_mutex_t      mux;
+
+void lv_lock() {
+    pthread_mutex_lock(&mux);
+}
+
+void lv_unlock() {
+    pthread_mutex_unlock(&mux);
+}
 
 int main(void) {
+    pthread_mutex_init(&mux, NULL);
+
     params_init();
 
     lv_init();
@@ -59,7 +70,7 @@ int main(void) {
     audio_init();
     audio_adc_init();
     event_init();
-    
+
     lv_disp_draw_buf_init(&disp_buf, buf, NULL, DISP_BUF_SIZE);
     lv_disp_drv_init(&disp_drv);
     
@@ -115,14 +126,17 @@ int main(void) {
     lv_scr_load(main_obj);
 
     while (1) {
-        lv_timer_handler();
-        event_obj_check();
+        lv_lock();
         
-        usleep(1000);
+        lv_timer_handler();
         
         uint64_t now = get_time();
         lv_tick_inc(now - prev_time);
         prev_time = now;
+
+        lv_unlock();
+
+        usleep(10);
     }
 
     return 0;

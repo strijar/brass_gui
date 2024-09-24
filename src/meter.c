@@ -11,6 +11,7 @@
 #include "events.h"
 #include "params.h"
 #include "msgs.h"
+#include "main.h"
 
 #define NUM_ITEMS   7
 
@@ -162,5 +163,8 @@ void meter_update(int16_t db, float beta) {
     }
 
     meter_db = meter_db * beta + db * (1.0f - beta);
-    event_send(obj, LV_EVENT_REFRESH, NULL);
+
+    lv_lock();
+    lv_obj_invalidate(obj);
+    lv_unlock();
 }

@@ -25,4 +25,7 @@
 #define S9_40   (S9 + 40)
 
 lv_obj_t * meter_init(lv_obj_t * parent);
+
+/* From thread */
+
 void meter_update(int16_t db, float beta);

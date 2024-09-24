@@ -46,9 +46,8 @@ static void * fft_thread(void *arg) {
             sleep(5);
         } else {
             complex float *samples = (complex float *) &buf_ptr[buf_id].buffer;
-            
-            dsp_fft(samples);
 
+            dsp_fft(samples);
             ioctl(fd, START_XFER, &buf_id);
             buf_id = (buf_id + 1) % FFT_BUFS;
 

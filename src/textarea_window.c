@@ -11,6 +11,7 @@
 #include "textarea_window.h"
 #include "styles.h"
 #include "dsp.h"
+#include "main.h"
 
 static lv_obj_t             *window = NULL;
 static lv_obj_t             *text = NULL;
@@ -149,7 +150,7 @@ lv_obj_t * textarea_window_open(textarea_window_cb_t ok, textarea_window_cb_t ca
 }
 
 void textarea_window_close() {
-    if (keyboard) {            
+    if (keyboard) {
         lv_obj_del(keyboard);
         keyboard = NULL;
     }

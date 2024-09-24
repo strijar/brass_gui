@@ -23,7 +23,7 @@ static void hkey_event() {
     event_hkey_t    *e = malloc(sizeof(event_hkey_t));
     
     *e = event;
-    event_send(lv_scr_act(), EVENT_HKEY, (void*) e);
+    lv_event_send(lv_scr_act(), EVENT_HKEY, (void*) e);
 }
 
 static void hkey_key(int32_t key) {
