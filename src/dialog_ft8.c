@@ -256,6 +256,7 @@ static void init() {
     time_buf = (float complex*) malloc(nfft * sizeof(float complex));
     freq_buf = (float complex*) malloc(nfft * sizeof(float complex));
     fft = fft_create_plan(nfft, time_buf, freq_buf, LIQUID_FFT_FORWARD, 0);
+    
     frame_window = windowcf_create(nfft);
 
     rx_window = malloc(nfft * sizeof(complex float));
@@ -279,7 +280,7 @@ static void init() {
 
     /* Waterfall */
 
-    waterfall_nfft = block_size * 2;
+    waterfall_nfft = block_size;
 
     waterfall_sg = spgramcf_create(waterfall_nfft, LIQUID_WINDOW_HANN, waterfall_nfft, waterfall_nfft / 4);
     waterfall_psd = (float *) malloc(waterfall_nfft * sizeof(float));
@@ -325,7 +326,9 @@ static void send_info(const char * fmt, ...) {
     msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_RX_INFO;
 
+    lv_lock();
     lv_event_send(table, EVENT_FT8_MSG, msg);
+    lv_unlock();
 }
 
 static const char * find_qth(const char *str) {
@@ -380,7 +383,9 @@ static void send_rx_text(int16_t snr, const char * text) {
         msg->cell->dist = 0;
     }
 
+    lv_lock();
     lv_event_send(table, EVENT_FT8_MSG, msg);
+    lv_unlock();
 }
 
 static void send_tx_text(const char * text) {
@@ -391,7 +396,9 @@ static void send_tx_text(const char * text) {
     msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_TX_MSG;
 
+    lv_lock();
     lv_event_send(table, EVENT_FT8_MSG, msg);
+    lv_unlock();
 }
 
 static void decode() {
@@ -450,9 +457,9 @@ void static waterfall_process(float complex *frame, const size_t size) {
     
         spgramcf_get_psd(waterfall_sg, waterfall_psd);
 
+        lv_lock();
         lv_waterfall_add_data(waterfall, &waterfall_psd[low_bin], high_bin - low_bin);
-        
-        lv_obj_invalidate(waterfall);
+        lv_unlock();
 
         waterfall_time = now;
         spgramcf_reset(waterfall_sg);
@@ -565,14 +572,13 @@ static void rx_worker(bool sync) {
     while (cbuffercf_size(audio_buf) < block_size) {
         pthread_cond_wait(&audio_cond, &audio_mutex);
     }
-    
+ 
     pthread_mutex_unlock(&audio_mutex);
-        
+ 
     while (cbuffercf_size(audio_buf) > block_size) {
         cbuffercf_read(audio_buf, block_size, &buf, &n);
 
         waterfall_process(buf, block_size);
-        cbuffercf_release(audio_buf, block_size);
 
         if (sync) {
             process(buf);
@@ -582,6 +588,8 @@ static void rx_worker(bool sync) {
                 reset();
             }
         }
+
+        cbuffercf_release(audio_buf, block_size);
     }
 }
 
@@ -816,11 +824,9 @@ static void key_cb(lv_event_t * e) {
     uint32_t key = *((uint32_t *) lv_event_get_param(e));
 
     switch (key) {
-        /*
         case LV_KEY_ESC:
             dialog_destruct();
             break;
-        */
             
         case KEY_VOL_LEFT_EDIT:
         case KEY_VOL_LEFT_SELECT:
@@ -1078,7 +1084,6 @@ static void rotary_cb(int32_t diff) {
     params_uint16_set(&params.ft8_tx_freq, f);
 
     lv_finder_set_value(finder, f);
-    lv_obj_invalidate(finder);
 
     if (!fade_run) {
         fade_run = true;
@@ -1100,7 +1105,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_UP, NULL);
     lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_DOWN, NULL);
 
-    audio_buf = cbuffercf_create(ADC_RATE);
+    audio_buf = cbuffercf_create(ADC_RATE * 3);
 
     /* Waterfall */
 
@@ -1341,9 +1346,13 @@ static void audio_cb(float complex *samples, size_t n) {
     }
 
     if (state == IDLE || state == RX_PROCESS) {
-        pthread_mutex_lock(&audio_mutex);
-        cbuffercf_write(audio_buf, samples, n);
-        pthread_cond_broadcast(&audio_cond);
-        pthread_mutex_unlock(&audio_mutex);
+        if (cbuffercf_space_available(audio_buf) >= n) {
+            pthread_mutex_lock(&audio_mutex);
+            pthread_cond_broadcast(&audio_cond);
+            cbuffercf_write(audio_buf, samples, n);
+            pthread_mutex_unlock(&audio_mutex);
+        } else {
+            LV_LOG_WARN("Buffer over");
+        }
     }
 }

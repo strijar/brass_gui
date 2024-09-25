@@ -39,8 +39,12 @@ static void edit_ok() {
     }
 }
 
+static void edit_cancel() {
+    dialog_destruct();
+}
+
 static void construct_cb(lv_obj_t *parent) {
-    dialog.obj = textarea_window_open(NULL, NULL);
+    dialog.obj = textarea_window_open(edit_ok, edit_cancel);
     
     lv_obj_t *text = textarea_window_text();
     
@@ -66,11 +70,9 @@ static void key_cb(lv_event_t * e) {
     uint32_t key = *((uint32_t *)lv_event_get_param(e));
 
     switch (key) {
-        /*
         case LV_KEY_ESC:
             dialog_destruct();
             break;
-        */
 
         case LV_KEY_ENTER:
             edit_ok();

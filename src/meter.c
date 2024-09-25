@@ -163,8 +163,4 @@ void meter_update(int16_t db, float beta) {
     }
 
     meter_db = meter_db * beta + db * (1.0f - beta);
-
-    lv_lock();
-    lv_obj_invalidate(obj);
-    lv_unlock();
 }

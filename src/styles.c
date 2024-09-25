@@ -46,7 +46,7 @@ lv_font_t   *font_dialog_freq = &jura_44;
 lv_font_t   *font_swrscan = &jura_28;
 lv_font_t   *font_meter = &jura_22;
 lv_font_t   *font_panel = &jura_bold_24;
-lv_font_t   *font_textarea = &jura_44;
+lv_font_t   *font_textarea = &jura_40;
 lv_font_t   *font_tx_info = &jura_22;
 
 lv_font_t   *font_freq = &jura_28;
@@ -129,7 +129,7 @@ void styles_init() {
     lv_style_set_radius(&msg_style, 0);
     lv_style_set_bg_img_src(&msg_style, PATH "images/msg.bin");
     lv_style_set_bg_img_opa(&msg_style, LV_OPA_COVER);
-    lv_style_set_pad_ver(&msg_style, 20);
+    lv_style_set_pad_ver(&msg_style, 18);
 
     lv_style_init(&msg_tiny_style);
     lv_style_set_text_color(&msg_tiny_style, lv_color_white());

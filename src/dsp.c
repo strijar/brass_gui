@@ -333,7 +333,7 @@ void dsp_adc(float complex *data) {
     }
     
     audio_adc_play(adc_buf, ADC_SAMPLES);
-    
+
     if (recorder_is_on()) {
         recorder_put_audio_samples(rec_buf);
     }

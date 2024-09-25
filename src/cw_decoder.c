@@ -12,6 +12,7 @@
 #include "lvgl/lvgl.h"
 #include "cw_decoder.h"
 #include "pannel.h"
+#include "main.h"
 
 #define HIST_SIZE       10
 
@@ -128,7 +129,9 @@ void cw_decoder_init() {
 }
 
 static void cw_decoder_ans(char *ans) {
+    lv_lock();
     pannel_add_text(ans);
+    lv_unlock();
 }
 
 static void cw_decoder_wpm(uint16_t wpm) {

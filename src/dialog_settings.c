@@ -1218,11 +1218,10 @@ static void key_cb(lv_event_t * e) {
         case HKEY_FINP:
              lv_group_set_editing(keyboard_group, !lv_group_get_editing((const lv_group_t*) keyboard_group));
              break;
-        /*
+
         case LV_KEY_ESC:
             dialog_destruct();
             break;
-        */
             
         case KEY_VOL_LEFT_EDIT:
         case KEY_VOL_LEFT_SELECT:

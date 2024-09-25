@@ -18,4 +18,7 @@ typedef struct {
 extern cw_characters_t cw_characters[];
 
 void cw_decoder_init();
+
+/* From thread */
+
 void cw_decoder_signal(bool on, float ms);

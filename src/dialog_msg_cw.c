@@ -122,11 +122,9 @@ static void key_cb(lv_event_t * e) {
     uint32_t key = *((uint32_t *)lv_event_get_param(e));
 
     switch (key) {
-        /*
         case LV_KEY_ESC:
             dialog_destruct();
             break;
-        */
 
         case KEYBOARD_F4:
             dialog_msg_cw_edit_cb(e);

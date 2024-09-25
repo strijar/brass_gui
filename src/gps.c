@@ -17,6 +17,7 @@
 #include "events.h"
 #include "gps.h"
 #include "dialog_gps.h"
+#include "main.h"
 
 static struct gps_data_t    gpsdata;
 static uint64_t             prev_time = 0;
@@ -32,7 +33,9 @@ static void * gps_thread(void *arg) {
                         struct gps_data_t *msg = malloc(sizeof(struct gps_data_t));
                         
                         memcpy(msg, &gpsdata, sizeof(*msg));
+                        lv_lock();
                         lv_event_send(dialog_gps->obj, EVENT_GPS, msg);
+                        lv_unlock();
                     }
                 }
             }
