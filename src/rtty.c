@@ -15,6 +15,7 @@
 #include "pannel.h"
 #include "util.h"
 #include "fpga/adc.h"
+#include "main.h"
 
 #define SYMBOL_OVER         8
 #define SYMBOL_FACTOR       2
@@ -225,7 +226,9 @@ static void add_symbol(float pwr) {
                     if (c) {
                         char str[2] = { c, 0 };
                         
+                        lv_lock();
                         pannel_add_text(str);
+                        lv_unlock();
                     }
                 }
                 rx_state = RX_STATE_IDLE;
