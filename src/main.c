@@ -7,7 +7,6 @@
  */
 
 #include "lvgl/lvgl.h"
-#include "lv_drivers/display/fbdev.h"
 #include <unistd.h>
 #include <pthread.h>
 #include <time.h>
@@ -45,46 +44,33 @@ rotary_t                    *vol;
 encoder_t                   *mfk;
 
 static lv_color_t           buf[DISP_BUF_SIZE];
-static lv_disp_draw_buf_t   disp_buf;
-static lv_disp_drv_t        disp_drv;
-static pthread_mutex_t      mux;
-
-void lv_lock() {
-    pthread_mutex_lock(&mux);
-}
-
-void lv_unlock() {
-    pthread_mutex_unlock(&mux);
-}
+static lv_display_t         *disp;
 
 int main(void) {
-    pthread_mutex_init(&mux, NULL);
-
     params_init();
 
     lv_init();
-    lv_png_init();
+    lv_libpng_init();
     
-    fbdev_init();
     mic_init();
     audio_init();
     audio_adc_init();
     event_init();
 
-    lv_disp_draw_buf_init(&disp_buf, buf, NULL, DISP_BUF_SIZE);
-    lv_disp_drv_init(&disp_drv);
-    
+    disp = lv_linux_fbdev_create();
+    lv_display_set_buffers(disp, buf, NULL, sizeof(buf), LV_DISPLAY_RENDER_MODE_DIRECT);
+
+    /*    
     disp_drv.draw_buf   = &disp_buf;
     disp_drv.flush_cb   = fbdev_flush;
     disp_drv.hor_res    = 800;
     disp_drv.ver_res    = 480;
+    */
     
-    lv_disp_drv_register(&disp_drv);
+//    lv_display_set_bg_color(lv_display_get_default(), lv_color_black());
+//    lv_displat_set_bg_opa(lv_display_get_default(), LV_OPA_COVER);
 
-    lv_disp_set_bg_color(lv_disp_get_default(), lv_color_black());
-    lv_disp_set_bg_opa(lv_disp_get_default(), LV_OPA_COVER);
-
-    lv_timer_t *timer = _lv_disp_get_refr_timer(lv_disp_get_default());
+    lv_timer_t *timer = _lv_disp_get_refr_timer(lv_display_get_default());
     
     lv_timer_set_period(timer, 15);
 
@@ -123,7 +109,7 @@ int main(void) {
 */
     uint64_t prev_time = get_time();
 
-    lv_scr_load(main_obj);
+    lv_screen_load(main_obj);
 
     while (1) {
         lv_lock();

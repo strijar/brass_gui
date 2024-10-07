@@ -18,30 +18,6 @@ extern "C" {
 #include "lvgl/lvgl.h"
 
 /**********************
- *      TYPEDEFS
- **********************/
-
-#define LV_FINDER_CURSORS    2
-
-typedef struct {
-    lv_obj_t        obj;
-
-    int16_t         offset_min;
-    int16_t         offset_max;
-    uint64_t        value;
-
-    uint64_t        range_min;
-    uint64_t        range_max;
-    uint64_t        center;
-    int32_t         span;
-    
-    uint8_t         cursor_num;
-    int16_t         cursor[LV_FINDER_CURSORS];
-} lv_finder_t;
-
-extern const lv_obj_class_t lv_finder_class;
-
-/**********************
  * GLOBAL PROTOTYPES
  **********************/
 

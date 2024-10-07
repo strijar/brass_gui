@@ -18,26 +18,6 @@ extern "C" {
 #include "lvgl/lvgl.h"
 
 /**********************
- *      TYPEDEFS
- **********************/
-
-typedef struct {
-    lv_img_t        obj;
-    lv_img_dsc_t    *dsc;
-
-    uint32_t        line_len;
-    uint8_t         *line_buf;
-
-    lv_color_t      *palette;
-    uint16_t        palette_cnt;
-    
-    int16_t         min;
-    int16_t         max;
-} lv_waterfall_t;
-
-extern const lv_obj_class_t lv_waterfall_class;
-
-/**********************
  * GLOBAL PROTOTYPES
  **********************/
 

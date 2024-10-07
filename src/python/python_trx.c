@@ -18,6 +18,7 @@
 
 /* Spectrum */
 
+/*
 static void spectrum_msg_cb(void *s, lv_msg_t *m) {
     lv_obj_t *spectrum = lv_msg_get_user_data(m);
     
@@ -50,6 +51,7 @@ static void spectrum_msg_cb(void *s, lv_msg_t *m) {
         } break;
     }
 }
+*/
 
 static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
     LV_LOG_INFO("begin");
@@ -59,10 +61,12 @@ static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *spectrum = python_lv_get_obj(obj);
     
+    	/*
         lv_msg_subsribe(MSG_FREQ_FFT_SHIFT, spectrum_msg_cb, spectrum);
         lv_msg_subsribe(MSG_RATE_FFT_CHANGED, spectrum_msg_cb, spectrum);
         lv_msg_subsribe(MSG_SPECTRUM_AUTO, spectrum_msg_cb, spectrum);
         lv_msg_subsribe(MSG_SPECTRUM_DATA, spectrum_msg_cb, spectrum);
+        */
     }
 
     Py_RETURN_NONE;
@@ -70,6 +74,7 @@ static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
 
 /* Finder */
 
+/*
 static void finder_event_cb(void *s, lv_msg_t *m) {
     lv_obj_t *finder = lv_msg_get_user_data(m);
 
@@ -130,6 +135,7 @@ static void tx_finder_event_cb(void *s, lv_msg_t *m) {
             break;
     }
 }
+*/
 
 static PyObject * trx_connect_rx_finder(PyObject *self, PyObject *args) {
     LV_LOG_INFO("begin");
@@ -139,10 +145,10 @@ static PyObject * trx_connect_rx_finder(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *finder = python_lv_get_obj(obj);
     
-        lv_msg_subsribe(MSG_FILTER_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FREQ_RX_CHANGED, rx_finder_event_cb, finder);
+//        lv_msg_subsribe(MSG_FILTER_CHANGED, finder_event_cb, finder);
+//        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, finder_event_cb, finder);
+//        lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, finder_event_cb, finder);
+//        lv_msg_subsribe(MSG_FREQ_RX_CHANGED, rx_finder_event_cb, finder);
     }
 
     Py_RETURN_NONE;
@@ -156,10 +162,10 @@ static PyObject * trx_connect_tx_finder(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *finder = python_lv_get_obj(obj);
     
-        lv_msg_subsribe(MSG_FILTER_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FREQ_TX_CHANGED, tx_finder_event_cb, finder);
+//        lv_msg_subsribe(MSG_FILTER_CHANGED, finder_event_cb, finder);
+//        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, finder_event_cb, finder);
+//        lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, finder_event_cb, finder);
+//        lv_msg_subsribe(MSG_FREQ_TX_CHANGED, tx_finder_event_cb, finder);
     }
 
     Py_RETURN_NONE;

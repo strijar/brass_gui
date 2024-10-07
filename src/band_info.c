@@ -33,14 +33,14 @@ static void band_info_timer(lv_timer_t *t) {
 static void band_info_draw_cb(lv_event_t * e) {
     lv_event_code_t     code = lv_event_get_code(e);
     lv_obj_t            *obj = lv_event_get_target(e);
-    lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+    lv_layer_t          *layer = lv_event_get_layer(e);
     
     if (!bands) {
         return;
     }
 
-    lv_coord_t x1 = obj->coords.x1;
-    lv_coord_t y1 = obj->coords.y1;
+    lv_coord_t x1 = lv_obj_get_x(obj);
+    lv_coord_t y1 = lv_obj_get_y(obj);
 
     lv_coord_t w = lv_obj_get_width(obj);
     lv_coord_t h = lv_obj_get_height(obj) - 1;
@@ -84,7 +84,7 @@ static void band_info_draw_cb(lv_event_t * e) {
         area.x2 = x1 + stop - 2;
         area.y2 = y1 + h;
 
-        lv_draw_rect(draw_ctx, &rect_dsc, &area);
+        lv_draw_rect(layer, &rect_dsc, &area);
     
         /* Label */
 
@@ -103,7 +103,9 @@ static void band_info_draw_cb(lv_event_t * e) {
             area.x2 = x1 + (start + stop / 2 + label_size.x / 2);
             area.y2 = y1 + h;
 
-            lv_draw_label(draw_ctx, &dsc_label, &area, band->name, NULL);
+            dsc_label.text = band->name;
+
+            lv_draw_label(layer, &dsc_label, &area);
         }
     }
 }

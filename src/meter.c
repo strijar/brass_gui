@@ -41,13 +41,14 @@ static s_item_t s_items[NUM_ITEMS] = {
 
 static void meter_draw_cb(lv_event_t * e) {
     lv_obj_t            *obj = lv_event_get_target(e);
-    lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+    lv_layer_t          *layer = lv_event_get_layer(e);
+
     lv_draw_rect_dsc_t  rect_dsc;
     lv_draw_label_dsc_t label_dsc;
     lv_area_t           area;
 
-    lv_coord_t x1 = obj->coords.x1 + 7;
-    lv_coord_t y1 = obj->coords.y1 + 17;
+    lv_coord_t x1 = lv_obj_get_x(obj) + 7;
+    lv_coord_t y1 = lv_obj_get_y(obj) + 17;
 
     lv_coord_t w = lv_obj_get_width(obj);
     lv_coord_t h = lv_obj_get_height(obj) - 1;
@@ -83,7 +84,7 @@ static void meter_draw_cb(lv_event_t * e) {
         area.x1 = x1 + 30 + i * slice;
         area.x2 = area.x1 + slice - 3;
 
-        lv_draw_rect(draw_ctx, &rect_dsc, &area);
+        lv_draw_rect(layer, &rect_dsc, &area);
         
         db += slice_db;
     }
@@ -114,7 +115,9 @@ static void meter_draw_cb(lv_event_t * e) {
         area.x1 = x1 + 30 + len * (db  - min_db) / (max_db - min_db) - (label_size.x / 2);
         area.x2 = area.x1 + label_size.x;
 
-        lv_draw_label(draw_ctx, &label_dsc, &area, label, NULL);
+        label_dsc.text = label;
+
+        lv_draw_label(layer, &label_dsc, &area);
     }
 }
 
@@ -126,6 +129,7 @@ static void rx_cb(lv_event_t * e) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
 }
 
+/*
 static void meter_msg_cb(lv_event_t * e) {
     lv_msg_t *m = lv_event_get_msg(e);
     
@@ -137,6 +141,7 @@ static void meter_msg_cb(lv_event_t * e) {
         } break;
     }
 }
+*/
 
 lv_obj_t * meter_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
@@ -149,8 +154,8 @@ lv_obj_t * meter_init(lv_obj_t * parent) {
     lv_obj_add_event_cb(obj, rx_cb, EVENT_RADIO_RX, NULL);
     lv_obj_add_event_cb(obj, meter_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
 
-    lv_obj_add_event_cb(obj, meter_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
-    lv_msg_subsribe_obj(MSG_SPECTRUM_AUTO, obj, NULL);
+//    lv_obj_add_event_cb(obj, meter_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
+//    lv_msg_subsribe_obj(MSG_SPECTRUM_AUTO, obj, NULL);
 
     return obj;
 }

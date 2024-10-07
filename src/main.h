@@ -20,6 +20,3 @@ typedef enum {
 
 extern rotary_t     *vol;
 extern encoder_t    *mfk;
-
-void lv_lock();
-void lv_unlock();

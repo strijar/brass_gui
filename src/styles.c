@@ -111,8 +111,8 @@ void styles_init() {
     lv_style_set_pad_ver(&waterfall_style, 0);
 
     lv_style_init(&btn_style);
-    lv_style_set_bg_img_src(&btn_style, PATH "images/btn.bin");
-    lv_style_set_bg_img_opa(&btn_style, LV_OPA_COVER);
+    lv_style_set_bg_image_src(&btn_style, PATH "images/btn.bin");
+    lv_style_set_bg_image_opa(&btn_style, LV_OPA_COVER);
     lv_style_set_border_width(&btn_style, 0);
     lv_style_set_text_font(&btn_style, font_btn);   // 30
     lv_style_set_text_color(&btn_style, lv_color_white());
@@ -127,8 +127,8 @@ void styles_init() {
     lv_style_set_x(&msg_style, 800 / 2 - (603 / 2));
     lv_style_set_y(&msg_style, 300);
     lv_style_set_radius(&msg_style, 0);
-    lv_style_set_bg_img_src(&msg_style, PATH "images/msg.bin");
-    lv_style_set_bg_img_opa(&msg_style, LV_OPA_COVER);
+    lv_style_set_bg_image_src(&msg_style, PATH "images/msg.bin");
+    lv_style_set_bg_image_opa(&msg_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&msg_style, 18);
 
     lv_style_init(&msg_tiny_style);
@@ -139,7 +139,7 @@ void styles_init() {
     lv_style_set_x(&msg_tiny_style, 800 / 2 - (324 / 2));
     lv_style_set_y(&msg_tiny_style, 160 - 66/2 + 36/2);
     lv_style_set_radius(&msg_tiny_style, 0);
-    lv_style_set_bg_img_src(&msg_tiny_style, PATH "images/msg_tiny.bin");
+    lv_style_set_bg_image_src(&msg_tiny_style, PATH "images/msg_tiny.bin");
     lv_style_set_pad_ver(&msg_tiny_style, 12);
 
     lv_style_init(&pannel_style);
@@ -150,8 +150,8 @@ void styles_init() {
     lv_style_set_x(&pannel_style, 800 / 2 - (795 / 2));
     lv_style_set_y(&pannel_style, 230);
     lv_style_set_radius(&pannel_style, 0);
-    lv_style_set_bg_img_src(&pannel_style, PATH "images/pannel.bin");
-    lv_style_set_bg_img_opa(&pannel_style, LV_OPA_COVER);
+    lv_style_set_bg_image_src(&pannel_style, PATH "images/pannel.bin");
+    lv_style_set_bg_image_opa(&pannel_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&pannel_style, 10);
     lv_style_set_pad_hor(&pannel_style, 10);
 
@@ -163,8 +163,8 @@ void styles_init() {
     lv_style_set_x(&dialog_style, 800 / 2 - (796 / 2));
     lv_style_set_y(&dialog_style, 66);
     lv_style_set_radius(&dialog_style, 0);
-    lv_style_set_bg_img_src(&dialog_style, PATH "images/dialog.bin");
-    lv_style_set_bg_img_opa(&dialog_style, LV_OPA_COVER);
+    lv_style_set_bg_image_src(&dialog_style, PATH "images/dialog.bin");
+    lv_style_set_bg_image_opa(&dialog_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&dialog_style, 0);
     lv_style_set_pad_hor(&dialog_style, 0);
 
@@ -191,8 +191,8 @@ void styles_init() {
     lv_style_set_width(&clock_style, 206);
     lv_style_set_height(&clock_style, 61);
     lv_style_set_x(&clock_style, 800 - 206);
-    lv_style_set_bg_img_src(&clock_style, PATH "images/top_short.bin");
-    lv_style_set_bg_img_opa(&clock_style, LV_OPA_COVER);
+    lv_style_set_bg_image_src(&clock_style, PATH "images/top_short.bin");
+    lv_style_set_bg_image_opa(&clock_style, LV_OPA_COVER);
 
     lv_style_init(&info_style);
     lv_style_set_radius(&info_style, 0);
@@ -200,8 +200,8 @@ void styles_init() {
     lv_style_set_height(&info_style, 61);
     lv_style_set_x(&info_style, 0);
     lv_style_set_y(&info_style, 0);
-    lv_style_set_bg_img_src(&info_style, PATH "images/top_short.bin");
-    lv_style_set_bg_img_opa(&info_style, LV_OPA_COVER);
+    lv_style_set_bg_image_src(&info_style, PATH "images/top_short.bin");
+    lv_style_set_bg_image_opa(&info_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&info_style, 0);
     lv_style_set_border_width(&info_style, 0);
     lv_style_set_bg_opa(&info_style, LV_OPA_0);
@@ -217,8 +217,8 @@ void styles_init() {
     lv_style_set_height(&meter_style, 61);
     lv_style_set_x(&meter_style, 800 / 2 - (377 / 2));
     lv_style_set_border_width(&meter_style, 0);
-    lv_style_set_bg_img_src(&meter_style, PATH "images/top_long.bin");
-    lv_style_set_bg_img_opa(&meter_style, LV_OPA_COVER);
+    lv_style_set_bg_image_src(&meter_style, PATH "images/top_long.bin");
+    lv_style_set_bg_image_opa(&meter_style, LV_OPA_COVER);
     lv_style_set_bg_opa(&meter_style, LV_OPA_0);
 
     lv_style_init(&tx_info_style);
@@ -227,8 +227,8 @@ void styles_init() {
     lv_style_set_height(&tx_info_style, 123);
     lv_style_set_x(&tx_info_style, 800 / 2 - (377 / 2));
     lv_style_set_border_width(&tx_info_style, 0);
-    lv_style_set_bg_img_src(&tx_info_style, PATH "images/top_big.bin");
-    lv_style_set_bg_img_opa(&tx_info_style, LV_OPA_COVER);
+    lv_style_set_bg_image_src(&tx_info_style, PATH "images/top_big.bin");
+    lv_style_set_bg_image_opa(&tx_info_style, LV_OPA_COVER);
     lv_style_set_bg_opa(&tx_info_style, LV_OPA_0);
 }
 
@@ -250,6 +250,8 @@ void styles_waterfall_palette(lv_color_t *palette, uint16_t size) {
     grad.stops[3].frac  = (size - 1) * 0.75;
     grad.stops[4].frac  = (size - 1) * 1.00;
 
+    lv_opa_t opa;
+
     for (int i = 0; i < size; i++)
-        palette[i] = lv_gradient_calculate(&grad, size, i);
+        lv_gradient_color_calculate(&grad, size, i, &palette[i], &opa);
 }

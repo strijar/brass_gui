@@ -97,11 +97,11 @@ done:
 }
 
 void screenshot_take() {
-    uint32_t        buf_size = lv_snapshot_buf_size_needed(lv_scr_act(), LV_IMG_CF_TRUE_COLOR_ALPHA);
+    uint32_t        buf_size = lv_snapshot_buf_size_needed(lv_scr_act(), LV_COLOR_FORMAT_ARGB8888);
     
     buf = (uint8_t *) malloc(buf_size);
     
-    lv_snapshot_take_to_buf(lv_scr_act(), LV_IMG_CF_TRUE_COLOR_ALPHA, &snapshot, buf, buf_size);
+    lv_snapshot_take_to_buf(lv_scr_act(), LV_COLOR_FORMAT_ARGB8888, &snapshot, buf, buf_size);
 
     pthread_t thread;
 

@@ -23,12 +23,12 @@ static void hkey_event() {
     event_hkey_t    *e = malloc(sizeof(event_hkey_t));
     
     *e = event;
-    lv_event_send(lv_scr_act(), EVENT_HKEY, (void*) e);
+    lv_obj_send_event(lv_screen_active(), EVENT_HKEY, (void*) e);
 }
 
 static void hkey_key(int32_t key) {
     if (event.state == HKEY_RELEASE || event.state == HKEY_LONG_RELEASE) {
-        event_send_key(key);
+//        event_send_key(key);
         event.state = HKEY_PRESS;
         event.key = HKEY_UNKNOWN;
     }

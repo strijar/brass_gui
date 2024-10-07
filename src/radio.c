@@ -145,7 +145,7 @@ void radio_freq_set() {
 
 static void update_filter() {
     dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, 40);
-    lv_msg_send(MSG_FILTER_CHANGED, NULL);
+//    lv_msg_send(MSG_FILTER_CHANGED, NULL);
 }
 
 void radio_mode_set() {
@@ -157,6 +157,7 @@ void radio_mode_set() {
     dsp_set_spectrum_factor(params_mode.spectrum_factor);
 }
 
+/*
 static void radio_msg_cb(void *s, lv_msg_t *m) {
     switch (lv_msg_get_id(m)) {
         case MSG_PTT: {
@@ -169,6 +170,7 @@ static void radio_msg_cb(void *s, lv_msg_t *m) {
             break;
     }
 }
+*/
 
 void radio_init(lv_obj_t *obj) {
     main_obj = obj;
@@ -180,7 +182,7 @@ void radio_init(lv_obj_t *obj) {
     radio_mode_set();
     radio_load_atu();
 
-    lv_msg_subsribe(MSG_PTT, radio_msg_cb, NULL);
+//    lv_msg_subsribe(MSG_PTT, radio_msg_cb, NULL);
 }
 
 radio_state_t radio_get_state() {
@@ -203,7 +205,7 @@ void radio_set_freq_rx(uint64_t freq) {
     control_set_rx_freq(freq - shift);
     radio_load_atu();
 
-    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
+//    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
 }
 
 void radio_set_freq_tx(uint64_t freq) {
@@ -222,7 +224,7 @@ void radio_set_freq_tx(uint64_t freq) {
     control_set_tx_freq(freq - shift);
     radio_load_atu();
 
-    lv_msg_send(MSG_FREQ_TX_CHANGED, &params_band.freq_tx);
+//    lv_msg_send(MSG_FREQ_TX_CHANGED, &params_band.freq_tx);
 }
 
 uint64_t radio_set_freqs(uint64_t rx, uint64_t tx) {
@@ -262,7 +264,7 @@ void radio_set_freq_fft(uint64_t freq) {
     params_unlock(&params_band.durty.freq_fft);
 
     control_set_fft_freq(freq - shift);
-    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.freq_fft);
+//    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.freq_fft);
 }
 
 bool radio_check_freq(uint64_t freq, uint64_t *shift) {
@@ -396,7 +398,7 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
 void radio_set_mode(radio_mode_t mode) {
     params_band.mode = mode;
     params_unlock(&params_band.durty.mode);
-    lv_msg_send(MSG_MODE_CHANGED, &params_band.mode);
+//    lv_msg_send(MSG_MODE_CHANGED, &params_band.mode);
 }
 
 void radio_restore_mode(radio_mode_t mode) {

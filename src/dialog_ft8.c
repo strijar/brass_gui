@@ -327,7 +327,7 @@ static void send_info(const char * fmt, ...) {
     msg->cell->type = MSG_RX_INFO;
 
     lv_lock();
-    lv_event_send(table, EVENT_FT8_MSG, msg);
+    lv_obj_send_event(table, EVENT_FT8_MSG, msg);
     lv_unlock();
 }
 
@@ -384,7 +384,7 @@ static void send_rx_text(int16_t snr, const char * text) {
     }
 
     lv_lock();
-    lv_event_send(table, EVENT_FT8_MSG, msg);
+    lv_obj_send_event(table, EVENT_FT8_MSG, msg);
     lv_unlock();
 }
 
@@ -397,7 +397,7 @@ static void send_tx_text(const char * text) {
     msg->cell->type = MSG_TX_MSG;
 
     lv_lock();
-    lv_event_send(table, EVENT_FT8_MSG, msg);
+    lv_obj_send_event(table, EVENT_FT8_MSG, msg);
     lv_unlock();
 }
 
@@ -724,7 +724,7 @@ static void add_msg_cb(lv_event_t * e) {
         int32_t *c = malloc(sizeof(int32_t));
         *c = LV_KEY_DOWN;
         
-        lv_event_send(table, LV_EVENT_KEY, c);
+        lv_obj_send_event(table, LV_EVENT_KEY, c);
     }
     
     table_rows++;
@@ -889,7 +889,7 @@ static void clean() {
     int32_t *c = malloc(sizeof(int32_t));
     *c = LV_KEY_UP;
         
-    lv_event_send(table, LV_EVENT_KEY, c);
+    lv_obj_send_event(table, LV_EVENT_KEY, c);
 }
 
 static void make_tx_msg(ft8_tx_msg_t msg, int16_t snr) {

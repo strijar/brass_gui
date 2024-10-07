@@ -115,19 +115,17 @@ static lv_coord_t calc_y(float vswr) {
 
 static void draw_cb(lv_event_t * e) {
     lv_obj_t            *obj = lv_event_get_target(e);
-    lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+    lv_layer_t          *layer = lv_event_get_layer(e);
     lv_draw_line_dsc_t  line_dsc;
     char                str[32];
 
     lv_draw_line_dsc_init(&line_dsc);
     
-    lv_coord_t x1 = obj->coords.x1;
-    lv_coord_t y1 = obj->coords.y1;
+    lv_coord_t x1 = lv_obj_get_x(obj);
+    lv_coord_t y1 = lv_obj_get_y(obj);
 
     lv_coord_t w = lv_obj_get_width(obj);
     lv_coord_t h = lv_obj_get_height(obj);
-
-    lv_point_t a, b;
 
     /* Grid */
 
@@ -144,48 +142,52 @@ static void draw_cb(lv_event_t * e) {
     line_dsc.color = lv_color_hex(0xAAAAAA);
     line_dsc.width = 2;
 
-    a.x = x1;
-    b.x = x1 + w;
+    line_dsc.p1.x = x1;
+    line_dsc.p2.x = x1 + w;
 
     for (float y = 1.5f; y <= 4.5f; y+= 0.5f) {
-        a.y = y1 + calc_y(y);
-        b.y = a.y;
+        line_dsc.p1.y = y1 + calc_y(y);
+        line_dsc.p2.y = line_dsc.p1.y;
 
-        lv_draw_line(draw_ctx, &line_dsc, &a, &b);
+        lv_draw_line(layer, &line_dsc);
 
         snprintf(str, sizeof(str), "%.1f", y);
         lv_txt_get_size(&label_size, str, dsc_label.font, 0, 0, LV_COORD_MAX, 0);
 
-        area.x1 = a.x;
-        area.y1 = a.y - label_size.y / 2;
-        area.x2 = a.x + label_size.x;
-        area.y2 = a.y + label_size.y / 2;
+        area.x1 = line_dsc.p1.x;
+        area.y1 = line_dsc.p1.y - label_size.y / 2;
+        area.x2 = line_dsc.p1.x + label_size.x;
+        area.y2 = line_dsc.p1.y + label_size.y / 2;
 
-        lv_draw_label(draw_ctx, &dsc_label, &area, str, NULL);
+        dsc_label.text = str;
+
+        lv_draw_label(layer, &dsc_label, &area);
     }
     
     uint64_t    freq = freq_center - params.swrscan_span / 4;
     uint16_t    mhz, khz, hz;
 
-    a.y = y1;
-    b.y = y1 + h;
+    line_dsc.p1.y = y1;
+    line_dsc.p2.y = y1 + h;
     
     for (int16_t x = -1; x <= 1; x++, freq += params.swrscan_span / 4) {
-        a.x = x1 + w / 2 + (w / 4) * x;
-        b.x = a.x;
+        line_dsc.p1.x = x1 + w / 2 + (w / 4) * x;
+        line_dsc.p2.x = line_dsc.p1.x;
 
-        lv_draw_line(draw_ctx, &line_dsc, &a, &b);
+        lv_draw_line(layer, &line_dsc);
 
         split_freq(freq, &mhz, &khz, &hz);
         snprintf(str, sizeof(str), "%i.%03i.%03i", mhz, khz, hz);
         lv_txt_get_size(&label_size, str, dsc_label.font, 0, 0, LV_COORD_MAX, 0);
 
-        area.x1 = a.x - label_size.x / 2;
+        area.x1 = line_dsc.p1.x - label_size.x / 2;
         area.y1 = y1 + label_size.y / 2;
         area.x2 = area.x1 + label_size.x;
         area.y2 = area.y1 + label_size.y;
 
-        lv_draw_label(draw_ctx, &dsc_label, &area, str, NULL);
+        dsc_label.text = str;
+
+        lv_draw_label(layer, &dsc_label, &area);
     }
 
     /* Chart */
@@ -194,13 +196,13 @@ static void draw_cb(lv_event_t * e) {
     line_dsc.width = 4;
 
     for (uint16_t i = 1; i < STEPS; i++) {
-        a.x = x1 + (i - 1) * w / STEPS;
-        a.y = y1 + calc_y(data_filtered[i-1]);
+        line_dsc.p1.x = x1 + (i - 1) * w / STEPS;
+        line_dsc.p1.y = y1 + calc_y(data_filtered[i-1]);
 
-        b.x = x1 + (i) * w / STEPS;
-        b.y = y1 + calc_y(data_filtered[i]);
+        line_dsc.p2.x = x1 + (i) * w / STEPS;
+        line_dsc.p2.y = y1 + calc_y(data_filtered[i]);
 
-        lv_draw_line(draw_ctx, &line_dsc, &a, &b);
+        lv_draw_line(layer, &line_dsc);
     }
 }
 

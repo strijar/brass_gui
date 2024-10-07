@@ -50,7 +50,7 @@ void dialog_destruct() {
 
 void dialog_send(lv_event_code_t event_code, void *param) {
     if (dialog_is_run()) {
-        lv_event_send(current_dialog->obj, event_code, param);
+        lv_obj_send_event(current_dialog->obj, event_code, param);
     }
 }
 

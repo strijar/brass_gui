@@ -6,18 +6,16 @@
  *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
  */
 
-#include "lv_drivers/indev/evdev.h"
-
 #include "keyboard.h"
 
 lv_group_t *keyboard_group;
 
-static lv_indev_drv_t       indev_drv_2;
 static lv_group_t           *group;
 static bool                 ready = false;
 
 void keyboard_init() {
     keyboard_group = lv_group_create();
+/*
 
     if (!evdev_set_file("/dev/input/event5")) {
         return;
@@ -33,6 +31,7 @@ void keyboard_init() {
     lv_indev_set_group(keyboard_indev, keyboard_group);
 
     ready = true;
+*/
 }
 
 bool keyboard_ready() {

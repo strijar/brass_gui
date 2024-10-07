@@ -15,7 +15,6 @@
 typedef struct {
     int             fd;
     
-    lv_indev_drv_t  indev_drv;
     lv_indev_t      *indev;
     
     int             evdev_state;

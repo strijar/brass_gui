@@ -47,6 +47,7 @@ static int32_t          scroll_hor = 0;
 static int32_t          scroll_hor_surplus = 0;
 static int32_t          delay = 0;
 
+/*
 static void finder_event_cb(lv_event_t * e) {
     lv_obj_t *finder = lv_event_get_target(e);
     lv_msg_t *m = lv_event_get_msg(e);
@@ -84,6 +85,7 @@ static void finder_event_cb(lv_event_t * e) {
             break;
     }
 }
+*/
 
 static void shift_freq(int32_t df) {
     uint16_t    div = width_hz / 800;
@@ -108,6 +110,7 @@ static void shift_freq(int32_t df) {
     }
 }
 
+/*
 static void waterfall_msg_cb(lv_event_t * e) {
     lv_obj_t *waterfall = lv_event_get_target(e);
     lv_msg_t *m = lv_event_get_msg(e);
@@ -130,6 +133,7 @@ static void waterfall_msg_cb(lv_event_t * e) {
         } break;
     }
 }
+*/
 
 lv_obj_t * waterfall_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
@@ -137,9 +141,9 @@ lv_obj_t * waterfall_init(lv_obj_t * parent) {
     lv_obj_add_style(obj, &waterfall_style, 0);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_add_event_cb(obj, waterfall_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
-    lv_msg_subsribe_obj(MSG_FREQ_FFT_SHIFT, obj, NULL);
-    lv_msg_subsribe_obj(MSG_RATE_FFT_CHANGED, obj, NULL);
+//    lv_obj_add_event_cb(obj, waterfall_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
+//    lv_msg_subsribe_obj(MSG_FREQ_FFT_SHIFT, obj, NULL);
+//    lv_msg_subsribe_obj(MSG_RATE_FFT_CHANGED, obj, NULL);
 
     /* Finder */
 
@@ -156,11 +160,11 @@ lv_obj_t * waterfall_init(lv_obj_t * parent) {
     lv_obj_set_style_line_color(finder, lv_color_white(), LV_PART_INDICATOR);
     lv_obj_set_style_line_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
 
-    lv_obj_add_event_cb(finder, finder_event_cb, LV_EVENT_MSG_RECEIVED, NULL);
-    lv_msg_subsribe_obj(MSG_FILTER_CHANGED, finder, NULL);
-    lv_msg_subsribe_obj(MSG_RATE_FFT_CHANGED, finder, NULL);
-    lv_msg_subsribe_obj(MSG_FREQ_RX_CHANGED, finder, NULL);
-    lv_msg_subsribe_obj(MSG_FREQ_FFT_CHANGED, finder, NULL);
+//    lv_obj_add_event_cb(finder, finder_event_cb, LV_EVENT_MSG_RECEIVED, NULL);
+//    lv_msg_subsribe_obj(MSG_FILTER_CHANGED, finder, NULL);
+//    lv_msg_subsribe_obj(MSG_RATE_FFT_CHANGED, finder, NULL);
+//    lv_msg_subsribe_obj(MSG_FREQ_RX_CHANGED, finder, NULL);
+//    lv_msg_subsribe_obj(MSG_FREQ_FFT_CHANGED, finder, NULL);
 
     return obj;
 }
@@ -258,7 +262,7 @@ void waterfall_set_height(lv_coord_t h) {
     width = 2047;
     height = lv_obj_get_height(obj);
 
-    frame = lv_img_buf_alloc(width, height, LV_IMG_CF_TRUE_COLOR);
+    frame = lv_img_buf_alloc(width, height, LV_COLOR_FORMAT_RGB888);
     
     if (!frame) {
         LV_LOG_ERROR("Frame alloc");

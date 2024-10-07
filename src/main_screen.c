@@ -682,8 +682,8 @@ static void main_screen_radio_cb(lv_event_t * e) {
         freq_update();
     }
     
-    lv_event_send(meter, code, NULL);
-    lv_event_send(tx_info, code, NULL);
+    lv_obj_send_event(meter, code, NULL);
+    lv_obj_send_event(tx_info, code, NULL);
     
     dialog_send(code, NULL);
 }
@@ -749,7 +749,7 @@ static void freq_shift(int16_t diff) {
         case FREQ_MODE_JOIN:
             radio_set_freqs(freq_rx, freq_tx);
             freq_shift = freq_rx - prev_freq_rx;
-            lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
+//            lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
 
             band_info_update(freq_rx);
 
@@ -770,7 +770,7 @@ static void freq_shift(int16_t diff) {
             
             if (freq_shift != 0) {
                 radio_set_freq_fft(freq_fft);
-                lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
+//                lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             }
 
             check_cross_band(radio_set_freqs(freq_rx, freq_tx));
@@ -784,7 +784,7 @@ static void freq_shift(int16_t diff) {
         case FREQ_MODE_FFT_ONLY:
             radio_set_freq_fft(freq_fft);
             freq_shift = freq_fft - prev_freq_fft;
-            lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
+//            lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             band_info_update(freq_fft);
             break;
             
@@ -990,7 +990,7 @@ void main_screen_set_freq(uint64_t freq) {
 
     radio_set_freq_rx(freq);
     radio_set_freq_fft(freq);
-    lv_event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
+    lv_obj_send_event(lv_screen_active(), EVENT_SCREEN_UPDATE, NULL);
 }
 
 lv_obj_t * main_screen() {
@@ -1018,19 +1018,16 @@ lv_obj_t * main_screen() {
     f = lv_label_create(obj);
     lv_obj_add_style(f, &freq_style, 0);
     lv_obj_set_pos(f, 0, y);
-    lv_label_set_recolor(f, true);
     freq[0] = f;
 
     f = lv_label_create(obj);
     lv_obj_add_style(f, &freq_main_style, 0);
     lv_obj_set_pos(f, 800/2 - 500/2, y);
-    lv_label_set_recolor(f, true);
     freq[1] = f;
 
     f = lv_label_create(obj);
     lv_obj_add_style(f, &freq_style, 0);
     lv_obj_set_pos(f, 800 - 150, y);
-    lv_label_set_recolor(f, true);
     freq[2] = f;
 
     y += freq_height;
@@ -1055,9 +1052,9 @@ lv_obj_t * main_screen() {
     
     main_screen_band_changed();
     
-    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
-    lv_msg_send(MSG_FREQ_TX_CHANGED, &params_band.freq_tx);
-    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.freq_fft);
+//    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
+//    lv_msg_send(MSG_FREQ_TX_CHANGED, &params_band.freq_tx);
+//    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.freq_fft);
 
     msg_set_text_fmt("TRX Brass de R1CBU " VERSION);
     msg_set_timeout(2000);

@@ -8,11 +8,29 @@
  *      INCLUDES
  *********************/
 
+#include "lv_obj_private.h"
 #include "lv_waterfall.h"
 
 /*********************
  *      DEFINES
  *********************/
+
+typedef struct {
+    lv_image_t      obj;
+    lv_image_dsc_t  *dsc;
+
+    uint32_t        line_len;
+    uint8_t         *line_buf;
+
+    lv_color_t      *palette;
+    uint16_t        palette_cnt;
+    
+    int16_t         min;
+    int16_t         max;
+} lv_waterfall_t;
+
+extern const lv_obj_class_t lv_waterfall_class;
+
 #define MY_CLASS &lv_waterfall_class
 
 /**********************
@@ -68,7 +86,7 @@ void lv_waterfall_set_size(lv_obj_t * obj, lv_coord_t w, lv_coord_t h) {
 
     lv_waterfall_t * waterfall = (lv_waterfall_t *)obj;
 
-    waterfall->dsc = lv_img_buf_alloc(w, h, LV_IMG_CF_TRUE_COLOR);
+    waterfall->dsc = lv_img_buf_alloc(w, h, LV_COLOR_FORMAT_RGB888);
     memset(waterfall->dsc->data, 0, waterfall->dsc->data_size);
 
     waterfall->line_len = waterfall->dsc->data_size / waterfall->dsc->header.h;

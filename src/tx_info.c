@@ -55,15 +55,15 @@ static item_t vswr_items[NUM_VSWR_ITEMS] = {
 
 static void tx_info_draw_cb(lv_event_t * e) {
     lv_obj_t            *obj = lv_event_get_target(e);
-    lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+    lv_layer_t          *layer = lv_event_get_layer(e);
     lv_draw_rect_dsc_t  rect_dsc;
     lv_draw_label_dsc_t label_dsc;
     lv_area_t           area;
     lv_point_t          label_size;
     uint32_t            count;
     
-    lv_coord_t x1 = obj->coords.x1 + 7;
-    lv_coord_t y1 = obj->coords.y1 + 17;
+    lv_coord_t x1 = lv_obj_get_x(obj) + 7;
+    lv_coord_t y1 = lv_obj_get_y(obj) + 17;
 
     lv_coord_t w = lv_obj_get_width(obj);
     lv_coord_t h = lv_obj_get_height(obj) - 1;
@@ -88,7 +88,7 @@ static void tx_info_draw_cb(lv_event_t * e) {
         area.x1 = x1 + 30 + i * slice;
         area.x2 = area.x1 + slice - 3;
 
-        lv_draw_rect(draw_ctx, &rect_dsc, &area);
+        lv_draw_rect(layer, &rect_dsc, &area);
     }
 
     /* SWR rects */
@@ -116,7 +116,7 @@ static void tx_info_draw_cb(lv_event_t * e) {
         area.x1 = x1 + 30 + i * slice;
         area.x2 = area.x1 + slice - 3;
 
-        lv_draw_rect(draw_ctx, &rect_dsc, &area);
+        lv_draw_rect(layer, &rect_dsc, &area);
     }
 
     /* PWR Labels */
@@ -141,7 +141,9 @@ static void tx_info_draw_cb(lv_event_t * e) {
         area.x1 = x1 + 30 + len * (val - min_pwr) / (max_pwr - min_pwr) - (label_size.x / 2);
         area.x2 = area.x1 + label_size.x;
 
-        lv_draw_label(draw_ctx, &label_dsc, &area, label, NULL);
+        label_dsc.text = label;
+
+        lv_draw_label(layer, &label_dsc, &area);
     }
 
     /* SWR Labels */
@@ -160,8 +162,9 @@ static void tx_info_draw_cb(lv_event_t * e) {
 
         area.x1 = x1 + 30 + len * (val - min_swr) / (max_swr - min_swr) - (label_size.x / 2);
         area.x2 = area.x1 + label_size.x;
+        label_dsc.text = label;
 
-        lv_draw_label(draw_ctx, &label_dsc, &area, label, NULL);
+        lv_draw_label(layer, &label_dsc, &area);
     }
 
 }

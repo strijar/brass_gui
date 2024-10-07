@@ -24,13 +24,13 @@ static lv_timer_t       *timer = NULL;
 
 static void keypad_timer(lv_timer_t *t) {
     event.state = KEYPAD_LONG;
-    lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
+    lv_obj_send_event(lv_screen_active(), EVENT_KEYPAD, (void*) &event);
     timer = NULL;
 }
 
-static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
+static void keypad_input_read(lv_indev_t *drv, lv_indev_data_t *data) {
     struct input_event  in;
-    keypad_t            *keypad = (keypad_t*) drv->user_data;
+    keypad_t            *keypad = (keypad_t*) lv_indev_get_driver_data(drv);
 
     if (read(keypad->fd, &in, sizeof(struct input_event)) > 0) {
         if (in.type == EV_KEY) {
@@ -40,7 +40,7 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                 /* PTT */
             
                 case KEY_CONNECT:
-                    lv_msg_send(MSG_PTT, &in.value);
+//                    lv_msg_send(MSG_PTT, &in.value);
                     return;
             
                 /* Rotary VOL */
@@ -166,17 +166,17 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
         
             if (in.value == 1) {
                 event.state = KEYPAD_PRESS;
-                lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
+                lv_obj_send_event(lv_screen_active(), EVENT_KEYPAD, (void*) &event);
 
                 timer = lv_timer_create(keypad_timer, KEYPAD_LONG_TIME, NULL);
                 lv_timer_set_repeat_count(timer, 1);
             } else {
                 if (event.state == KEYPAD_PRESS) {
                     event.state = KEYPAD_RELEASE;
-                    lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
+                    lv_obj_send_event(lv_screen_active(), EVENT_KEYPAD, (void*) &event);
                 } else if (event.state == KEYPAD_LONG) {
                     event.state = KEYPAD_LONG_RELEASE;
-                    lv_event_send(lv_scr_act(), EVENT_KEYPAD, (void*) &event);
+                    lv_obj_send_event(lv_screen_active(), EVENT_KEYPAD, (void*) &event);
                 }
             }
         }
@@ -201,16 +201,13 @@ keypad_t * keypad_init(char *dev_name) {
     
     keypad->fd = fd;
     
-    lv_indev_drv_init(&keypad->indev_drv);
+    keypad->indev = lv_indev_create();
     
-    keypad->indev_drv.type = LV_INDEV_TYPE_KEYPAD;
-    keypad->indev_drv.read_cb = keypad_input_read;
-    keypad->indev_drv.user_data = keypad;
-    keypad->indev_drv.long_press_time = 1000;
+    lv_indev_set_type(keypad->indev, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(keypad->indev, keypad_input_read);
+//    keypad->indev_drv.user_data = keypad;
+//    keypad->indev_drv.long_press_time = 1000;
     
-    keypad->indev = lv_indev_drv_register(&keypad->indev_drv);
-
-
     lv_indev_set_group(keypad->indev, keyboard_group);
 
     return keypad;

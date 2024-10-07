@@ -409,7 +409,7 @@ void buttons_press(uint8_t n, bool hold) {
             item->hold(item);
         }
     } else {
-        lv_event_send(btn[n].obj, LV_EVENT_PRESSED, NULL);
-        lv_event_send(btn[n].obj, LV_EVENT_RELEASED, NULL);
+        lv_obj_send_event(btn[n].obj, LV_EVENT_PRESSED, NULL);
+        lv_obj_send_event(btn[n].obj, LV_EVENT_RELEASED, NULL);
     }
 }

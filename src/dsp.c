@@ -193,7 +193,7 @@ void update_spectrum(uint64_t now) {
         }
 
         lv_lock();
-        lv_msg_send(MSG_SPECTRUM_DATA, &spectrum_data_msg);
+//        lv_msg_send(MSG_SPECTRUM_DATA, &spectrum_data_msg);
         lv_unlock();
 
         spectrum_psd_count = 0;
@@ -362,7 +362,7 @@ void dsp_adc(float complex *data) {
 
 void dsp_set_spectrum_factor(uint8_t x) {
     control_set_fft_rate(240 * x);
-    lv_msg_send(MSG_RATE_FFT_CHANGED, &x);
+//    lv_msg_send(MSG_RATE_FFT_CHANGED, &x);
 }
 
 float dsp_get_spectrum_beta() {
@@ -433,7 +433,7 @@ static void calc_auto() {
     }
 
     lv_lock();
-    lv_msg_send(MSG_SPECTRUM_AUTO, &spectrum_auto_msg);
+//    lv_msg_send(MSG_SPECTRUM_AUTO, &spectrum_auto_msg);
     lv_unlock();
 }
 
