@@ -155,12 +155,28 @@ static void finder_invalidate(lv_obj_t * obj) {
     int64_t         f1 = w * (f + finder->offset_min) / size_hz;
     int64_t         f2 = w * (f + finder->offset_max) / size_hz;
 
-    area.x1 = x1 + f1;
+    lv_coord_t      new_x1 = x1 + f1;
+    lv_coord_t      new_x2 = x1 + f2;
+
     area.y1 = y1 + border;
-    area.x2 = x1 + f2;
     area.y2 = area.y1 + h - border * 2;
 
+    if (finder->prev_x1 < new_x1) {
+        area.x1 = finder->prev_x1;
+    } else {
+        area.x1 = new_x1;
+    }
+    
+    if (finder->prev_x2 > new_x2) {
+        area.x2 = finder->prev_x2;
+    } else {
+        area.x2 = new_x2;
+    }
+
     lv_obj_invalidate_area(obj, &area);
+    
+    finder->prev_x1 = new_x1;
+    finder->prev_x2 = new_x2;
 }
 
 static void lv_finder_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj) {

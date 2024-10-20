@@ -61,8 +61,8 @@ params_t params = {
     .line_in                = 10,
     .line_out               = 10,
     .moni                   = 59,
-    .freq_accel             = { .x = FREQ_ACCEL_LITE,   .name = "freq_accel",       .voice = "Frequency acceleration" },
-    .freq_mode              = { .x = FREQ_MODE_JOIN,    .name = "freq_mode",        .voice = "Frequency mode", .min = FREQ_MODE_JOIN, .max = FREQ_MODE_FFT_ONLY },
+    .freq_accel             = { .x = FREQ_ACCEL_NONE,   .name = "freq_accel",       .voice = "Frequency acceleration" },
+    .freq_mode              = { .x = FREQ_MODE_SLIDE,   .name = "freq_mode",        .voice = "Frequency mode", .min = FREQ_MODE_JOIN, .max = FREQ_MODE_FFT_ONLY },
     .txo_offset             = { .x = 0,                 .name = "txo_offset",       .voice = "Oscilator offset", .min = -100000, .max = 1000000 },
 
     .dnf                    = false,

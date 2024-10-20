@@ -547,7 +547,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
         case KEYPAD_POWER:
             if (keypad->state == KEYPAD_RELEASE) {
-                backlight_switch();
+                // backlight_switch();
+                exit(1);
             } else if (keypad->state == KEYPAD_LONG) {
                 voice_say_text_fmt("Power off");
                 msg_set_text_fmt("Power off");

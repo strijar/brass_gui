@@ -27,10 +27,7 @@ static pa_mainloop_api      *mlapi;
 static pa_context           *ctx;
 
 static pa_stream            *play_stm;
-static char                 *play_device = "alsa_output.0.stereo-fallback";
-
 static pa_stream            *capture_stm;
-static char                 *capture_device = "alsa_input.0.stereo-fallback";
 
 static void on_state_change(pa_context *c, void *userdata) {
     pa_threaded_mainloop_signal(mloop, 0);
@@ -72,7 +69,7 @@ void audio_adc_init() {
     play_stm = pa_stream_new(ctx, "Brass TRX ADC", &spec, NULL);
 
     pa_threaded_mainloop_lock(mloop);
-    pa_stream_connect_playback(play_stm, play_device, &attr, PA_STREAM_ADJUST_LATENCY, NULL, NULL);
+    pa_stream_connect_playback(play_stm, NULL, &attr, PA_STREAM_ADJUST_LATENCY, NULL, NULL);
     pa_threaded_mainloop_unlock(mloop);
 }
 
