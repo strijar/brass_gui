@@ -50,6 +50,7 @@
 #include "voice.h"
 #include "python/python.h"
 #include "msgs.h"
+#include "vt.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
@@ -548,6 +549,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case KEYPAD_POWER:
             if (keypad->state == KEYPAD_RELEASE) {
                 // backlight_switch();
+                vt_enable();
                 exit(1);
             } else if (keypad->state == KEYPAD_LONG) {
                 voice_say_text_fmt("Power off");

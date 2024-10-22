@@ -38,6 +38,7 @@
 #include "fpga/dac.h"
 #include "python/python.h"
 #include "mic.h"
+#include "vt.h"
 
 #define DISP_BUF_SIZE (800 * 480 * 3)
 
@@ -58,6 +59,7 @@ void lv_unlock() {
 }
 
 int main(void) {
+    vt_disable();
     pthread_mutex_init(&mux, NULL);
 
     params_init();
