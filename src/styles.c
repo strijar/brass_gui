@@ -59,7 +59,7 @@ lv_font_t   *font_dialog_list = &jura_bold_26;
 lv_font_t   *font_info_item = &jura_bold_18;
 
 void styles_init() {
-    bg_color = lv_color_hex(0x0040A0);
+    bg_color = lv_color_hex(0x002550);
 
     /* * */
 
@@ -123,7 +123,7 @@ void styles_init() {
     lv_style_set_text_color(&msg_style, lv_color_white());
     lv_style_set_text_font(&msg_style, font_msg); // 38
     lv_style_set_width(&msg_style, 603);
-    lv_style_set_height(&msg_style, 66);
+    lv_style_set_height(&msg_style, 76);
     lv_style_set_x(&msg_style, 800 / 2 - (603 / 2));
     lv_style_set_y(&msg_style, 300);
     lv_style_set_radius(&msg_style, 0);
@@ -135,7 +135,7 @@ void styles_init() {
     lv_style_set_text_color(&msg_tiny_style, lv_color_white());
     lv_style_set_text_font(&msg_tiny_style, font_msg_tiny);  // 60
     lv_style_set_width(&msg_tiny_style, 324);
-    lv_style_set_height(&msg_tiny_style, 66);
+    lv_style_set_height(&msg_tiny_style, 76);
     lv_style_set_x(&msg_tiny_style, 800 / 2 - (324 / 2));
     lv_style_set_y(&msg_tiny_style, 160 - 66/2 + 36/2);
     lv_style_set_radius(&msg_tiny_style, 0);

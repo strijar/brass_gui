@@ -40,12 +40,13 @@
 #include "mic.h"
 #include "vt.h"
 
-#define DISP_BUF_SIZE (800 * 480 * 3)
+#define DISP_BUF_SIZE (800 * 480)
 
 rotary_t                    *vol;
 encoder_t                   *mfk;
 
-static lv_color_t           buf[DISP_BUF_SIZE];
+static lv_color_t           buf_1[DISP_BUF_SIZE];
+static lv_color_t           buf_2[DISP_BUF_SIZE];
 static lv_disp_draw_buf_t   disp_buf;
 static lv_disp_drv_t        disp_drv;
 static pthread_mutex_t      mux;
@@ -73,7 +74,7 @@ int main(void) {
     audio_adc_init();
     event_init();
 
-    lv_disp_draw_buf_init(&disp_buf, buf, NULL, DISP_BUF_SIZE);
+    lv_disp_draw_buf_init(&disp_buf, buf_1, buf_2, DISP_BUF_SIZE);
     lv_disp_drv_init(&disp_drv);
     
     disp_drv.draw_buf   = &disp_buf;
