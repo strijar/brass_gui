@@ -13,21 +13,13 @@
 
 typedef enum {
     VOL_VOL = 0,
-    VOL_SQL,
-    VOL_AGC,
-    VOL_FILTER_LOW,
-    VOL_FILTER_HIGH,
     VOL_PWR,
-    VOL_HMIC,
-    VOL_MIC,
-    VOL_IMIC,
-    VOL_MONI,
-    VOL_FILTER_TRANSITION,
+    VOL_FREQ_MODE,
+    VOL_SPLIT,
     VOL_VOICE_LANG,
     VOL_VOICE_RATE,
     VOL_VOICE_PITCH,
     VOL_VOICE_VOLUME,
-    VOL_FREQ_MODE,
     
     VOL_LAST
 } vol_mode_t;

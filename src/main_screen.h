@@ -19,12 +19,19 @@
 #define MEM_WSPR_ID     300
 #define MEM_SSTV_ID     400
 
+typedef enum {
+    APP_FT8 = 0,
+    APP_GPS,
+    APP_SETTINGS,
+    APP_RECORDER,
+} app_t;
+
 lv_obj_t * main_screen();
 void main_screen_band_changed();
 
 void main_screen_keys_enable(bool value);
 void main_screen_dialog_deleted_cb();
-void main_screen_app(uint8_t page_app);
+void main_screen_app(app_t app);
 void main_screen_action(press_action_t action);
 
 void main_screen_lock_freq(bool lock);

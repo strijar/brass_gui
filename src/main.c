@@ -121,7 +121,6 @@ int main(void) {
 
 /*
     backlight_init();
-    pannel_visible();
     gps_init();
 */
     uint64_t prev_time = get_time();

@@ -65,29 +65,15 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     break;
                     
                 case KEY_1:
-                    event.key = KEYPAD_GEN;
+                    event.key = KEYPAD_VOL;
                     break;
 
                 case KEY_2:
+                    event.key = KEYPAD_MFK;
+                    break;
+
+                case KEY_3:
                     event.key = KEYPAD_APP;
-                    break;
-
-                /*
-                case KEY_3:
-                    event.key = KEYPAD_KEY;
-                    break;
-                */
-
-                case KEY_3:
-                    event.key = KEYPAD_MSG;
-                    break;
-
-                case BTN_TRIGGER_HAPPY3:
-                    event.key = KEYPAD_DFN;
-                    break;
-
-                case BTN_TRIGGER_HAPPY9:
-                    event.key = KEYPAD_DFL;
                     break;
 
                 case KEY_F1:
@@ -114,12 +100,6 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     event.key = KEYPAD_F6;
                     break;
 
-                /* Top side */ 
-
-                case BTN_TRIGGER_HAPPY4:
-                    event.key = KEYPAD_PTT;
-                    break;
-
                 case KEY_A:
                     event.key = KEYPAD_BAND_DOWN;
                     break;
@@ -136,23 +116,6 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
                     event.key = KEYPAD_MODE;
                     break;
 
-                case BTN_TRIGGER_HAPPY16:
-                    event.key = KEYPAD_AB;
-                    break;
-
-                case BTN_TRIGGER_HAPPY17:
-                    event.key = KEYPAD_PRE;
-                    break;
-
-                case BTN_TRIGGER_HAPPY18:
-                    event.key = KEYPAD_ATU;
-                    break;
-
-                case BTN_TRIGGER_HAPPY22:
-                    event.key = KEYPAD_VM;
-                    break;
-
-                    
                 default:
                     event.key = KEYPAD_UNKNOWN;
                     LV_LOG_WARN("Unknown key");

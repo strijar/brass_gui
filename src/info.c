@@ -104,28 +104,32 @@ const char* info_params_mode() {
     char            *str;
 
     switch (mode) {
-        case radio_mode_lsb:
+        case RADIO_MODE_LSB:
             str = "LSB";
             break;
             
-        case radio_mode_usb:
+        case RADIO_MODE_USB:
             str = "USB";
             break;
             
-        case radio_mode_cw:
+        case RADIO_MODE_CW:
             str = "CW";
             break;
             
-        case radio_mode_cwr:
+        case RADIO_MODE_CWR:
             str = "CW-R";
             break;
 
-        case radio_mode_am:
+        case RADIO_MODE_AM:
             str = "AM";
             break;
             
-        case radio_mode_nfm:
+        case RADIO_MODE_NFM:
             str = "NFM";
+            break;
+
+        case RADIO_MODE_RTTY:
+            str = "RTTY";
             break;
             
         default:

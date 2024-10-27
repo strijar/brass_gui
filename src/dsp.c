@@ -227,6 +227,12 @@ void update_waterfall(uint64_t now) {
 }
 
 void dsp_fft(float complex *data) {
+    radio_state_t   state = radio_get_state();
+
+    if (state != RADIO_RX) {
+        return;
+    }
+
     for (size_t i = 0; i < FFT_SAMPLES; i++) {
         float complex x = data[i];
         float mag = sqrtf(crealf(x) * crealf(x) + cimagf(x) * cimag(x));
@@ -256,24 +262,25 @@ static float demodulate(float complex in, radio_mode_t mode) {
     float           out = 0.0f;
 
     switch (mode) {
-        case radio_mode_lsb:
-        case radio_mode_cwr:
+        case RADIO_MODE_LSB:
+        case RADIO_MODE_CWR:
             firhilbf_c2r_execute(demod_ssb, in, &a, &b);
             out = a;
             break;
 
-        case radio_mode_usb:
-        case radio_mode_cw:
+        case RADIO_MODE_USB:
+        case RADIO_MODE_CW:
+        case RADIO_MODE_RTTY:
             firhilbf_c2r_execute(demod_ssb, in, &a, &b);
             out = b;
             break;
             
-        case radio_mode_am:
+        case RADIO_MODE_AM:
             firfilt_rrrf_push(demod_dc_block, cabsf(in));
             firfilt_rrrf_execute(demod_dc_block, &out);
             break;
             
-        case radio_mode_nfm:
+        case RADIO_MODE_NFM:
             phase = atan2f(cimagf(in), crealf(in));
             dphase = phase - last_phase;
             while (dphase < -M_PI) dphase += 2 * M_PI;
@@ -287,6 +294,12 @@ static float demodulate(float complex in, radio_mode_t mode) {
 }
 
 void dsp_adc(float complex *data) {
+    radio_state_t   state = radio_get_state();
+
+    if (state != RADIO_RX) {
+        return;
+    }
+
     radio_mode_t    mode = radio_current_mode();
     float           peak = 0.0f;
 
@@ -351,12 +364,19 @@ void dsp_adc(float complex *data) {
         meter_db += 20.0f * log10f(peak) - 56.0f;
     }
 
-    if (rtty_get_state() == RTTY_RX) {
-        rtty_put_audio_samples(data, ADC_SAMPLES);
-    } else if (mode == radio_mode_cw || mode == radio_mode_cwr) {
-        cw_put_audio_samples(data, ADC_SAMPLES);
-    } else {
-        dialog_audio_samples(data, ADC_SAMPLES);
+    switch (mode) {
+        case RADIO_MODE_CW:
+        case RADIO_MODE_CWR:
+            cw_put_audio_samples(data, ADC_SAMPLES);
+            break;
+            
+        case RADIO_MODE_RTTY:
+            rtty_put_audio_samples(data, ADC_SAMPLES);
+            break;
+            
+        default:
+            dialog_audio_samples(data, ADC_SAMPLES);
+            break;
     }
 }
 
@@ -467,20 +487,20 @@ size_t dsp_dac(float complex *data, size_t max_size) {
         radio_mode_t mode = radio_current_mode();
     
         switch (mode) {
-            case radio_mode_cw:
+            case RADIO_MODE_CW:
                 mic_on_air(false);
                 size = cw_key_generator(data, max_size, false);
                 break;
 
-            case radio_mode_cwr:
+            case RADIO_MODE_CWR:
                 mic_on_air(false);
                 size = cw_key_generator(data, max_size, true);
                 break;
                 
-            case radio_mode_lsb:
-            case radio_mode_usb:
-            case radio_mode_am:
-            case radio_mode_nfm:
+            case RADIO_MODE_LSB:
+            case RADIO_MODE_USB:
+            case RADIO_MODE_AM:
+            case RADIO_MODE_NFM:
                 mic_on_air(true);
                 size = mic_modulate(data, max_size, mode);
                 break;

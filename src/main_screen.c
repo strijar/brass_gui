@@ -88,7 +88,6 @@ void mem_load(uint16_t id) {
 
     radio_load_atu();
     info_params_set();
-    pannel_visible();
 
     dsp_auto_clear();
     freq_update();
@@ -164,7 +163,6 @@ static bool check_cross_band(uint64_t freq) {
                 }
                 
                 info_params_set();
-                pannel_visible();
                 return true;
             }
         } else {
@@ -214,7 +212,6 @@ static void apps_disable() {
     dialog_destruct();
 
     rtty_set_state(RTTY_OFF);
-    pannel_visible();
 }
 
 void main_screen_dialog_deleted_cb() {
@@ -222,39 +219,27 @@ void main_screen_dialog_deleted_cb() {
     buttons_load_page(PAGE_VOL_1);
 }
 
-void main_screen_app(uint8_t page_app) {
+void main_screen_app(app_t app) {
     apps_disable();
     buttons_unload_page();
-    buttons_load_page(page_app);
 
-    switch (page_app) {
-        case PAGE_RTTY:
-            rtty_set_state(RTTY_RX);
-            pannel_visible();
-            voice_say_text_fmt("Teletype window");
-            break;
-            
-        case PAGE_SETTINGS:
+    switch (app) {
+        case APP_SETTINGS:
             dialog_construct(dialog_settings, obj);
             voice_say_text_fmt("Settings window");
             break;
 
-        case PAGE_SWRSCAN:
-            dialog_construct(dialog_swrscan, obj);
-            voice_say_text_fmt("SWR scan window");
-            break;
-
-        case PAGE_FT8:
+        case APP_FT8:
             dialog_construct(dialog_ft8, obj);
             voice_say_text_fmt("FT8 window");
             break;
 
-        case PAGE_GPS:
+        case APP_GPS:
             dialog_construct(dialog_gps, obj);
             voice_say_text_fmt("GPS window");
             break;
 
-        case PAGE_RECORDER:
+        case APP_RECORDER:
             dialog_construct(dialog_recorder, obj);
             voice_say_text_fmt("Audio recorder window");
             break;
@@ -299,28 +284,16 @@ void main_screen_action(press_action_t action) {
             next_freq_step(false);
             break;
             
-        case ACTION_APP_RTTY:
-            main_screen_app(PAGE_RTTY);
-            break;
-            
         case ACTION_APP_FT8:
-            main_screen_app(PAGE_FT8);
-            break;
-            
-        case ACTION_APP_SWRSCAN:
-            main_screen_app(PAGE_SWRSCAN);
-            break;
-            
-        case ACTION_APP_GPS:
-            main_screen_app(PAGE_GPS);
+            main_screen_app(APP_FT8);
             break;
             
         case ACTION_APP_SETTINGS:
-            main_screen_app(PAGE_SETTINGS);
+            main_screen_app(APP_SETTINGS);
             break;
 
         case ACTION_APP_RECORDER:
-            main_screen_app(PAGE_RECORDER);
+            main_screen_app(APP_RECORDER);
             break;
 
         case ACTION_APP_QTH:
@@ -339,24 +312,41 @@ static void main_screen_keypad_cb(lv_event_t * e) {
     event_keypad_t *keypad = lv_event_get_param(e);
 
     switch (keypad->key) {
-        case KEYPAD_PRE:
+        case KEYPAD_POWER:
             if (keypad->state == KEYPAD_RELEASE) {
-                radio_change_pre();
-                info_params_set();
-                
-                if (params.mag_info.x) {
-                    msg_tiny_set_text_fmt("Pre: %s", info_params_pre() ? "On" : "Off");
-                }
+                // backlight_switch();
+                vt_enable();
+                exit(1);
             } else if (keypad->state == KEYPAD_LONG) {
-                radio_change_att();
-                info_params_set();
-
-                if (params.mag_info.x) {
-                    msg_tiny_set_text_fmt("Att: %s", info_params_att() ? "On" : "Off");
-                }
+                voice_say_text_fmt("Power off");
+                msg_set_text_fmt("Power off");
+                radio_poweroff();
             }
             break;
-            
+
+        case KEYPAD_VOL:
+            if (keypad->state == KEYPAD_RELEASE) {
+                buttons_vol();
+            } else if (keypad->state == KEYPAD_LONG) {
+                main_screen_action(params.long_gen);
+            }
+            break;
+
+        case KEYPAD_MFK:
+            if (keypad->state == KEYPAD_RELEASE) {
+                buttons_mfk();
+            } else if (keypad->state == KEYPAD_LONG) {
+            }
+            break;
+
+        case KEYPAD_APP:
+            if (keypad->state == KEYPAD_RELEASE) {
+                buttons_app();
+            } else if (keypad->state == KEYPAD_LONG) {
+                main_screen_action(params.long_app);
+            }
+            break;
+
         case KEYPAD_BAND_UP:
             if (keypad->state == KEYPAD_RELEASE) {
                 if (!band_lock) {
@@ -377,6 +367,14 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             }
             break;
 
+        case KEYPAD_FST:
+            if (keypad->state == KEYPAD_RELEASE) {
+                next_freq_step(true);
+            } else if (keypad->state == KEYPAD_LONG) {
+                next_freq_step(false);
+            }
+            break;
+
         case KEYPAD_MODE:
             if (mode_lock) {
                 break;
@@ -391,31 +389,9 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             params_mode_load();
             radio_mode_set();
             info_params_set();
-            pannel_visible();
 
             if (params.mag_info.x) {
                 msg_tiny_set_text_fmt("%s", info_params_mode());
-            }
-            break;
-        
-        case KEYPAD_FST:
-            if (keypad->state == KEYPAD_RELEASE) {
-                next_freq_step(true);
-            } else if (keypad->state == KEYPAD_LONG) {
-                next_freq_step(false);
-            }
-            break;
-
-        case KEYPAD_ATU:
-            if (keypad->state == KEYPAD_RELEASE) {
-                radio_change_atu();
-                info_params_set();
-
-                if (params.mag_info.x) {
-                    msg_tiny_set_text_fmt("ATU: %s", params.atu ? "On" : "Off");
-                }
-            } else if (keypad->state == KEYPAD_LONG) {
-                radio_start_atu();
             }
             break;
 
@@ -459,102 +435,11 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             }
             break;
 
-        case KEYPAD_GEN:
+        case KEYPAD_F6:
             if (keypad->state == KEYPAD_RELEASE) {
-                apps_disable();
-                mfk_set_mode(MFK_MIN_LEVEL);
-                buttons_unload_page();
-                buttons_load_page(PAGE_VOL_1);
-                voice_say_text_fmt("General menu keys");
+                buttons_press(5, false);
             } else if (keypad->state == KEYPAD_LONG) {
-                main_screen_action(params.long_gen);
-            }
-            break;
-
-        case KEYPAD_APP:
-            if (keypad->state == KEYPAD_RELEASE) {
-                apps_disable();
-                buttons_unload_page();
-                buttons_load_page(PAGE_APP_1);
-                voice_say_text_fmt("Application menu keys");
-            } else if (keypad->state == KEYPAD_LONG) {
-                main_screen_action(params.long_app);
-            }
-            break;
-
-        case KEYPAD_KEY:
-            if (keypad->state == KEYPAD_RELEASE) {
-                apps_disable();
-                buttons_unload_page();
-                buttons_load_page(PAGE_KEY_1);
-                voice_say_text_fmt("CW parameters");
-            } else if (keypad->state == KEYPAD_LONG) {
-                main_screen_action(params.long_key);
-            }
-            break;
-
-        case KEYPAD_MSG:
-            if (keypad->state == KEYPAD_RELEASE) {
-                switch (radio_current_mode()) {
-                    case radio_mode_cw:
-                    case radio_mode_cwr:
-                        apps_disable();
-                        buttons_unload_page();
-
-                        pannel_hide();
-                        dialog_construct(dialog_msg_cw, obj);
-                        buttons_load_page(PAGE_MSG_CW_1);
-                        voice_say_text_fmt("CW messages window");
-                        break;
-                        
-                    case radio_mode_lsb:
-                    case radio_mode_usb:
-                    case radio_mode_am:
-                    case radio_mode_nfm:
-                        apps_disable();
-                        buttons_unload_page();
-
-                        pannel_hide();
-                        dialog_construct(dialog_msg_voice, obj);
-                        buttons_load_page(PAGE_MSG_VOICE_1);
-                        voice_say_text_fmt("Voice messages window");
-                        break;
-                        
-                    default:
-                        msg_tiny_set_text_fmt("Not used in this mode");
-                        break;
-                }
-            } else if (keypad->state == KEYPAD_LONG) {
-                main_screen_action(params.long_msg);
-            }
-            break;
-
-        case KEYPAD_DFN:
-            if (keypad->state == KEYPAD_RELEASE) {
-                apps_disable();
-                buttons_unload_page();
-                buttons_load_page(PAGE_DFN_1);
-                voice_say_text_fmt("DNF parameters");
-            } else if (keypad->state == KEYPAD_LONG) {
-                main_screen_action(params.long_dfn);
-            }
-            break;
-
-        case KEYPAD_DFL:
-            if (keypad->state == KEYPAD_LONG) {
-                main_screen_action(params.long_dfl);
-            }
-            break;
-
-        case KEYPAD_POWER:
-            if (keypad->state == KEYPAD_RELEASE) {
-                // backlight_switch();
-                vt_enable();
-                exit(1);
-            } else if (keypad->state == KEYPAD_LONG) {
-                voice_say_text_fmt("Power off");
-                msg_set_text_fmt("Power off");
-                radio_poweroff();
+                buttons_press(5, true);
             }
             break;
 
@@ -564,8 +449,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                     radio_set_ptt(true);
 
                     switch (radio_current_mode()) {
-                        case radio_mode_cw:
-                        case radio_mode_cwr:
+                        case RADIO_MODE_CW:
+                        case RADIO_MODE_CWR:
                             radio_set_morse_key(true);
                             break;
                     }
@@ -574,8 +459,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 case KEYPAD_RELEASE:
                 case KEYPAD_LONG_RELEASE:
                     switch (radio_current_mode()) {
-                        case radio_mode_cw:
-                        case radio_mode_cwr:
+                        case RADIO_MODE_CW:
+                        case RADIO_MODE_CWR:
                             radio_set_morse_key(false);
                             break;
                     }
@@ -850,13 +735,6 @@ static void main_screen_key_cb(lv_event_t * e) {
             vol_press(+1);
             break;
             
-        case KEYBOARD_F9:
-            buttons_unload_page();
-            buttons_load_page(PAGE_SETTINGS);
-            
-            dialog_construct(dialog_settings, obj);
-            break;
-            
         case LV_KEY_LEFT:
             switch (mfk_state) {
                 case MFK_STATE_EDIT:
@@ -986,7 +864,6 @@ void main_screen_set_freq(uint64_t freq) {
             if (params.freq_band.id != params.band) {
                 bands_activate(&params.freq_band, false);
                 info_params_set();
-                pannel_visible();
             }
         }
     }
@@ -1044,7 +921,6 @@ lv_obj_t * main_screen() {
     waterfall_set_height(480 - y);
     
     buttons_init(obj);
-    buttons_load_page(PAGE_VOL_1);
 
     pannel_init(obj);
     msg = msg_init(obj);
@@ -1057,7 +933,8 @@ lv_obj_t * main_screen() {
     tx_info = tx_info_init(obj);
     
     main_screen_band_changed();
-    
+
+    lv_msg_send(MSG_MODE_CHANGED, &params_band.mode);
     lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
     lv_msg_send(MSG_FREQ_TX_CHANGED, &params_band.freq_tx);
     lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.freq_fft);
@@ -1072,10 +949,7 @@ void main_screen_band_changed() {
     uint64_t freq = freq_update();
 
     info_params_set();
-    pannel_visible();
-
     band_info_update_range();
-
     dsp_auto_clear();
 }
 

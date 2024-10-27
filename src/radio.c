@@ -361,28 +361,29 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
     radio_mode_t    mode = radio_current_mode();
 
     switch (mode) {
-        case radio_mode_lsb:
+        case RADIO_MODE_LSB:
             *from_freq = -params_mode.filter_high;
             *to_freq = -params_mode.filter_low;
             break;
             
-        case radio_mode_usb:
+        case RADIO_MODE_USB:
+        case RADIO_MODE_RTTY:
             *from_freq = params_mode.filter_low;
             *to_freq = params_mode.filter_high;
             break;
 
-        case radio_mode_cw:
+        case RADIO_MODE_CW:
             *from_freq = params_mode.filter_low;
             *to_freq = params_mode.filter_high;
             break;
             
-        case radio_mode_cwr:
+        case RADIO_MODE_CWR:
             *from_freq = -params_mode.filter_high;
             *to_freq = -params_mode.filter_low;
             break;
 
-        case radio_mode_am:
-        case radio_mode_nfm:
+        case RADIO_MODE_AM:
+        case RADIO_MODE_NFM:
             *from_freq = -params_mode.filter_high;
             *to_freq = params_mode.filter_high;
             break;
@@ -394,44 +395,42 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
 }
 
 void radio_set_mode(radio_mode_t mode) {
+    params_lock();
     params_band.mode = mode;
     params_unlock(&params_band.durty.mode);
     lv_msg_send(MSG_MODE_CHANGED, &params_band.mode);
 }
 
-void radio_restore_mode(radio_mode_t mode) {
-    params_lock();
-    params_band.mode = mode;
-    params_unlock(&params_band.durty.mode);
-}
-
-void radio_change_mode(radio_mode_t select) {
-    params_lock();
-
+void radio_change_mode(radio_change_mode_t select) {
     radio_mode_t    mode = radio_current_mode();
 
     switch (select) {
         case RADIO_MODE_NEXT:
             switch (mode) {
-                case radio_mode_cw:
-                case radio_mode_cwr:
-                    mode = radio_mode_lsb;
+                case RADIO_MODE_CW:
+                case RADIO_MODE_CWR:
+                    mode = RADIO_MODE_LSB;
                     voice_say_text_fmt("L S B modulation");
                     break;
 
-                case radio_mode_lsb:
-                case radio_mode_usb:
-                    mode = radio_mode_am;
+                case RADIO_MODE_LSB:
+                case RADIO_MODE_USB:
+                    mode = RADIO_MODE_AM;
                     voice_say_text_fmt("A M modulation");
                     break;
 
-                case radio_mode_am:
-                    mode = radio_mode_nfm;
+                case RADIO_MODE_AM:
+                    mode = RADIO_MODE_NFM;
                     voice_say_text_fmt("N F M modulation");
                     break;
                     
-                case radio_mode_nfm:
-                    mode = radio_mode_cw;
+                case RADIO_MODE_NFM:
+                    mode = RADIO_MODE_RTTY;
+                    voice_say_text_fmt("R T T Y modulation");
+                    break;
+
+                case RADIO_MODE_RTTY:
+                    mode = RADIO_MODE_CW;
                     voice_say_text_fmt("C W modulation");
                     break;
             }
@@ -439,34 +438,26 @@ void radio_change_mode(radio_mode_t select) {
             
         case RADIO_MODE_SUBSET:
             switch (mode) {
-                case radio_mode_cw:
-                    mode = radio_mode_cwr;
+                case RADIO_MODE_CW:
+                    mode = RADIO_MODE_CWR;
                     voice_say_text_fmt("C W R modulation");
                     break;
 
-                case radio_mode_cwr:
-                    mode = radio_mode_cw;
+                case RADIO_MODE_CWR:
+                    mode = RADIO_MODE_CW;
                     voice_say_text_fmt("C W modulation");
                     break;
 
-                case radio_mode_lsb:
-                    mode = radio_mode_usb;
+                case RADIO_MODE_LSB:
+                    mode = RADIO_MODE_USB;
                     voice_say_text_fmt("U S B modulation");
                     break;
 
-                case radio_mode_usb:
-                    mode = radio_mode_lsb;
+                case RADIO_MODE_USB:
+                    mode = RADIO_MODE_LSB;
                     voice_say_text_fmt("L S B modulation");
                     break;
             }
-            break;
-            
-        case RADIO_MODE_USB:
-            mode = radio_mode_usb;
-            break;
-
-        case RADIO_MODE_LSB:
-            mode = radio_mode_lsb;
             break;
         
         default:
@@ -488,7 +479,7 @@ uint32_t radio_change_filter_low(int32_t df) {
 
     radio_mode_t    mode = radio_current_mode();
     
-    if (mode == radio_mode_am || mode == radio_mode_nfm) {
+    if (mode == RADIO_MODE_AM || mode == RADIO_MODE_NFM) {
         return 0;
     }
 

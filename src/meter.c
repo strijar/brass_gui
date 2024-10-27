@@ -118,14 +118,6 @@ static void meter_draw_cb(lv_event_t * e) {
     }
 }
 
-static void tx_cb(lv_event_t * e) {
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-}
-
-static void rx_cb(lv_event_t * e) {
-    lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
-}
-
 static void meter_msg_cb(lv_event_t * e) {
     lv_msg_t *m = lv_event_get_msg(e);
     
@@ -138,6 +130,16 @@ static void meter_msg_cb(lv_event_t * e) {
     }
 }
 
+static void ptt_msg_cb(void *s, lv_msg_t *m) {
+    const int *on = lv_msg_get_payload(m);
+    
+    if (*on) {
+        lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
 lv_obj_t * meter_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
 
@@ -145,12 +147,11 @@ lv_obj_t * meter_init(lv_obj_t * parent) {
     
     lv_obj_set_height(obj, meter_height);
 
-    lv_obj_add_event_cb(obj, tx_cb, EVENT_RADIO_TX, NULL);
-    lv_obj_add_event_cb(obj, rx_cb, EVENT_RADIO_RX, NULL);
     lv_obj_add_event_cb(obj, meter_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
 
     lv_obj_add_event_cb(obj, meter_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
     lv_msg_subsribe_obj(MSG_SPECTRUM_AUTO, obj, NULL);
+    lv_msg_subsribe(MSG_PTT, ptt_msg_cb, NULL);
 
     return obj;
 }

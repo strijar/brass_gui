@@ -198,7 +198,7 @@ static void * play_thread(void *arg) {
 
     if (dialog.run) {
         buttons_unload_page();
-        buttons_load_page(PAGE_MSG_VOICE_2);
+        buttons_load_page(PAGE_APP_MSG_VOICE_2);
     }
 }
 
@@ -214,7 +214,7 @@ static void * send_thread(void *arg) {
 
     if (dialog.run) {
         buttons_unload_page();
-        buttons_load_page(PAGE_MSG_VOICE_1);
+        buttons_load_page(PAGE_APP_MSG_VOICE_1);
     }
 }
 
@@ -226,7 +226,7 @@ static void * beacon_thread(void *arg) {
         switch (beacon) {
             case VOICE_BEACON_OFF:
                 buttons_unload_page();
-                buttons_load_page(PAGE_MSG_VOICE_1);
+                buttons_load_page(PAGE_APP_MSG_VOICE_1);
                 return;
         
             case VOICE_BEACON_PLAY:
@@ -289,7 +289,7 @@ static void tx_cb(lv_event_t * e) {
         beacon = VOICE_BEACON_OFF;
 
         buttons_unload_page();
-        buttons_load_page(PAGE_MSG_VOICE_1);
+        buttons_load_page(PAGE_APP_MSG_VOICE_1);
     }
 }
 
@@ -394,7 +394,7 @@ static void beacon_stop_cb(lv_event_t * e) {
             beacon = VOICE_BEACON_OFF;
 
             buttons_unload_page();
-            buttons_load_page(PAGE_MSG_VOICE_1);
+            buttons_load_page(PAGE_APP_MSG_VOICE_1);
             break;
 
         case MSG_VOICE_PLAY:
@@ -445,7 +445,7 @@ void dialog_msg_voice_rec_cb(lv_event_t * e) {
 
 static void rec_stop_cb(lv_event_t * e) {
     buttons_unload_page();
-    buttons_load_page(PAGE_MSG_VOICE_2);
+    buttons_load_page(PAGE_APP_MSG_VOICE_2);
 
     state = MSG_VOICE_OFF;
     close_file();

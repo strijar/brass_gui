@@ -64,7 +64,7 @@ static void tx_cb(lv_event_t * e) {
     if (cw_encoder_state() == CW_ENCODER_BEACON_IDLE) {
         cw_encoder_stop();
         buttons_unload_page();
-        buttons_load_page(PAGE_MSG_CW_1);
+        buttons_load_page(PAGE_APP_MSG_CW_1);
     }
 }
 
@@ -200,7 +200,7 @@ void dialog_msg_cw_send_cb(lv_event_t * e) {
 static void send_stop_cb(lv_event_t * e) {
     cw_encoder_stop();
     buttons_unload_page();
-    buttons_load_page(PAGE_MSG_CW_1);
+    buttons_load_page(PAGE_APP_MSG_CW_1);
 }
 
 void dialog_msg_cw_beacon_cb(lv_event_t * e) {
@@ -214,7 +214,7 @@ void dialog_msg_cw_beacon_cb(lv_event_t * e) {
 static void beacon_stop_cb(lv_event_t * e) {
     cw_encoder_stop();
     buttons_unload_page();
-    buttons_load_page(PAGE_MSG_CW_1);
+    buttons_load_page(PAGE_APP_MSG_CW_1);
 }
 
 void dialog_msg_cw_period_cb(lv_event_t * e) {

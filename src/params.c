@@ -21,12 +21,13 @@
 #include "qth.h"
 #include "voice.h"
 #include "dsp/agc.h"
+#include "msgs.h"
 
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
 params_t params = {
-    .vol_modes              = (1 << VOL_VOL) | (1 << VOL_AGC) | (1 << VOL_FILTER_LOW) | (1 << VOL_FILTER_HIGH) | (1 << VOL_PWR) | (1 << VOL_HMIC),
-    .mfk_modes              = (1 << MFK_SPECTRUM_FACTOR) | (1 << MFK_SPECTRUM_BETA) | (1 << MFK_PEAK_HOLD) | (1<< MFK_PEAK_SPEED),
+    .vol_modes              = (1 << VOL_VOL) | (1 << VOL_PWR),
+    .mfk_modes              = (1 << MFK_FILTER_LOW) | (1 << MFK_FILTER_HIGH) | (1 << MFK_SPECTRUM_FACTOR),
 
     .brightness_normal      = 9,
     .brightness_idle        = 1,
@@ -149,7 +150,7 @@ params_band_t params_band = {
     .freq_fft       = 14000000,
     .att            = radio_att_off,
     .pre            = radio_pre_off,
-    .mode           = radio_mode_usb,
+    .mode           = RADIO_MODE_USB,
 
     .split          = SPLIT_NONE
 };
@@ -304,6 +305,7 @@ static void params_mb_load(sqlite3_stmt *stmt, bool set_freq) {
             params_band.pre = sqlite3_column_int(stmt, 1);
         } else if (strcmp(name, "mode") == 0) {
             params_band.mode = sqlite3_column_int(stmt, 1);
+            lv_msg_send(MSG_MODE_CHANGED, &params_band.mode);
         } else if (strcmp(name, "freq_rx") == 0) {
             if (set_freq) {
                 uint64_t x = sqlite3_column_int64(stmt, 1);

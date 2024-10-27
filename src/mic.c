@@ -86,24 +86,24 @@ static float complex modulate(float x, radio_mode_t mode) {
     float complex out = 0;
 
     switch (mode) {
-        case radio_mode_usb:
+        case RADIO_MODE_USB:
             firhilbf_r2c_execute(ssb, x, &b);
             __real__ out = __real__ b;
             __imag__ out = __imag__ b;
             break;
 
-        case radio_mode_lsb:
+        case RADIO_MODE_LSB:
             firhilbf_r2c_execute(ssb, x, &b);
             __real__ out = __imag__ b;
             __imag__ out = __real__ b;
             break;
 
-        case radio_mode_nfm:
+        case RADIO_MODE_NFM:
             phase += x * 0.5f;
             out = cexpf(_Complex_I * phase);
             break;
 
-        case radio_mode_am:
+        case RADIO_MODE_AM:
             out = _Complex_I * (x * 0.3f + 0.7f);
             break;
 

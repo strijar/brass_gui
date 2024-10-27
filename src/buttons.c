@@ -26,8 +26,9 @@
 #include "dialog_recorder.h"
 #include "voice.h"
 #include "events.h"
+#include "msgs.h"
 
-#define BUTTONS     5
+#define BUTTONS     6
 
 typedef struct {
     lv_obj_t        *obj;
@@ -38,13 +39,11 @@ static uint8_t      btn_height = 62;
 static button_t     btn[6];
 static lv_obj_t     *parent_obj = NULL;
 
-static void button_next_page_cb(lv_event_t * e);
 static void button_app_page_cb(lv_event_t * e);
 static void button_vol_update_cb(lv_event_t * e);
 static void button_mfk_update_cb(lv_event_t * e);
 static void button_mem_load_cb(lv_event_t * e);
 
-static void button_prev_page_cb(void * ptr);
 static void button_vol_hold_cb(void * ptr);
 static void button_mfk_hold_cb(void * ptr);
 static void button_mem_save_cb(void * ptr);
@@ -54,203 +53,138 @@ static void button_action_cb(lv_event_t * e);
 static button_page_t    buttons_page = PAGE_VOL_1;
 
 static button_item_t    buttons[] = {
-    { .label = "(VOL 1:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_2, .prev = PAGE_MEM_2, .voice = "Volume|page 1" },
     { .label = "Audio\nVol",        .press = button_vol_update_cb,                                  .data = VOL_VOL },
-    { .label = "SQL",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SQL },
-    { .label = "AGC",               .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_AGC },
     { .label = "TX\nPower",         .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_PWR },
-
-    { .label = "(VOL 2:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_3, .prev = PAGE_VOL_1, .voice = "Volume|page 2" },
-    { .label = "Filter\nLow",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_LOW },
-    { .label = "Filter\nHigh",      .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_HIGH },
-    { .label = "Filter\nTransition",.press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FILTER_TRANSITION },
     { .label = "Freq\nMode",        .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_FREQ_MODE },
+    { .label = "Split",             .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_SPLIT },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
 
-    { .label = "(VOL 3:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_4, .prev = PAGE_VOL_2, .voice = "Volume|page 3" },
-    { .label = "MIC\nSelect",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_MIC },
-    { .label = "H-MIC\nGain",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_HMIC },
-    { .label = "I-MIC\nGain",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_IMIC },
-    { .label = "Moni\nLevel",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_MONI },
+    /* LSB, USB, AM, NFM */
 
-    { .label = "(VOL 4:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_1, .prev = PAGE_VOL_3, .voice = "Volume|page 4" },
-    { .label = "Voice",             .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_VOICE_LANG },
-    { .label = "Voice\nRate",       .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_VOICE_RATE },
-    { .label = "Voice\nPitch",      .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_VOICE_PITCH },
-    { .label = "Voice\nVolume",     .press = button_vol_update_cb,  .hold = button_vol_hold_cb,     .data = VOL_VOICE_VOLUME },
-    
-    { .label = "(MFK 1:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_2, .prev = PAGE_VOL_4, .voice = "MFK|page 1" },
-    { .label = "Min\nLevel",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_MIN_LEVEL },
-    { .label = "Max\nLevel",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_MAX_LEVEL },
+    { .label = "Filter\nLow",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_LOW },
+    { .label = "Filter\nHigh",      .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_HIGH },
+    { .label = "Filter\nTransition",.press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_TRANSITION },
+    { .label = "AGC",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC },
     { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
-    { .label = "Spectrum\nBeta",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_BETA },
-
-    { .label = "(MFK 2:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_3, .prev = PAGE_MFK_1, .voice = "MFK|page 2" },
-    { .label = "Spectrum\nFill",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FILL },
-    { .label = "Spectrum\nPeak",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_PEAK },
-    { .label = "Peaks\nHold",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_PEAK_HOLD },
-    { .label = "Peaks\nSpeed",      .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_PEAK_SPEED },
-
-    { .label = "(MFK 3:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MFK_4, .prev = PAGE_MFK_2, .voice = "MFK|page 3" },
-    { .label = "Charger",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CHARGER },
-    { .label = "Antenna",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_ANT },
-    { .label = "Split",             .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPLIT },
     { .label = "",                  .press = NULL },
 
-    { .label = "(MFK 4:4)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MEM_1, .prev = PAGE_MFK_3, .voice = "MFK|page 4" },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
+    /* CW, CWR */
 
-    { .label = "(MEM 1:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_MEM_2, .prev = PAGE_MFK_4, .voice = "Memory|page 1" },
-    { .label = "Set 1",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 1 },
-    { .label = "Set 2",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 2 },
-    { .label = "Set 3",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 3 },
-    { .label = "Set 4",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 4 },
+    { .label = "Filter\nLow",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_LOW },
+    { .label = "Filter\nHigh",      .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_HIGH },
+    { .label = "Filter\nTransition",.press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_TRANSITION },
+    { .label = "AGC",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC },
+    { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
+    { .label = "Key\nSpeed",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_SPEED },
 
-    { .label = "(MEM 2:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_VOL_1, .prev = PAGE_MEM_1, .voice = "Memory|page 2" },
-    { .label = "Set 5",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 5 },
-    { .label = "Set 6",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 6 },
-    { .label = "Set 7",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 7 },
-    { .label = "Set 8",             .press = button_mem_load_cb,    .hold = button_mem_save_cb,     .data = 8 },
-
-    /* CW */
-    
-    { .label = "(KEY 1:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_KEY_2, .prev = PAGE_CW_DECODER_1, .voice = "Key|page 1" },
-    { .label = "Speed",             .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_SPEED },
-    { .label = "Volume",            .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_VOL },
-    { .label = "Train",             .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_TRAIN },
-    { .label = "Tone",              .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_TONE },
-    
-    { .label = "(KEY 2:2)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_CW_DECODER_1, .prev = PAGE_KEY_1, .voice = "Key|page 2" },
+    { .label = "Key\nTone",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_TONE },
     { .label = "Key\nMode",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_MODE },
     { .label = "Iambic\nMode",      .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_IAMBIC_MODE },
+    { .label = "Key\nTrain",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_TRAIN },
     { .label = "QSK\nTime",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_QSK_TIME },
-    { .label = "Ratio",             .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_RATIO },
+    { .label = "Key\nRatio",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_KEY_RATIO },
 
-    { .label = "(CW 1:1)",          .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_KEY_1, .prev = PAGE_KEY_2, .voice = "CW page" },
     { .label = "CW\nDecoder",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CW_DECODER },
     { .label = "CW\nSNR",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CW_DECODER_SNR },
     { .label = "CW Peak\nBeta",     .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CW_DECODER_PEAK_BETA },
     { .label = "CW Noise\nBeta",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CW_DECODER_NOISE_BETA },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
     
-    /* DSP */
+    /* RTTY */
 
-    { .label = "(DFN 1:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_DFN_2, .prev = PAGE_DFN_3, .voice = "DNF page" },
-    { .label = "DNF",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_DNF },
-    { .label = "DNF\nCenter",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_DNF_CENTER },
-    { .label = "DNF\nWidth",        .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_DNF_WIDTH },
+    { .label = "Filter\nLow",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_LOW },
+    { .label = "Filter\nHigh",      .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_HIGH },
+    { .label = "Filter\nTransition",.press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_TRANSITION },
+    { .label = "AGC",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC },
+    { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
+    { .label = "Rate",              .press = button_mfk_update_cb,  .data = MFK_RTTY_RATE },
+
+    { .label = "Shift",             .press = button_mfk_update_cb,  .data = MFK_RTTY_SHIFT },
+    { .label = "Center",            .press = button_mfk_update_cb,  .data = MFK_RTTY_CENTER },
+    { .label = "Reverse",           .press = button_mfk_update_cb,  .data = MFK_RTTY_REVERSE },
     { .label = "",                  .press = NULL },
-
-    { .label = "(DFN 2:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_DFN_3, .prev = PAGE_DFN_1, .voice = "NB page" },
-    { .label = "NB",                .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NB },
-    { .label = "NB\nLevel",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NB_LEVEL },
-    { .label = "NB\nWidth",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NB_WIDTH },
-    { .label = "",                  .press = NULL },
-
-    { .label = "(DFN 3:3)",         .press = button_next_page_cb,   .hold = button_prev_page_cb,    .next = PAGE_DFN_1, .prev = PAGE_DFN_2, .voice = "NR page" },
-    { .label = "NR",                .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NR },
-    { .label = "NR\nLevel",         .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_NR_LEVEL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
 
     /* APP */
 
-    { .label = "(APP 1:2)",         .press = button_next_page_cb,   .next = PAGE_APP_2, .voice = "Application|page 1" },
-    { .label = "RTTY",              .press = button_app_page_cb,    .data = PAGE_RTTY },
-    { .label = "FT8",               .press = button_app_page_cb,    .data = PAGE_FT8 },
-    { .label = "SWR\nScan",         .press = button_app_page_cb,    .data = PAGE_SWRSCAN },
-    { .label = "GPS",               .press = button_app_page_cb,    .data = PAGE_GPS },
-
-    { .label = "(APP 2:2)",         .press = button_next_page_cb,   .next = PAGE_APP_1, .voice = "Application|page 2" },
-    { .label = "Recorder",          .press = button_app_page_cb,    .data = PAGE_RECORDER },
+    { .label = "FT8",               .press = button_app_page_cb,    .data = APP_FT8 },
+    { .label = "GPS",               .press = button_app_page_cb,    .data = APP_GPS },
+    { .label = "Recorder",          .press = button_app_page_cb,    .data = APP_RECORDER },
     { .label = "QTH",               .press = button_action_cb,      .data = ACTION_APP_QTH },
     { .label = "Callsign",          .press = button_action_cb,      .data = ACTION_APP_CALLSIGN },
-    { .label = "Settings",          .press = button_app_page_cb,    .data = PAGE_SETTINGS },
-
-    /* RTTY */
-
-    { .label = "(RTTY 1:1)",        .press = NULL },
-    { .label = "Rate",              .press = button_mfk_update_cb,  .data = MFK_RTTY_RATE },
-    { .label = "Shift",             .press = button_mfk_update_cb,  .data = MFK_RTTY_SHIFT },
-    { .label = "Center",            .press = button_mfk_update_cb,  .data = MFK_RTTY_CENTER },
-    { .label = "Reverse",           .press = button_mfk_update_cb,  .data = MFK_RTTY_REVERSE },
-
-    /* Settings */
-
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* SWR Scan */
-
-    { .label = "Run",               .press = dialog_swrscan_run_cb },
-    { .label = "Scale",             .press = dialog_swrscan_scale_cb },
-    { .label = "Span",              .press = dialog_swrscan_span_cb },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* FT8 */
-
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* GPS */
-
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* Msg CW */
-
-    { .label = "(MSG 1:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_CW_2 },
-    { .label = "Send",              .press = dialog_msg_cw_send_cb },
-    { .label = "Beacon",            .press = dialog_msg_cw_beacon_cb },
-    { .label = "Beacon\nPeriod",    .press = dialog_msg_cw_period_cb },
-    { .label = "",                  .press = NULL },
-
-    { .label = "(MSG 2:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_CW_1 },
-    { .label = "New",               .press = dialog_msg_cw_new_cb },
-    { .label = "Edit",              .press = dialog_msg_cw_edit_cb },
-    { .label = "Delete",            .press = dialog_msg_cw_delete_cb },
-    { .label = "",                  .press = NULL },
-
-    /* Msg Voice */
-
-    { .label = "(MSG 1:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_VOICE_2 },
-    { .label = "Send",              .press = dialog_msg_voice_send_cb },
-    { .label = "Beacon",            .press = dialog_msg_voice_beacon_cb },
-    { .label = "Beacon\nPeriod",    .press = dialog_msg_voice_period_cb },
-    { .label = "",                  .press = NULL },
-
-    { .label = "(MSG 2:2)",         .press = button_next_page_cb,   .next = PAGE_MSG_VOICE_1 },
-    { .label = "Rec",               .press = dialog_msg_voice_rec_cb },
-    { .label = "Rename",            .press = dialog_msg_voice_rename_cb },
-    { .label = "Delete",            .press = dialog_msg_voice_delete_cb },
-    { .label = "Play",              .press = dialog_msg_voice_play_cb },
+    { .label = "Settings",          .press = button_app_page_cb,    .data = APP_SETTINGS },
     
-    /* Recorder */
+    /* APP MSG CW */
 
-    { .label = "(REC 1:1)",         .press = NULL },
-    { .label = "Rec",               .press = dialog_recorder_rec_cb },
-    { .label = "Rename",            .press = dialog_recorder_rename_cb },
-    { .label = "Delete",            .press = dialog_recorder_delete_cb },
-    { .label = "Play",              .press = dialog_recorder_play_cb },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+
+    /* APP MSG VOICE */
+
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+
+    /* APP RECORDER */
+
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
 };
+
+static void buttons_load_mode() {
+    switch (params_band.mode) {
+        case RADIO_MODE_LSB:
+        case RADIO_MODE_USB:
+        case RADIO_MODE_AM:
+        case RADIO_MODE_NFM:
+            buttons_unload_page();
+            buttons_load_page(PAGE_VOICE_1);
+            break;
+
+        case RADIO_MODE_CW:
+        case RADIO_MODE_CWR:
+            buttons_unload_page();
+            buttons_load_page(PAGE_CW_1);
+            break;
+
+        case RADIO_MODE_RTTY:
+            buttons_unload_page();
+            buttons_load_page(PAGE_RTTY_1);
+            break;
+    }
+}
+
+static void mode_changed_cb(void *s, lv_msg_t *m) {
+    buttons_load_mode();
+}
 
 void buttons_init(lv_obj_t *parent) {
     uint16_t y = 480 - btn_height;
     uint16_t x = 0;
     uint16_t width = 133;
 
-    for (uint8_t i = 0; i < 6; i++) {
+    for (uint8_t i = 0; i < BUTTONS; i++) {
         lv_obj_t *f = lv_btn_create(parent);
         
         lv_obj_remove_style_all(f); 
@@ -271,6 +205,7 @@ void buttons_init(lv_obj_t *parent) {
     }
 
     parent_obj = parent;
+    lv_msg_subsribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
 }
 
 void buttons_load(uint8_t n, button_item_t *item) {
@@ -301,19 +236,6 @@ void buttons_unload_page() {
     }
 }
 
-static void button_next_page_cb(lv_event_t * e) {
-    button_item_t *item = lv_event_get_user_data(e);
-
-    buttons_unload_page();
-    buttons_load_page(item->next);
-    
-    char *voice = buttons[item->next * BUTTONS].voice;
-    
-    if (voice) {
-        voice_say_text_fmt("%s", voice);
-    }
-}
-
 static void button_app_page_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
 
@@ -338,19 +260,6 @@ static void button_mfk_update_cb(lv_event_t * e) {
 
     mfk_set_mode(item->data);
     mfk_update(0, true);
-}
-
-static void button_prev_page_cb(void * ptr) {
-    button_item_t *item = (button_item_t*) ptr;
-
-    buttons_unload_page();
-    buttons_load_page(item->prev);
-
-    char *voice = buttons[item->prev * BUTTONS].voice;
-    
-    if (voice) {
-        voice_say_text_fmt("%s", voice);
-    }
 }
 
 static void button_vol_hold_cb(void * ptr) {
@@ -412,4 +321,47 @@ void buttons_press(uint8_t n, bool hold) {
         lv_event_send(btn[n].obj, LV_EVENT_PRESSED, NULL);
         lv_event_send(btn[n].obj, LV_EVENT_RELEASED, NULL);
     }
+}
+
+void buttons_vol() {
+    buttons_unload_page();
+    buttons_load_page(PAGE_VOL_1);
+}
+
+void buttons_mfk() {
+    switch (buttons_page) {
+        case PAGE_CW_1:
+            buttons_unload_page();
+            buttons_load_page(PAGE_CW_2);
+            break;
+
+        case PAGE_CW_2:
+            buttons_unload_page();
+            buttons_load_page(PAGE_CW_3);
+            break;
+
+        case PAGE_CW_3:
+            buttons_unload_page();
+            buttons_load_page(PAGE_CW_1);
+            break;
+
+        case PAGE_RTTY_1:
+            buttons_unload_page();
+            buttons_load_page(PAGE_RTTY_2);
+            break;
+
+        case PAGE_RTTY_2:
+            buttons_unload_page();
+            buttons_load_page(PAGE_RTTY_1);
+            break;
+            
+        default:
+            buttons_load_mode();
+            break;
+    }
+}
+
+void buttons_app() {
+    buttons_unload_page();
+    buttons_load_page(PAGE_APP_1);
 }

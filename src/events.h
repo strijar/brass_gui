@@ -16,13 +16,10 @@
 typedef enum {
     KEYPAD_UNKNOWN = 0,
     
-    KEYPAD_POWER,    
-    KEYPAD_GEN,
+    KEYPAD_POWER, 
+    KEYPAD_VOL,
+    KEYPAD_MFK,
     KEYPAD_APP,
-    KEYPAD_KEY,
-    KEYPAD_MSG,
-    KEYPAD_DFN,
-    KEYPAD_DFL,
     
     KEYPAD_F1,
     KEYPAD_F2,
@@ -35,11 +32,6 @@ typedef enum {
     KEYPAD_BAND_DOWN,
     KEYPAD_BAND_UP,
     KEYPAD_MODE,
-    
-    KEYPAD_AB,
-    KEYPAD_PRE,
-    KEYPAD_ATU,
-    KEYPAD_VM,
     KEYPAD_FST
 } keypad_key_t;
 

@@ -13,114 +13,30 @@
 #include "params.h"
 #include "voice.h"
 #include "dsp.h"
-#include "dsp/agc.h"
 #include "info.h"
 
 static vol_mode_t   vol_mode = VOL_VOL;
 
 void vol_update(int16_t diff, bool voice) {
-    int32_t     x;
+    int32_t     i;
     float       f;
-    char        *s;
+    char        *str;
     bool        b;
 
     uint32_t    color = vol->mode == VOL_EDIT ? 0xFFFFFF : 0xBBBBBB;
 
     switch (vol_mode) {
         case VOL_VOL:
-            x = dsp_change_vol(diff);
-            msg_set_text_fmt("#%3X Volume: %i", color, x);
+            i = dsp_change_vol(diff);
+            msg_set_text_fmt("#%3X Volume: %i", color, i);
             
             if (diff) {
-                voice_say_int("Audio level", x);
+                voice_say_int("Audio level", i);
             } else if (voice) {
                 voice_say_text_fmt("Audio level");
             }
             break;
             
-        case VOL_AGC:
-            x = dsp_change_rx_agc(diff);
-            
-            switch (x) {
-                case AGC_OFF:
-                    s = "Off";
-                    break;
-
-                case AGC_LONG:
-                    s = "Long";
-                    break;
-                    
-                case AGC_SLOW:
-                    s = "Slow";
-                    break;
-                    
-                case AGC_MED:
-                    s = "Medium";
-                    break;
-
-                case AGC_FAST:
-                    s = "Fast";
-                    break;
-
-                case AGC_CUSTOM:
-                    s = "Custom";
-                    break;
-            }
-            
-            msg_set_text_fmt("#%3X AGC mode: %s", color, s);
-
-            if (diff) {
-                info_params_set();
-                voice_say_text("AGC mode", s);
-            } else if (voice) {
-                voice_say_text_fmt("AGC mode");
-            }
-            break;
-
-        case VOL_SQL:
-            x = radio_change_sql(diff);
-            msg_set_text_fmt("#%3X Voice SQL: %i", color, x);
-
-            if (diff) {
-                voice_say_int("Squelch level %i", x);
-            } else if (voice) {
-                voice_say_text_fmt("Squelch level");
-            }
-            break;
-
-        case VOL_FILTER_LOW:
-            x = radio_change_filter_low(diff);
-            msg_set_text_fmt("#%3X Filter low: %i Hz", color, x);
-
-            if (diff) {
-                voice_delay_say_text_fmt("%i", x);
-            } else if (voice) {
-                voice_say_text_fmt("Low filter limit");
-            }
-            break;
-
-        case VOL_FILTER_HIGH:
-            x = radio_change_filter_high(diff);
-            msg_set_text_fmt("#%3X Filter high: %i Hz", color, x);
-
-            if (diff) {
-                voice_say_int("High filter limit", x);
-            } else if (voice) {
-                voice_say_text_fmt("High filter limit");
-            }
-            break;
-
-        case VOL_FILTER_TRANSITION:
-            x = radio_change_filter_transition(diff);
-            msg_set_text_fmt("#%3X Filter transition: %i Hz", color, x);
-
-            if (diff) {
-                voice_say_int("Filter transition", x);
-            } else if (voice) {
-                voice_say_text_fmt("Filter transition");
-            }
-            break;
-
         case VOL_PWR:
             f = radio_change_pwr(diff);
             msg_set_text_fmt("#%3X Power: %0.1f W", color, f);
@@ -132,69 +48,9 @@ void vol_update(int16_t diff, bool voice) {
             }
             break;
 
-        case VOL_MIC:
-            x = radio_change_mic(diff);
-            
-            switch (x) {
-                case radio_mic_builtin:
-                    s = "Built-In";
-                    break;
-
-                case radio_mic_handle:
-                    s = "Handle";
-                    break;
-                    
-                case radio_mic_auto:
-                    s = "Auto";
-                    break;
-            }
-            
-            msg_set_text_fmt("#%3X MIC: %s", color, s);
-
-            if (diff) {
-                voice_say_text("Mic selector", s);
-            } else if (voice) {
-                voice_say_text_fmt("Mic selector");
-            }
-            break;
-
-        case VOL_HMIC:
-            x = radio_change_hmic(diff);
-            msg_set_text_fmt("#%3X H-MIC gain: %i", color, x);
-
-            if (diff) {
-                voice_say_int("Hand microphone gain", x);
-            } else if (voice) {
-                voice_say_text_fmt("Hand microphone gain");
-            }
-            break;
-
-        case VOL_IMIC:
-            x = radio_change_imic(diff);
-            msg_set_text_fmt("#%3X I-MIC gain: %i", color, x);
-
-            if (diff) {
-                voice_say_int("Internal microphone gain", x);
-            } else if (voice) {
-                voice_say_text_fmt("Internal microphone gain");
-            }
-            break;
-
-        case VOL_MONI:
-            x = radio_change_moni(diff);
-            msg_set_text_fmt("#%3X Moni level: %i", color, x);
-
-            if (diff) {
-                voice_say_int("Monitor level", x);
-            } else if (voice) {
-                voice_say_text_fmt("Monitor level");
-            }
-            break;
-
-
         case VOL_VOICE_LANG:
-            s = voice_change(diff);
-            msg_set_text_fmt("#%3X Voice: %s", color, s);
+            str = voice_change(diff);
+            msg_set_text_fmt("#%3X Voice: %s", color, str);
 
             if (diff) {
                 voice_say_lang();
@@ -204,8 +60,8 @@ void vol_update(int16_t diff, bool voice) {
             break;
 
         case VOL_VOICE_RATE:
-            x = params_uint8_change(&params.voice_rate, diff);
-            msg_set_text_fmt("#%3X Voice rate: %i", color, x);
+            i = params_uint8_change(&params.voice_rate, diff);
+            msg_set_text_fmt("#%3X Voice rate: %i", color, i);
             
             if (diff == 0 && voice) {
                 voice_say_text_fmt(params.voice_rate.voice);
@@ -213,8 +69,8 @@ void vol_update(int16_t diff, bool voice) {
             break;
 
         case VOL_VOICE_PITCH:
-            x = params_uint8_change(&params.voice_pitch, diff);
-            msg_set_text_fmt("#%3X Voice pitch: %i", color, x);
+            i = params_uint8_change(&params.voice_pitch, diff);
+            msg_set_text_fmt("#%3X Voice pitch: %i", color, i);
 
             if (diff == 0 && voice) {
                 voice_say_text_fmt(params.voice_pitch.voice);
@@ -222,8 +78,8 @@ void vol_update(int16_t diff, bool voice) {
             break;
 
         case VOL_VOICE_VOLUME:
-            x = params_uint8_change(&params.voice_volume, diff);
-            msg_set_text_fmt("#%3X Voice volume: %i", color, x);
+            i = params_uint8_change(&params.voice_volume, diff);
+            msg_set_text_fmt("#%3X Voice volume: %i", color, i);
 
             if (diff == 0 && voice) {
                 voice_say_text_fmt(params.voice_volume.voice);
@@ -231,32 +87,58 @@ void vol_update(int16_t diff, bool voice) {
             break;
 
         case VOL_FREQ_MODE:
-            x = params_uint8_change(&params.freq_mode, diff);
+            i = params_uint8_change(&params.freq_mode, diff);
             
-            switch (x) {
+            switch (i) {
                 case FREQ_MODE_JOIN:
-                    s = "join";
+                    str = "join";
                     break;
 
                 case FREQ_MODE_SLIDE:
-                    s = "slide";
+                    str = "slide";
                     break;
                     
                 case FREQ_MODE_RX_ONLY:
-                    s = "RX only";
+                    str = "RX only";
                     break;
                     
                 case FREQ_MODE_FFT_ONLY:
-                    s = "spectrum only";
+                    str = "spectrum only";
                     break;
             }
             
-            msg_set_text_fmt("#%3X Freq mode: %s", color, s);
+            msg_set_text_fmt("#%3X Freq mode: %s", color, str);
 
             if (diff) {
-                voice_say_text("Frequency mode", s);
+                voice_say_text("Frequency mode", str);
             } else if (voice) {
                 voice_say_text_fmt("Frequency mode");
+            }
+            break;
+
+        case VOL_SPLIT:
+            i = radio_change_split(diff);
+            
+            switch (i) {
+                case SPLIT_NONE:
+                    str = "RX/TX";
+                    break;
+                    
+                case SPLIT_RX:
+                    str = "RX";
+                    break;
+                    
+                case SPLIT_TX:
+                    str = "TX";
+                    break;
+            }
+            msg_set_text_fmt("#%3X Split: %s", color, str);
+
+            if (diff) {
+                info_params_set();
+                voice_say_text("Split mode", str);
+            } else if (voice) {
+                voice_say_text_fmt("Split mode selector");
             }
             break;
             

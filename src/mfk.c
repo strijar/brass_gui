@@ -21,9 +21,10 @@
 #include "info.h"
 #include "backlight.h"
 #include "voice.h"
+#include "dsp/agc.h"
 
 mfk_state_t  mfk_state = MFK_STATE_EDIT;
-mfk_mode_t   mfk_mode = MFK_MIN_LEVEL;
+mfk_mode_t   mfk_mode = MFK_FILTER_LOW;
 
 void mfk_update(int16_t diff, bool voice) {
     int32_t     i;
@@ -35,6 +36,78 @@ void mfk_update(int16_t diff, bool voice) {
     uint32_t    color = mfk_state == MFK_STATE_EDIT ? 0xFFFFFF : 0xBBBBBB;
 
     switch (mfk_mode) {
+        case MFK_FILTER_LOW:
+            i = radio_change_filter_low(diff);
+            msg_set_text_fmt("#%3X Filter low: %i Hz", color, i);
+
+            if (diff) {
+                voice_delay_say_text_fmt("%i", i);
+            } else if (voice) {
+                voice_say_text_fmt("Low filter limit");
+            }
+            break;
+
+        case MFK_FILTER_HIGH:
+            i = radio_change_filter_high(diff);
+            msg_set_text_fmt("#%3X Filter high: %i Hz", color, i);
+
+            if (diff) {
+                voice_say_int("High filter limit", i);
+            } else if (voice) {
+                voice_say_text_fmt("High filter limit");
+            }
+            break;
+
+        case MFK_FILTER_TRANSITION:
+            i = radio_change_filter_transition(diff);
+            msg_set_text_fmt("#%3X Filter transition: %i Hz", color, i);
+
+            if (diff) {
+                voice_say_int("Filter transition", i);
+            } else if (voice) {
+                voice_say_text_fmt("Filter transition");
+            }
+            break;
+
+        case MFK_AGC:
+            i = dsp_change_rx_agc(diff);
+            
+            switch (i) {
+                case AGC_OFF:
+                    str = "Off";
+                    break;
+
+                case AGC_LONG:
+                    str = "Long";
+                    break;
+                    
+                case AGC_SLOW:
+                    str = "Slow";
+                    break;
+                    
+                case AGC_MED:
+                    str = "Medium";
+                    break;
+
+                case AGC_FAST:
+                    str = "Fast";
+                    break;
+
+                case AGC_CUSTOM:
+                    str = "Custom";
+                    break;
+            }
+            
+            msg_set_text_fmt("#%3X AGC mode: %s", color, str);
+
+            if (diff) {
+                info_params_set();
+                voice_say_text("AGC mode", str);
+            } else if (voice) {
+                voice_say_text_fmt("AGC mode");
+            }
+            break;
+
         case MFK_SPECTRUM_FACTOR:
             if (diff != 0) {
                 update = false;
@@ -276,31 +349,6 @@ void mfk_update(int16_t diff, bool voice) {
             }
             break;
 
-        case MFK_CHARGER:
-            i = radio_change_charger(diff);
-            
-            switch (i) {
-                case RADIO_CHARGER_OFF:
-                    str = "Off";
-                    break;
-                    
-                case RADIO_CHARGER_ON:
-                    str = "On";
-                    break;
-                    
-                case RADIO_CHARGER_SHADOW:
-                    str = "Shadow";
-                    break;
-            }
-            msg_set_text_fmt("#%3X Charger: %s", color, str);
-
-            if (diff) {
-                voice_say_text("Charger mode", str);
-            } else if (voice) {
-                voice_say_text_fmt("Charger mode selector");
-            }
-            break;
-            
         case MFK_ANT:
             if (diff != 0) {
                 params_lock();
@@ -316,32 +364,6 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_int("Antenna", params.ant);
             } else if (voice) {
                 voice_say_text_fmt("Antenna selector");
-            }
-            break;
-
-        case MFK_SPLIT:
-            i = radio_change_split(diff);
-            
-            switch (i) {
-                case SPLIT_NONE:
-                    str = "RX/TX";
-                    break;
-                    
-                case SPLIT_RX:
-                    str = "RX";
-                    break;
-                    
-                case SPLIT_TX:
-                    str = "TX";
-                    break;
-            }
-            msg_set_text_fmt("#%3X Split: %s", color, str);
-
-            if (diff) {
-                info_params_set();
-                voice_say_text("Split mode", str);
-            } else if (voice) {
-                voice_say_text_fmt("Split mode selector");
             }
             break;
 

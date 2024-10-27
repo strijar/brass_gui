@@ -158,7 +158,7 @@ static void * play_thread(void *arg) {
 
     if (dialog.run) {
         buttons_unload_page();
-        buttons_load_page(PAGE_RECORDER);
+        buttons_load_page(PAGE_APP_RECORDER_1);
     }
 }
 
@@ -195,7 +195,7 @@ static void tx_cb(lv_event_t * e) {
         play_state = false;
 
         buttons_unload_page();
-        buttons_load_page(PAGE_RECORDER);
+        buttons_load_page(PAGE_APP_RECORDER_1);
     }
 }
 
@@ -321,7 +321,7 @@ void dialog_recorder_set_on(bool on) {
     if (on) {
         buttons_load(1, &button_rec_stop);
     } else {
-        buttons_load_page(PAGE_RECORDER);
+        buttons_load_page(PAGE_APP_RECORDER_1);
         load_table();
     }
 }

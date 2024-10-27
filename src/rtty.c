@@ -270,9 +270,7 @@ void rtty_put_audio_samples(float complex *samples, size_t n) {
         
         float pwr = pwr0 - pwr1;
 
-        if ((mode == radio_mode_usb && !params.rtty_reverse) || 
-            (mode == radio_mode_lsb && params.rtty_reverse))
-        {
+        if (params.rtty_reverse) {
             pwr = -pwr;
         }
         

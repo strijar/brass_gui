@@ -13,23 +13,19 @@
 #include "lvgl/lvgl.h"
 
 typedef enum {
-    radio_mode_lsb = 0,
-    radio_mode_usb = 2,
-    radio_mode_cw = 4,
-    radio_mode_cwr = 5,
-    radio_mode_am = 6,
-    radio_mode_nfm = 7,
-
-    /* Loop by keys */
-
-    RADIO_MODE_NEXT,
-    RADIO_MODE_SUBSET,
-
-    /* Direct set */
-
-    RADIO_MODE_USB,
-    RADIO_MODE_LSB
+    RADIO_MODE_LSB = 0,
+    RADIO_MODE_USB = 2,
+    RADIO_MODE_CW = 4,
+    RADIO_MODE_CWR = 5,
+    RADIO_MODE_AM = 6,
+    RADIO_MODE_NFM = 7,
+    RADIO_MODE_RTTY = 8,
 } radio_mode_t;
+
+typedef enum {
+    RADIO_MODE_NEXT = 0,
+    RADIO_MODE_SUBSET
+} radio_change_mode_t;
 
 typedef enum {
     radio_mic_builtin = 0,
@@ -83,8 +79,7 @@ bool radio_check_freq(uint64_t freq, uint64_t *shift);
 split_mode_t radio_change_split(int16_t d);
 
 void radio_set_mode(radio_mode_t mode);
-void radio_change_mode(radio_mode_t select);
-void radio_restore_mode(radio_mode_t mode);
+void radio_change_mode(radio_change_mode_t select);
 radio_mode_t radio_current_mode();
 
 uint16_t radio_change_rfg(int16_t df);
