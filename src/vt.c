@@ -18,6 +18,7 @@ void vt_disable() {
 
     if (vt > 0) {
         ioctl(vt, KDSETMODE, KD_GRAPHICS);
+        ioctl(vt, KDSKBMODE, K_OFF);
         close(vt);
     }
 }
@@ -27,6 +28,9 @@ void vt_enable() {
 
     if (vt > 0) {
         ioctl(vt, KDSETMODE, KD_TEXT);
+        ioctl(vt, KDSKBMODE, K_XLATE);
         close(vt);
     }
+
+    printf("\e[H\e[J\n");
 }
