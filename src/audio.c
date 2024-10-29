@@ -21,6 +21,7 @@
 #include "dsp.h"
 #include "params.h"
 #include "mic.h"
+#include "fpga/adc.h"
 
 #define PLAY_RATE_MS    100
 #define CAPTURE_RATE_MS 10
@@ -31,6 +32,8 @@ static pa_context           *ctx;
 
 static pa_stream            *play_stm;
 static pa_stream            *capture_stm;
+
+static pa_stream            *adc_play_stm;
 
 static void on_state_change(pa_context *c, void *userdata) {
     pa_threaded_mainloop_signal(mloop, 0);
@@ -93,6 +96,18 @@ void audio_init() {
     pa_threaded_mainloop_lock(mloop);
     pa_stream_set_read_callback(capture_stm, read_callback, NULL);
     pa_stream_connect_record(capture_stm, NULL, &attr, PA_STREAM_ADJUST_LATENCY);
+    pa_threaded_mainloop_unlock(mloop);
+
+    /* ADC Play */
+
+    spec.rate = ADC_RATE;
+    attr.fragsize = ADC_SAMPLES * sizeof(int16_t);
+    attr.tlength = attr.fragsize * 16;
+
+    adc_play_stm = pa_stream_new(ctx, "Brass GUI ADC", &spec, NULL);
+
+    pa_threaded_mainloop_lock(mloop);
+    pa_stream_connect_playback(adc_play_stm, NULL, &attr, PA_STREAM_ADJUST_LATENCY, NULL, NULL);
     pa_threaded_mainloop_unlock(mloop);
 }
 
@@ -163,4 +178,16 @@ int16_t* audio_gain(int16_t *buf, size_t samples, uint16_t gain) {
     }
     
     return out_samples;
+}
+
+int audio_adc_play(int16_t *samples_buf, size_t samples) {
+    pa_threaded_mainloop_lock(mloop);
+    int res = pa_stream_write(adc_play_stm, samples_buf, samples * 2, NULL, 0, PA_SEEK_RELATIVE);
+    pa_threaded_mainloop_unlock(mloop);
+
+    if (res < 0) {
+        LV_LOG_ERROR("pa_stream_write() failed: %s", pa_strerror(pa_context_errno(ctx)));
+    }
+
+    return res;
 }

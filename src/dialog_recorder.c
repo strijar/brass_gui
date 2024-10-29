@@ -47,9 +47,18 @@ static void destruct_cb();
 static void key_cb(lv_event_t * e);
 static void rec_stop_cb(lv_event_t * e);
 static void play_stop_cb(lv_event_t * e);
+static void rec_start_cb(lv_event_t * e);
+static void play_start_cb(lv_event_t * e);
+static void rename_cb(lv_event_t * e);
+static void delete_cb(lv_event_t * e);
 
-static button_item_t button_rec_stop = { .label = "Rec\nStop", .press = rec_stop_cb };
-static button_item_t button_play_stop = { .label = "Play\nStop", .press = play_stop_cb };
+static button_item_t button_rec_start   = { .label = "Rec",         .press = rec_start_cb };
+static button_item_t button_rename      = { .label = "Rename",      .press = rename_cb };
+static button_item_t button_delete      = { .label = "Delete",      .press = delete_cb };
+static button_item_t button_play_start  = { .label = "Play",        .press = play_start_cb };
+
+static button_item_t button_rec_stop    = { .label = "Rec\nStop",   .press = rec_stop_cb };
+static button_item_t button_play_stop   = { .label = "Play\nStop",  .press = play_stop_cb };
 
 static dialog_t             dialog = {
     .run = false,
@@ -60,6 +69,13 @@ static dialog_t             dialog = {
 };
 
 dialog_t                    *dialog_recorder = &dialog;
+
+static void buttons_default() {
+    buttons_load(0, &button_rec_start);
+    buttons_load(1, &button_rename);
+    buttons_load(2, &button_delete);
+    buttons_load(3, &button_play_start);
+}
 
 static void load_table() {
     lv_table_set_row_cnt(table, 1);
@@ -158,7 +174,7 @@ static void * play_thread(void *arg) {
 
     if (dialog.run) {
         buttons_unload_page();
-        buttons_load_page(PAGE_APP_RECORDER_1);
+        buttons_default();
     }
 }
 
@@ -195,7 +211,7 @@ static void tx_cb(lv_event_t * e) {
         play_state = false;
 
         buttons_unload_page();
-        buttons_load_page(PAGE_APP_RECORDER_1);
+        buttons_default();
     }
 }
 
@@ -237,7 +253,9 @@ static void construct_cb(lv_obj_t *parent) {
     
     if (recorder_is_on()) {
         buttons_unload_page();
-        buttons_load(1, &button_rec_stop);
+        buttons_load(0, &button_rec_stop);
+    } else {
+        buttons_default();
     }
 }
 
@@ -266,7 +284,7 @@ static void key_cb(lv_event_t * e) {
     }
 }
 
-void dialog_recorder_rec_cb(lv_event_t * e) {
+static void rec_start_cb(lv_event_t * e) {
     recorder_set_on(true);
 }
 
@@ -275,18 +293,18 @@ static void rec_stop_cb(lv_event_t * e) {
     load_table();
 }
 
-void dialog_recorder_play_cb(lv_event_t * e) {
+static void play_start_cb(lv_event_t * e) {
     pthread_create(&thread, NULL, play_thread, NULL);
 
     buttons_unload_page();
-    buttons_load(4, &button_play_stop);
+    buttons_load(3, &button_play_stop);
 }
 
-void play_stop_cb(lv_event_t * e) {
+static void play_stop_cb(lv_event_t * e) {
     play_state = false;
 }
 
-void dialog_recorder_rename_cb(lv_event_t * e) {
+static void rename_cb(lv_event_t * e) {
     prev_filename = strdup(get_item());
     
     if (prev_filename) {
@@ -296,7 +314,7 @@ void dialog_recorder_rename_cb(lv_event_t * e) {
     }
 }
 
-void dialog_recorder_delete_cb(lv_event_t * e) {
+static void delete_cb(lv_event_t * e) {
     const char *item = get_item();
 
     if (item) {
@@ -319,9 +337,9 @@ void dialog_recorder_set_on(bool on) {
     buttons_unload_page();
 
     if (on) {
-        buttons_load(1, &button_rec_stop);
+        buttons_load(0, &button_rec_stop);
     } else {
-        buttons_load_page(PAGE_APP_RECORDER_1);
+        buttons_default();
         load_table();
     }
 }

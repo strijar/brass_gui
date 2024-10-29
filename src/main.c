@@ -25,7 +25,6 @@
 #include "params.h"
 #include "bands.h"
 #include "audio.h"
-#include "audio_adc.h"
 #include "cw.h"
 #include "cw_key.h"
 #include "pannel.h"
@@ -71,7 +70,6 @@ int main(void) {
     fbdev_init();
     mic_init();
     audio_init();
-    audio_adc_init();
     event_init();
 
     lv_disp_draw_buf_init(&disp_buf, buf_1, buf_2, DISP_BUF_SIZE);

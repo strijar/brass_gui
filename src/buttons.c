@@ -141,15 +141,6 @@ static button_item_t    buttons[] = {
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
-
-    /* APP RECORDER */
-
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
 };
 
 static void buttons_load_mode() {

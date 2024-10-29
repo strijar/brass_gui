@@ -15,7 +15,9 @@
 #define AUDIO_CAPTURE_RATE  (44100)
 
 void audio_init();
+
 int audio_play(int16_t *buf, size_t samples);
 void audio_play_wait();
-
 int16_t* audio_gain(int16_t *buf, size_t samples, uint16_t gain);
+
+int audio_adc_play(int16_t *buf, size_t samples);

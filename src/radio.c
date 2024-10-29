@@ -28,7 +28,6 @@
 #include "dialog_swrscan.h"
 #include "voice.h"
 #include "fpga/control.h"
-#include "audio_adc.h"
 #include "msgs.h"
 
 #define FLOW_RESTART_TIMOUT     300

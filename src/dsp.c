@@ -17,7 +17,6 @@
 #include "params.h"
 #include "meter.h"
 #include "audio.h"
-#include "audio_adc.h"
 #include "cw.h"
 #include "cw_key.h"
 #include "rtty.h"
@@ -178,6 +177,7 @@ void update_auto(uint64_t now) {
 
         calc_auto();
         auto_psd_count = 0;
+        memset(auto_psd, 0, FFT_SAMPLES * sizeof(float));
         auto_time = now;
     }
 }
