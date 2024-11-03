@@ -27,6 +27,7 @@
 #include "voice.h"
 #include "events.h"
 #include "msgs.h"
+#include "vt.h"
 
 #define BUTTONS     6
 
@@ -48,6 +49,7 @@ static void button_vol_hold_cb(void * ptr);
 static void button_mfk_hold_cb(void * ptr);
 static void button_mem_save_cb(void * ptr);
 
+static void button_exit_cb(lv_event_t * e);
 static void button_action_cb(lv_event_t * e);
 
 static button_page_t    buttons_page = PAGE_VOL_1;
@@ -116,6 +118,13 @@ static button_item_t    buttons[] = {
     { .label = "QTH",               .press = button_action_cb,      .data = ACTION_APP_QTH },
     { .label = "Callsign",          .press = button_action_cb,      .data = ACTION_APP_CALLSIGN },
     { .label = "Settings",          .press = button_app_page_cb,    .data = APP_SETTINGS },
+
+    { .label = "Exit",              .press = button_exit_cb },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
     
     /* APP MSG CW */
 
@@ -168,6 +177,11 @@ static void buttons_load_mode() {
 
 static void mode_changed_cb(void *s, lv_msg_t *m) {
     buttons_load_mode();
+}
+
+static void button_exit_cb(lv_event_t * e) {
+    vt_enable();
+    exit(1);
 }
 
 void buttons_init(lv_obj_t *parent) {
@@ -345,7 +359,7 @@ void buttons_mfk() {
             buttons_unload_page();
             buttons_load_page(PAGE_RTTY_1);
             break;
-            
+
         default:
             buttons_load_mode();
             break;
@@ -353,6 +367,20 @@ void buttons_mfk() {
 }
 
 void buttons_app() {
-    buttons_unload_page();
-    buttons_load_page(PAGE_APP_1);
+    switch (buttons_page) {
+        case PAGE_APP_1:
+            buttons_unload_page();
+            buttons_load_page(PAGE_APP_2);
+            break;
+
+        case PAGE_APP_2:
+            buttons_unload_page();
+            buttons_load_page(PAGE_APP_1);
+            break;
+            
+        default:
+            buttons_unload_page();
+            buttons_load_page(PAGE_APP_1);
+            break;
+    }
 }

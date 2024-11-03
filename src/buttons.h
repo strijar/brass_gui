@@ -23,6 +23,7 @@ typedef enum {
     PAGE_RTTY_2,
     
     PAGE_APP_1,
+    PAGE_APP_2,
 
     PAGE_APP_MSG_CW_1,
 
