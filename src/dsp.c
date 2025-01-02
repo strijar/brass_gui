@@ -23,7 +23,7 @@
 #include "dialog_ft8.h"
 #include "dialog_msg_voice.h"
 #include "recorder.h"
-#include "fpga/fft.h"
+#include "fpga/mb_data.h"
 #include "fpga/adc.h"
 #include "fpga/dac.h"
 #include "fpga/control.h"
@@ -35,6 +35,9 @@
 #include "main.h"
 
 const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
+
+static float            fft_correct_db = 85.0f;
+static float            meter_correct_db = 50.0f;
 
 static pthread_mutex_t  spectrum_mux;
 
@@ -85,6 +88,16 @@ static void calc_auto();
 
 /* * */
 
+static float dB(float x) {
+    if (x > 0.0f) {
+        return 10.0f * log10f(x) - fft_correct_db;
+    } else {
+        return S_MIN;
+    }
+}
+
+/* * */
+
 void dsp_init() {
     pthread_mutex_init(&spectrum_mux, NULL);
 
@@ -126,9 +139,9 @@ void dsp_init() {
     spectrum_time = get_time();
     waterfall_time = get_time();
     auto_time = get_time();
-    
+
     delay = 4;
-    
+
     dsp_set_vol(params.vol);
     ready = true;
 }
@@ -157,13 +170,13 @@ uint8_t dsp_change_rx_agc(int16_t df) {
     if (df == 0) {
         return params_mode.agc;
     }
-    
+
     params_lock();
     params_mode.agc = limit(params_mode.agc + df, AGC_OFF, AGC_CUSTOM);
     params_unlock(&params_mode.durty.agc);
 
     dsp_set_rx_agc(params_mode.agc);
-    
+
     return params_mode.agc;
 }
 
@@ -182,14 +195,13 @@ void update_auto(uint64_t now) {
     }
 }
 
+
 void update_spectrum(uint64_t now) {
     if (now - spectrum_time > spectrum_fps_ms && spectrum_psd_count > 0) {
         for (uint16_t i = 0; i < spectrum_data_msg.size; i++) {
             float x = spectrum_psd[i] / spectrum_psd_count;
-            float mag = 20.0f * log10f(x) - 96.0f;
-            
-            spectrum_psd[i] = mag;
-            lpf(&spectrum_data_msg.data[i], mag, spectrum_beta);
+
+            lpf(&spectrum_data_msg.data[i], dB(x), spectrum_beta);
         }
 
         lv_lock();
@@ -213,20 +225,19 @@ void update_waterfall(uint64_t now) {
     if (now - waterfall_time > waterfall_fps_ms) {
         for (uint16_t i = 0; i < FFT_SAMPLES; i++) {
             float x = waterfall_psd[i] / waterfall_psd_count;
-            float mag = 20.0f * log10f(x) - 96.0f;
-                
-            waterfall_psd[i] = mag;
+
+            waterfall_psd[i] = dB(x);
         }
 
         waterfall_data(waterfall_psd, FFT_SAMPLES);
- 
+
         waterfall_psd_count = 0;
         memset(waterfall_psd, 0, FFT_SAMPLES * sizeof(float));
         waterfall_time = now;
     }
 }
 
-void dsp_fft(float complex *data) {
+void dsp_fft(float *data) {
     radio_state_t   state = radio_get_state();
 
     if (state != RADIO_RX) {
@@ -234,16 +245,14 @@ void dsp_fft(float complex *data) {
     }
 
     for (size_t i = 0; i < FFT_SAMPLES; i++) {
-        float complex x = data[i];
-        float mag = sqrtf(crealf(x) * crealf(x) + cimagf(x) * cimag(x));
-        uint16_t index = (i + FFT_SAMPLES / 2) % FFT_SAMPLES;
+        uint16_t    index = (i + FFT_SAMPLES / 2) % FFT_SAMPLES;
 
-        fft_buf[index] = mag;
+        fft_buf[index] = data[i];
     }
 
     for (size_t i = 0; i < FFT_SAMPLES; i++) {
         float x = fft_buf[i];
-    
+
         waterfall_psd[i] += x;
         auto_psd[i] += x;
     }
@@ -274,12 +283,12 @@ static float demodulate(float complex in, radio_mode_t mode) {
             firhilbf_c2r_execute(demod_ssb, in, &a, &b);
             out = b;
             break;
-            
+
         case RADIO_MODE_AM:
             firfilt_rrrf_push(demod_dc_block, cabsf(in));
             firfilt_rrrf_execute(demod_dc_block, &out);
             break;
-            
+
         case RADIO_MODE_NFM:
             phase = atan2f(cimagf(in), crealf(in));
             dphase = phase - last_phase;
@@ -289,11 +298,11 @@ static float demodulate(float complex in, radio_mode_t mode) {
             last_phase = phase;
             break;
     }
-    
+
     return out;
 }
 
-void dsp_adc(float complex *data) {
+void dsp_adc(float complex *data, uint16_t samples) {
     radio_state_t   state = radio_get_state();
 
     if (state != RADIO_RX) {
@@ -312,7 +321,7 @@ void dsp_adc(float complex *data) {
         filter_need_update = false;
     }
 
-    for (int i = 0; i < ADC_SAMPLES; i++) {
+    for (int i = 0; i < samples; i++) {
         float x, y;
 
         x = demodulate(data[i], mode);
@@ -325,15 +334,15 @@ void dsp_adc(float complex *data) {
         y = agc_apply(rx_agc, y);
 
         y *= 16384.0f;
-        
+
         if (y > 16384.0f) {
             y = 16384.0f;
         } else if (y < -16384.0f) {
             y = -16384.0f;
         }
-                
+
         rec_buf[i] = (int16_t) y;
-        
+
         y *= adc_vol;
 
         if (y > 16384.0f) {
@@ -341,11 +350,11 @@ void dsp_adc(float complex *data) {
         } else if (y < -16384.0f) {
             y = -16384.0f;
         }
-        
+
         adc_buf[i] = (int16_t) y;
     }
-    
-    audio_adc_play(adc_buf, ADC_SAMPLES);
+
+    audio_adc_play(adc_buf, samples);
 
     if (recorder_is_on()) {
         recorder_put_audio_samples(rec_buf);
@@ -361,21 +370,21 @@ void dsp_adc(float complex *data) {
         meter_count = 0;
         meter_db = 0;
     } else {
-        meter_db += 20.0f * log10f(peak) - 56.0f;
+        meter_db += 20.0f * log10f(peak) - meter_correct_db;
     }
 
     switch (mode) {
         case RADIO_MODE_CW:
         case RADIO_MODE_CWR:
-            cw_put_audio_samples(data, ADC_SAMPLES);
+            cw_put_audio_samples(data, samples);
             break;
-            
+
         case RADIO_MODE_RTTY:
-            rtty_put_audio_samples(data, ADC_SAMPLES);
+            rtty_put_audio_samples(data, samples);
             break;
-            
+
         default:
-            dialog_audio_samples(data, ADC_SAMPLES);
+            dialog_audio_samples(data, samples);
             break;
     }
 }
@@ -408,33 +417,32 @@ static void calc_auto() {
     float       min = 0;
     float       max = 0;
     size_t      window = 30;
+    float       *view = auto_psd + fft_over;
 
-    qsort(auto_psd, FFT_SAMPLES, sizeof(float), compare_fft);
-    
+    qsort(view, 800, sizeof(float), compare_fft);
+
     for (size_t i = 0; i < window; i++) {
-        min += auto_psd[i + fft_over];
-        max += auto_psd[FFT_SAMPLES - i - fft_over - 1];
+        min += view[i];
+        max += view[800 - i - 1];
     }
 
     min /= window;
     max /= window;
 
-    min = 20.0f * log10f(min) - 96.0f;
-    max = 20.0f * log10f(max) - 96.0f;
+    min = dB(min);
+    max = dB(max);
 
-    if (max > S9_40) {
-        max = S9_40;
-    } else if (max < S8) {
-        max = S8;
-    }
-
-    if (min > S7) {
-        min = S7;
-    } else if (min < S_MIN) {
+    if (min < S_MIN) {
         min = S_MIN;
     }
 
-    min -= 3.0f;
+    if (max > S9_40) {
+        max = S9_40;
+    }
+
+    if (max - min < 18.0f) {
+        max += 18.0f;
+    }
 
     if (auto_clear) {
         spectrum_auto_msg.min = min;
@@ -445,11 +453,11 @@ static void calc_auto() {
 
         auto_clear = false;
     } else {
-        lpf(&spectrum_auto_msg.min, min, 0.8f);
-        lpf(&spectrum_auto_msg.max, max, 0.8f);
+        lpf(&spectrum_auto_msg.min, min, 0.7f);
+        lpf(&spectrum_auto_msg.max, max, 0.7f);
 
-        lpf(&waterfall_auto_min, min, 0.5f);
-        lpf(&waterfall_auto_max, max, 0.5f);
+        lpf(&waterfall_auto_min, min, 0.4f);
+        lpf(&waterfall_auto_max, max, 0.4f);
     }
 
     lv_lock();
@@ -465,15 +473,15 @@ uint16_t dsp_change_vol(int16_t df) {
     if (df == 0) {
         return params.vol;
     }
-    
+
     adc_mute = false;
-    
+
     params_lock();
     params.vol = limit(params.vol + df, 0, 100);
     params_unlock(&params.durty.vol);
 
     dsp_set_vol(params.vol);
-    
+
     return params.vol;
 }
 
@@ -485,7 +493,7 @@ size_t dsp_dac(float complex *data, size_t max_size) {
         mic_on_air(false);
     } else {
         radio_mode_t mode = radio_current_mode();
-    
+
         switch (mode) {
             case RADIO_MODE_CW:
                 mic_on_air(false);
@@ -496,7 +504,7 @@ size_t dsp_dac(float complex *data, size_t max_size) {
                 mic_on_air(false);
                 size = cw_key_generator(data, max_size, true);
                 break;
-                
+
             case RADIO_MODE_LSB:
             case RADIO_MODE_USB:
             case RADIO_MODE_AM:
@@ -504,7 +512,7 @@ size_t dsp_dac(float complex *data, size_t max_size) {
                 mic_on_air(true);
                 size = mic_modulate(data, max_size, mode);
                 break;
-               
+
             default:
                 mic_on_air(false);
                 break;

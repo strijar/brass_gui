@@ -14,7 +14,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     dialog_msg_voice.c dialog_recorder.c dialog_qth.c dialog_callsign.c
     textarea_window.c cw_encoder.c buttons.c vol.c recorder.c
     qth.c voice.cpp gfsk.c generator.c cw_key.c mic.c
-    vt.c
+    vt.c gpio.c
 )
 
 add_subdirectory(fonts)
@@ -23,6 +23,7 @@ add_subdirectory(widgets)
 add_subdirectory(fpga)
 add_subdirectory(dsp)
 add_subdirectory(python)
+add_subdirectory(render)
 
 include_directories(utf8)
 include_directories(${CMAKE_SYSROOT}/usr/include/RHVoice/)
@@ -32,6 +33,10 @@ find_package(Threads REQUIRED)
 
 target_compile_options(${PROJECT_NAME} PRIVATE -g -fno-omit-frame-pointer -fasynchronous-unwind-tables)
 target_link_options(${PROJECT_NAME} PRIVATE -g -rdynamic)
+
+#set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-save-temps")
+#target_compile_options(${PROJECT_NAME} PRIVATE -g -pg)
+#target_link_options(${PROJECT_NAME} PRIVATE -g -pg)
 
 #target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address -fsanitize=undefined -fno-sanitize-recover)
 #target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -static-libasan -static-libubsan)
@@ -46,3 +51,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE gps)
 target_link_libraries(${PROJECT_NAME} PRIVATE sndfile)
 target_link_libraries(${PROJECT_NAME} PRIVATE RHVoice RHVoice_core RHVoice_audio)
 target_link_libraries(${PROJECT_NAME} PRIVATE python3.11 pthread)
+target_link_libraries(${PROJECT_NAME} PRIVATE gpiod)

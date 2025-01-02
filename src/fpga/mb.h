@@ -8,7 +8,7 @@
 
 #pragma once
 
-#define ADC_SAMPLES (512 / sizeof(float))
-#define ADC_RATE    (12800)
+#include <stdint.h>
 
-bool adc_init();
+bool mb_init();
+void * mb_data();

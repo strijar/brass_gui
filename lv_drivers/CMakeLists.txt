@@ -47,7 +47,9 @@ set_target_properties(
              ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
              LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
              RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-             PUBLIC_HEADER "${LV_DRIVERS_PUBLIC_HEADERS}")
+             PUBLIC_HEADER "${LV_DRIVERS_PUBLIC_HEADERS}"
+             COMPILE_FLAGS "-save-temps -O3"
+)
 
 install(
   TARGETS lv_drivers

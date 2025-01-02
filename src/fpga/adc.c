@@ -13,59 +13,36 @@
 #include <pthread.h>
 #include <string.h>
 #include <fcntl.h>
-#include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <poll.h>
 
 #include "lvgl/lvgl.h"
 #include "src/dsp.h"
 #include "adc.h"
-#include "dma-proxy.h"
+#include "control.h"
 
-#define ADC_BUFS                8
-
-static int                      fd;
-static int                      buf_id = 0;
-static struct channel_buffer    *buf_ptr = NULL;
+static int              fd;
+static float complex    samples[ADC_SAMPLES];
 
 static void * adc_thread(void *arg) {
-    for (buf_id = 0; buf_id < ADC_BUFS; buf_id++) {
-        usleep(10);
-        buf_ptr[buf_id].length = ADC_SAMPLES * sizeof(complex float);
-        ioctl(fd, START_XFER, &buf_id);
-    }
-
-    buf_id = 0;
+    control_adc_enable();
 
     while (true) {
-        ioctl(fd, FINISH_XFER, &buf_id);
+        int res = read(fd, samples, sizeof(samples));
 
-        if (buf_ptr[buf_id].status != PROXY_NO_ERROR) {
-            LV_LOG_ERROR("ADC transfer error");
-            sleep(5);
-        } else {
-            complex float *samples = (complex float *) &buf_ptr[buf_id].buffer;
-
-            dsp_adc(samples);
-            ioctl(fd, START_XFER, &buf_id);
-            buf_id = (buf_id + 1) % ADC_BUFS;
+        if (res > 0) {
+            dsp_adc(samples, res / sizeof(float complex));
         }
     }
 }
 
 bool adc_init() {
-    fd = open("/dev/adc", O_RDWR);
-    
+    /* Stream */
+
+    fd = open("/dev/axis_fifo_0x43c10000", O_RDONLY);
+
     if (fd < 1) {
-        LV_LOG_ERROR("Unable to open ADC device file");
-        return false;
-    }
-
-    buf_ptr = (struct channel_buffer *) mmap(NULL, sizeof(struct channel_buffer) * ADC_BUFS,
-        PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-    if (buf_ptr == MAP_FAILED) {
-        LV_LOG_ERROR("Failed to mmap ADC channel");
-        close(fd);
+        LV_LOG_ERROR("Unable to open ADC stream device file");
         return false;
     }
 

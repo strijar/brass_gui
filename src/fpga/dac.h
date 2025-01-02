@@ -8,7 +8,7 @@
 
 #pragma once
 
-#define DAC_SAMPLES (128)
+#define DAC_SAMPLES (512 / sizeof(float))
 #define DAC_RATE    (12800)
 
 bool dac_init();

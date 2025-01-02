@@ -32,12 +32,14 @@
 #include "backlight.h"
 #include "events.h"
 #include "gps.h"
-#include "fpga/fft.h"
 #include "fpga/adc.h"
 #include "fpga/dac.h"
+#include "fpga/mb.h"
 #include "python/python.h"
 #include "mic.h"
 #include "vt.h"
+#include "render/render.h"
+#include "gpio.h"
 
 #define DISP_BUF_SIZE (800 * 480)
 
@@ -66,27 +68,33 @@ int main(void) {
 
     lv_init();
     lv_png_init();
-    
+
     fbdev_init();
     mic_init();
     audio_init();
     event_init();
+    gpio_init();
 
     lv_disp_draw_buf_init(&disp_buf, buf_1, buf_2, DISP_BUF_SIZE);
     lv_disp_drv_init(&disp_drv);
-    
+
     disp_drv.draw_buf   = &disp_buf;
     disp_drv.flush_cb   = fbdev_flush;
     disp_drv.hor_res    = 800;
     disp_drv.ver_res    = 480;
-    
+
+#if 1
+    disp_drv.draw_ctx_init = brass_draw_ctx_init;
+    disp_drv.draw_ctx_size = sizeof(brass_draw_ctx_t);
+#endif
+
     lv_disp_drv_register(&disp_drv);
 
     lv_disp_set_bg_color(lv_disp_get_default(), lv_color_black());
     lv_disp_set_bg_opa(lv_disp_get_default(), LV_OPA_COVER);
 
     lv_timer_t *timer = _lv_disp_get_refr_timer(lv_disp_get_default());
-    
+
     lv_timer_set_period(timer, 15);
 
     keyboard_init();
@@ -113,9 +121,9 @@ int main(void) {
     dsp_init();
     rtty_init();
     radio_init(main_obj);
-    fft_init();
     adc_init();
     dac_init();
+    mb_init();
 
 /*
     backlight_init();
@@ -127,15 +135,14 @@ int main(void) {
 
     while (1) {
         lv_lock();
-        
+
         lv_timer_handler();
-        
+
         uint64_t now = get_time();
         lv_tick_inc(now - prev_time);
         prev_time = now;
 
         lv_unlock();
-
         usleep(10);
     }
 

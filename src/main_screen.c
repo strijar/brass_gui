@@ -50,6 +50,7 @@
 #include "voice.h"
 #include "python/python.h"
 #include "msgs.h"
+#include "vt.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
@@ -798,7 +799,12 @@ static void main_screen_key_cb(lv_event_t * e) {
             }
             dialog_send(EVENT_BAND_DOWN, NULL);
             break;
-            
+
+        case KEYBOARD_F10:
+            vt_enable();
+            exit(1);
+            break;
+
         case HKEY_FINP:
             if (!freq_lock) {
                 voice_say_text_fmt("Enter frequency");

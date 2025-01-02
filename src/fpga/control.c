@@ -17,58 +17,46 @@
 #include "control.h"
 #include "src/params.h"
 
+#define RX_ENABLE_ADC  (1 << 0)
+#define RX_ENABLE_FFT  (1 << 1)
+#define RX_ENABLE_MB   (1 << 2)
+
 typedef struct {
+    uint32_t    enable;
+    uint32_t    adc_dds_step;
+    uint32_t    adc_rate;
     uint32_t    fft_dds_step;
     uint32_t    fft_rate;
-    uint32_t    adc_dds_step;
-} rx_control_reg_t;
-
-typedef struct {
     uint32_t    dac_dds_step;
-} tx_control_reg_t;
+    uint32_t    dac_rate;
+} trx_reg_t;
 
-static int              rx_fd;
-static int              tx_fd;
+static int          reg_fd;
+static trx_reg_t    *reg;
 
-static rx_control_reg_t *rx_control_reg;
-static tx_control_reg_t *tx_control_reg;
-
-static uint64_t         rx_freq;
-static uint64_t         tx_freq;
-static uint64_t         fft_freq;
+static uint64_t     rx_freq;
+static uint64_t     tx_freq;
+static uint64_t     fft_freq;
 
 void control_init() {
-    /* RX */
+    /* Reg */
 
-    rx_fd = open("/dev/uio0", O_RDWR | O_SYNC);
-    
-    if (rx_fd < 1) {
-        LV_LOG_ERROR("Unable to open RX Radio control device file");
+    reg_fd = open("/dev/uio0", O_RDWR | O_SYNC);
+
+    if (reg_fd < 1) {
+        LV_LOG_ERROR("Unable to open config device file");
         return;
     }
 
-    rx_control_reg = (rx_control_reg_t *) mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, rx_fd, 0);
+    reg = (trx_reg_t *) mmap(NULL, 0x10000, PROT_READ | PROT_WRITE, MAP_SHARED, reg_fd, 0);
 
-    if (rx_control_reg == MAP_FAILED) {
-        close(rx_fd);
-        LV_LOG_ERROR("Failed to mmap RX Radio control reg");
+    if (reg == MAP_FAILED) {
+        close(reg_fd);
+        LV_LOG_ERROR("Failed to mmap config reg");
     }
 
-    /* TX */
-
-    tx_fd = open("/dev/uio1", O_RDWR | O_SYNC);
-    
-    if (tx_fd < 1) {
-        LV_LOG_ERROR("Unable to open TX Radio control device file");
-        return;
-    }
-
-    tx_control_reg = (tx_control_reg_t *) mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, tx_fd, 0);
-
-    if (tx_control_reg == MAP_FAILED) {
-        close(tx_fd);
-        LV_LOG_ERROR("Failed to mmap TX Radio control reg");
-    }
+    reg->enable = 0;
+    usleep(100);
 }
 
 void control_update() {
@@ -81,23 +69,35 @@ void control_set_rx_freq(uint64_t freq) {
     float txo = 122880000.0f + params.txo_offset.x;
 
     rx_freq = freq;
-    rx_control_reg->adc_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
+    reg->adc_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
 }
 
 void control_set_tx_freq(uint64_t freq) {
     float txo = 122880000.0f + params.txo_offset.x;
 
     tx_freq = freq;
-    tx_control_reg->dac_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
+    reg->dac_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
 }
 
 void control_set_fft_freq(uint64_t freq) {
     float txo = 122880000.0f + params.txo_offset.x;
 
     fft_freq = freq;
-    rx_control_reg->fft_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
+    reg->fft_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
 }
 
 void control_set_fft_rate(uint32_t rate) {
-    rx_control_reg->fft_rate = rate;
+    reg->fft_rate = rate;
+}
+
+void control_fft_enable() {
+    reg->enable |= RX_ENABLE_FFT;
+}
+
+void control_adc_enable() {
+    reg->enable |= RX_ENABLE_ADC;
+}
+
+void control_mb_enable() {
+    reg->enable |= RX_ENABLE_MB;
 }

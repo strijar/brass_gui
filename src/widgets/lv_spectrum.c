@@ -188,7 +188,7 @@ void lv_spectrum_set_filled(lv_obj_t * obj, bool on) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_spectrum_t * spectrum = (lv_spectrum_t *)obj;
-    
+
     spectrum->filled = on;
 }
 
@@ -196,7 +196,7 @@ void lv_spectrum_set_peak(lv_obj_t * obj, bool on) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_spectrum_t * spectrum = (lv_spectrum_t *)obj;
-    
+
     spectrum->peak_on = on;
 }
 
@@ -235,14 +235,14 @@ static void lv_spectrum_constructor(const lv_obj_class_t * class_p, lv_obj_t * o
     spectrum->max = 0;
     spectrum->span = 100000;
     spectrum->delta_surplus = 0;
-    
+
     LV_TRACE_OBJ_CREATE("finished");
 }
 
 static void lv_spectrum_destructor(const lv_obj_class_t * class_p, lv_obj_t * obj) {
     LV_UNUSED(class_p);
     lv_spectrum_t * spectrum = (lv_spectrum_t *)obj;
-    
+
     if (spectrum->data_buf) lv_mem_free(spectrum->data_buf);
     if (spectrum->peak_buf) lv_mem_free(spectrum->peak_buf);
 }
@@ -265,7 +265,7 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         lv_draw_line_dsc_t  peak_line_dsc;
 
         /* Lines */
-    
+
         lv_draw_line_dsc_init(&main_line_dsc);
         lv_obj_init_draw_line_dsc(obj, LV_PART_INDICATOR, &main_line_dsc);
 
@@ -273,16 +273,16 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
             lv_draw_line_dsc_init(&peak_line_dsc);
             lv_obj_init_draw_line_dsc(obj, LV_PART_TICKS, &peak_line_dsc);
         }
-    
+
         lv_coord_t x1 = obj->coords.x1;
         lv_coord_t y1 = obj->coords.y1;
 
         lv_coord_t w = lv_obj_get_width(obj);
         lv_coord_t h = lv_obj_get_height(obj);
-    
+
         lv_point_t main_a, main_b;
         lv_point_t peak_a, peak_b;
-    
+
         if (!spectrum->filled) {
             main_b.x = x1;
             main_b.y = y1 + h;
@@ -290,15 +290,15 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
 
         peak_b.x = x1;
         peak_b.y = y1 + h;
-        
+
         float range = spectrum->max - spectrum->min;
 
-        for (uint16_t i = 0; i < w; i++) {
+        for (uint16_t i = 0; i < spectrum->data_size; i++) {
             float       v = (spectrum->data_buf[i] - spectrum->min) / range;
             int32_t     x = i * w / spectrum->data_size;
 
             /* Peak */
-        
+
             if (spectrum->peak_on) {
                 float v_peak = (spectrum->peak_buf[i].val - spectrum->min) / range;
 
@@ -321,7 +321,7 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
             }
 
             lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
-        
+
             if (!spectrum->filled) {
                 main_b = main_a;
             }

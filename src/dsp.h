@@ -30,6 +30,6 @@ uint8_t dsp_change_rx_agc(int16_t df);
 
 /* From thread */
 
-void dsp_adc(float complex *data);
-void dsp_fft(float complex *data);
+void dsp_adc(float complex *data, uint16_t samples);
+void dsp_fft(float *data);
 size_t dsp_dac(float complex *data, size_t max_size);

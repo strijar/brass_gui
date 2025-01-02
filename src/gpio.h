@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <stdbool.h>
 
-#define FFT_SAMPLES (2048)
+void gpio_init();
 
-bool fft_init();
+void gpio_set_preamp(bool on);
+void gpio_set_tx(bool on);

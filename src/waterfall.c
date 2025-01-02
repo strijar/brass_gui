@@ -18,7 +18,7 @@
 #include "meter.h"
 #include "backlight.h"
 #include "dsp.h"
-#include "fpga/fft.h"
+#include "fpga/mb_data.h"
 #include "msgs.h"
 #include "widgets/lv_finder.h"
 #include "main.h"
@@ -209,7 +209,7 @@ void waterfall_data(float *data_buf, size_t size) {
     }
 
     scroll_down();
-
+    
     float min = waterfall_auto_min + 3.0f;
     float max = waterfall_auto_max + 3.0f;
 
@@ -259,18 +259,18 @@ void waterfall_set_height(lv_coord_t h) {
     height = lv_obj_get_height(obj);
 
     frame = lv_img_buf_alloc(width, height, LV_IMG_CF_TRUE_COLOR);
-    
+
     if (!frame) {
         LV_LOG_ERROR("Frame alloc");
     }
 
     line_len = frame->data_size / frame->header.h;
     line_buf = malloc(line_len);
-    
+
     if (!line_buf) {
         LV_LOG_ERROR("Line buf alloc");
     }
-    
+
     styles_waterfall_palette(palette, 256);
 
     img = lv_img_create(obj);

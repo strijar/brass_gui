@@ -1,3 +1,3 @@
 target_sources(${PROJECT_NAME} PUBLIC
-    adc.c control.c dac.c mb.c
+    render.c blend.c draw_img_decoded.c
 )
