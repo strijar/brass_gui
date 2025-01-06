@@ -8,11 +8,8 @@
 
 #pragma once
 
-#include <unistd.h>
 #include <stdint.h>
+#include "settings/memory.h"
 
-#include "lvgl/lvgl.h"
-
-lv_obj_t * band_info_init(lv_obj_t *parent);
-void band_info_update(uint64_t f);
-void band_info_update_range();
+const char * memory_load(const memory_t *memory, uint32_t index);
+void memory_save(const memory_t *memory, uint32_t index);

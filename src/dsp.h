@@ -11,12 +11,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <liquid/liquid.h>
+#include "settings/modes.h"
 
 void dsp_init();
 void dsp_reset();
 
 void dsp_set_spectrum_factor(uint8_t x);
-void dsp_set_filter(float low_freq, float high_freq, float transition, float attenuation);
+void dsp_set_filter(filter_t *filter);
 void dsp_set_rx_agc(uint8_t mode);
 
 float dsp_get_spectrum_beta();

@@ -28,7 +28,9 @@
 #include "dialog_swrscan.h"
 #include "voice.h"
 #include "fpga/control.h"
+#include "msg.h"
 #include "msgs.h"
+#include "settings/modes.h"
 
 #define FLOW_RESTART_TIMOUT     300
 
@@ -130,30 +132,18 @@ bool radio_tick() {
     return false;
 }
 
-void radio_freq_set() {
+void radio_freq_update() {
     uint64_t shift;
-    uint64_t freq = params_band.freq_rx;
+    uint64_t freq = op_work->rx;
 
     radio_check_freq(freq, &shift);
     control_set_rx_freq(freq - shift);
-    control_set_tx_freq(params_band.freq_tx - shift);
-    control_set_fft_freq(params_band.freq_fft - shift);
+    control_set_tx_freq(op_work->tx - shift);
+    control_set_fft_freq(op_work->fft - shift);
 
+    /* FIXME
     params_bands_find(freq, &params.freq_band);
-}
-
-static void update_filter() {
-    dsp_set_filter(params_mode.filter_low, params_mode.filter_high, params_mode.filter_transition, 40);
-    lv_msg_send(MSG_FILTER_CHANGED, NULL);
-}
-
-void radio_mode_set() {
-    radio_mode_t    mode = radio_current_mode();
-
-    update_filter();
-    dsp_set_rx_agc(params_mode.agc);
-
-    dsp_set_spectrum_factor(params_mode.spectrum_factor);
+    */
 }
 
 static void radio_msg_cb(void *s, lv_msg_t *m) {
@@ -161,7 +151,17 @@ static void radio_msg_cb(void *s, lv_msg_t *m) {
         case MSG_PTT: {
             const int *on = lv_msg_get_payload(m);
 
-            state = *on ? RADIO_TX : RADIO_RX;
+            if (*on) {
+                if (band_settings && band_settings->tx) {
+                    state = RADIO_TX;
+                    lv_msg_send(MSG_TX, NULL);
+                } else {
+                    msg_set_text_fmt("TX not permitted");
+                }
+            } else {
+                state = RADIO_RX;
+                lv_msg_send(MSG_RX, NULL);
+            }
         } break;
 
         default:
@@ -173,10 +173,10 @@ void radio_init(lv_obj_t *obj) {
     main_obj = obj;
 
     control_init();
-    dsp_set_spectrum_factor(params_mode.spectrum_factor);
+    dsp_set_spectrum_factor(op_mode->spectrum_factor);
+    settings_mode_update(op_work->mode);
 
-    radio_freq_set();
-    radio_mode_set();
+    radio_freq_update();
     radio_load_atu();
 
     lv_msg_subsribe(MSG_PTT, radio_msg_cb, NULL);
@@ -188,57 +188,53 @@ radio_state_t radio_get_state() {
 
 void radio_set_freq_rx(uint64_t freq) {
     uint64_t shift = 0;
-    
+
     if (!radio_check_freq(freq, &shift)) {
         LV_LOG_ERROR("Freq %llu incorrect", freq);
         return;
     }
 
-    params_lock();
-    params_band.freq_rx = freq;
-    params_band.shift = (shift != 0);
-    params_unlock(&params_band.durty.freq_rx);
+    op_work->rx = freq;
+    op_work->shift = (shift != 0);
 
     control_set_rx_freq(freq - shift);
     radio_load_atu();
 
-    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
+    lv_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);
 }
 
 void radio_set_freq_tx(uint64_t freq) {
     uint64_t shift = 0;
-    
+
     if (!radio_check_freq(freq, &shift)) {
         LV_LOG_ERROR("Freq %llu incorrect", freq);
         return;
     }
 
-    params_lock();
-    params_band.freq_tx = freq;
-    params_band.shift = (shift != 0);
-    params_unlock(&params_band.durty.freq_tx);
+    op_work->tx = freq;
+    op_work->shift = (shift != 0);
 
     control_set_tx_freq(freq - shift);
     radio_load_atu();
 
-    lv_msg_send(MSG_FREQ_TX_CHANGED, &params_band.freq_tx);
+    lv_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
 }
 
 uint64_t radio_set_freqs(uint64_t rx, uint64_t tx) {
-    uint64_t ret = 0;
+    uint64_t    ret = 0;
 
-    switch (params_band.split) {
+    switch (op_work->split) {
         case SPLIT_NONE:
             radio_set_freq_rx(rx);
             radio_set_freq_tx(tx);
             ret = rx;
             break;
-        
+
         case SPLIT_RX:
             radio_set_freq_rx(rx);
             ret = rx;
             break;
-            
+
         case SPLIT_TX:
             radio_set_freq_tx(tx);
             ret = tx;
@@ -250,18 +246,16 @@ uint64_t radio_set_freqs(uint64_t rx, uint64_t tx) {
 
 void radio_set_freq_fft(uint64_t freq) {
     uint64_t shift = 0;
-    
+
     if (!radio_check_freq(freq, &shift)) {
         LV_LOG_ERROR("Freq %llu incorrect", freq);
         return;
     }
 
-    params_lock();
-    params_band.freq_fft = freq;
-    params_unlock(&params_band.durty.freq_fft);
+    op_work->fft = freq;
 
     control_set_fft_freq(freq - shift);
-    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.freq_fft);
+    lv_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
 }
 
 bool radio_check_freq(uint64_t freq, uint64_t *shift) {
@@ -285,14 +279,12 @@ bool radio_check_freq(uint64_t freq, uint64_t *shift) {
 
 split_mode_t radio_change_split(int16_t d) {
     if (d == 0) {
-        return params_band.split;
+        return op_work->split;
     }
 
-    params_lock();
-    params_band.split = limit(params_band.split + d, 0, 2);
-    params_unlock(&params_band.durty.split);
-    
-    return params_band.split;
+    op_work->split = limit(op_work->split + d, 0, 2);
+
+    return op_work->split;
 }
 
 void radio_change_mute() {
@@ -338,70 +330,59 @@ uint16_t radio_change_sql(int16_t df) {
 
 bool radio_change_pre() {
     params_lock();
-    
-    params_band.pre = !params_band.pre;
-    params_unlock(&params_band.durty.pre);
 
-    voice_say_text_fmt("Preamplifier %s", params_band.pre ? "On" : "Off");
-    return params_band.pre;
+    op_work->pre = !op_work->pre;
+
+    voice_say_text_fmt("Preamplifier %s", op_work->pre ? "On" : "Off");
+    return op_work->pre;
 }
 
 bool radio_change_att() {
-    params_lock();
-    
-    params_band.att = !params_band.att;
-    params_unlock(&params_band.durty.att);
+    op_work->att = !op_work->att;
 
-    voice_say_text_fmt("Attenuator %s", params_band.att ? "On" : "Off");
-    return params_band.att;
+    voice_say_text_fmt("Attenuator %s", op_work->att ? "On" : "Off");
+    return op_work->att;
 }
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
-    radio_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = op_work->mode;
 
     switch (mode) {
         case RADIO_MODE_LSB:
-            *from_freq = -params_mode.filter_high;
-            *to_freq = -params_mode.filter_low;
+            *from_freq = -op_mode->filter.high;
+            *to_freq = -op_mode->filter.low;
             break;
-            
+
         case RADIO_MODE_USB:
         case RADIO_MODE_RTTY:
-            *from_freq = params_mode.filter_low;
-            *to_freq = params_mode.filter_high;
+            *from_freq = op_mode->filter.low;
+            *to_freq = op_mode->filter.high;
             break;
 
         case RADIO_MODE_CW:
-            *from_freq = params_mode.filter_low;
-            *to_freq = params_mode.filter_high;
+            *from_freq = op_mode->filter.low;
+            *to_freq = op_mode->filter.high;
             break;
-            
+
         case RADIO_MODE_CWR:
-            *from_freq = -params_mode.filter_high;
-            *to_freq = -params_mode.filter_low;
+            *from_freq = -op_mode->filter.high;
+            *to_freq = -op_mode->filter.low;
             break;
 
         case RADIO_MODE_AM:
         case RADIO_MODE_NFM:
-            *from_freq = -params_mode.filter_high;
-            *to_freq = params_mode.filter_high;
+            *from_freq = -op_mode->filter.high;
+            *to_freq = op_mode->filter.high;
             break;
-            
+
         default:
             *from_freq = 0;
             *to_freq = 0;
     }
 }
 
-void radio_set_mode(radio_mode_t mode) {
-    params_lock();
-    params_band.mode = mode;
-    params_unlock(&params_band.durty.mode);
-    lv_msg_send(MSG_MODE_CHANGED, &params_band.mode);
-}
-
 void radio_change_mode(radio_change_mode_t select) {
-    radio_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = op_work->mode;
 
     switch (select) {
         case RADIO_MODE_NEXT:
@@ -422,7 +403,7 @@ void radio_change_mode(radio_change_mode_t select) {
                     mode = RADIO_MODE_NFM;
                     voice_say_text_fmt("N F M modulation");
                     break;
-                    
+
                 case RADIO_MODE_NFM:
                     mode = RADIO_MODE_RTTY;
                     voice_say_text_fmt("R T T Y modulation");
@@ -434,7 +415,7 @@ void radio_change_mode(radio_change_mode_t select) {
                     break;
             }
             break;
-            
+
         case RADIO_MODE_SUBSET:
             switch (mode) {
                 case RADIO_MODE_CW:
@@ -458,86 +439,74 @@ void radio_change_mode(radio_change_mode_t select) {
                     break;
             }
             break;
-        
+
         default:
             break;
     }
 
-    params_mode_save();
-    radio_set_mode(mode);
-}
-
-radio_mode_t radio_current_mode() {
-    return params_band.mode;
+    op_work_set_mode(mode);
 }
 
 uint32_t radio_change_filter_low(int32_t df) {
     if (df == 0) {
-        return params_mode.filter_low;
+        return op_mode->filter.low;
     }
 
-    radio_mode_t    mode = radio_current_mode();
-    
+    radio_mode_t    mode = op_work->mode;
+
     if (mode == RADIO_MODE_AM || mode == RADIO_MODE_NFM) {
         return 0;
     }
 
-    params_lock();
+    op_mode->filter.low = align_int(op_mode->filter.low + df * 50, 50);
 
-    params_mode.filter_low = align_int(params_mode.filter_low + df * 50, 50);
-    
-    if (params_mode.filter_low < 0) {
-        params_mode.filter_low = 0;
-    } else if (params_mode.filter_low > params_mode.filter_high - 100) {
-        params_mode.filter_low = params_mode.filter_high - 100;
+    if (op_mode->filter.low < 0) {
+        op_mode->filter.low = 0;
+    } else if (op_mode->filter.low > op_mode->filter.high - 100) {
+        op_mode->filter.low = op_mode->filter.high - 100;
     }
-    params_unlock(&params_mode.durty.filter_low);
 
-    update_filter();
+    dsp_set_filter(&op_mode->filter);
 
-    return params_mode.filter_low;
+    return op_mode->filter.low;
 }
 
 uint32_t radio_change_filter_high(int32_t df) {
     if (df == 0) {
-        return params_mode.filter_high;
+        return op_mode->filter.high;
     }
 
-    radio_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = op_work->mode;
 
-    params_lock();
-    params_mode.filter_high = align_int(params_mode.filter_high + df * 50, 50);
+    op_mode->filter.high = align_int(op_mode->filter.high + df * 50, 50);
 
-    if (params_mode.filter_high < 600) {
-        params_mode.filter_high = 600;
-    } else if (params_mode.filter_high < params_mode.filter_low + 100) {
-        params_mode.filter_high = params_mode.filter_low + 100;
+    if (op_mode->filter.high < 600) {
+        op_mode->filter.high = 600;
+    } else if (op_mode->filter.high < op_mode->filter.low + 100) {
+        op_mode->filter.high = op_mode->filter.low + 100;
     }
-    params_unlock(&params_mode.durty.filter_high);
 
-    update_filter();
+    dsp_set_filter(&op_mode->filter);
 
-    return params_mode.filter_high;
+    return op_mode->filter.high;
 }
 
 uint32_t radio_change_filter_transition(int32_t df) {
     if (df == 0) {
-        return params_mode.filter_transition;
+        return op_mode->filter.transition;
     }
 
-    params_lock();
-    params_mode.filter_transition = align_int(params_mode.filter_transition + df * 2, 2);
+    op_mode->filter.transition = align_int(op_mode->filter.transition + df * 2, 2);
 
-    if (params_mode.filter_transition < 50) {
-        params_mode.filter_transition = 50;
-    } else if (params_mode.filter_transition > 200) {
-        params_mode.filter_transition = 200;
+    if (op_mode->filter.transition < 50) {
+        op_mode->filter.transition = 50;
+    } else if (op_mode->filter.transition > 200) {
+        op_mode->filter.transition = 200;
     }
-    params_unlock(&params_mode.durty.filter_transition);
 
-    update_filter();
+    dsp_set_filter(&op_mode->filter);
 
-    return params_mode.filter_transition;
+    return op_mode->filter.transition;
 }
 
 void radio_change_atu() {
@@ -559,38 +528,33 @@ bool radio_start_swrscan() {
     if (state != RADIO_RX) {
         return false;
     }
-    
-    state = RADIO_SWRSCAN;
 
-    // x6100_control_vfo_mode_set(params_band.vfo, radio_mode_am);
-    // x6100_control_txpwr_set(5.0f);
-    // x6100_control_swrscan_set(true);
-        
+    state = RADIO_SWRSCAN;
     return true;
 }
 
 void radio_stop_swrscan() {
     if (state == RADIO_SWRSCAN) {
-        // x6100_control_swrscan_set(false);
-        // x6100_control_txpwr_set(params.pwr);
         state = RADIO_RX;
     }
 }
 
 void radio_load_atu() {
+/* FIXME
     if (params.atu) {
-        if (params_band.shift) {
+        if (op_work->shift) {
             info_atu_update();
 
             return;
         }
-    
+
         uint32_t atu = params_atu_load(&params.atu_loaded);
 
         if (state != RADIO_SWRSCAN) {
             info_atu_update();
         }
     }
+*/
 }
 
 float radio_change_pwr(int16_t d) {

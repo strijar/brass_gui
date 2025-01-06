@@ -167,29 +167,28 @@ static void tx_info_draw_cb(lv_event_t * e) {
 
 }
 
-static void ptt_msg_cb(void *s, lv_msg_t *m) {
-    const int *on = lv_msg_get_payload(m);
-    
-    if (*on) {
-        pwr = 0;
-        vswr = 0;
-        alc = 0;
+static void rx_msg_cb(void *s, lv_msg_t *m) {
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+}
 
-        lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_move_foreground(obj);
-    } else {
-        lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-    }
+static void tx_msg_cb(void *s, lv_msg_t *m) {
+    pwr = 0;
+    vswr = 0;
+    alc = 0;
+
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(obj);
 }
 
 lv_obj_t * tx_info_init(lv_obj_t *parent) {
     obj = lv_obj_create(parent);
 
     lv_obj_add_style(obj, &tx_info_style, 0);
-    
+
     lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_event_cb(obj, tx_info_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
-    lv_msg_subsribe(MSG_PTT, ptt_msg_cb, NULL);
+    lv_msg_subsribe(MSG_RX, rx_msg_cb, NULL);
+    lv_msg_subsribe(MSG_TX, tx_msg_cb, NULL);
 
     grad.dir = LV_GRAD_DIR_VER;
     grad.stops_count = 4;
@@ -198,12 +197,12 @@ lv_obj_t * tx_info_init(lv_obj_t *parent) {
     grad.stops[1].color = bg_color;
     grad.stops[2].color = bg_color;
     grad.stops[3].color = lv_color_darken(bg_color, 200);
-    
+
     grad.stops[0].frac  = 0;
     grad.stops[1].frac  = 128 - 10;
     grad.stops[2].frac  = 128 + 10;
     grad.stops[3].frac  = 255;
-   
+
     return obj;
 }
 
@@ -218,7 +217,7 @@ void tx_info_update(float p, float s, float a) {
     }
 
     lv_obj_invalidate(obj);
-    
+
     if (params.mag_alc.x) {
         msg_tiny_set_text_fmt("ALC: %.1f", alc);
     }

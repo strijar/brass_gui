@@ -15,39 +15,112 @@
 #include "main_screen.h"
 #include "pannel.h"
 #include "voice.h"
+#include "settings/bands.h"
+#include "msgs.h"
+
+static op_work_t  op_dummy = {
+    .rx = 14100000,
+    .tx = 14100000,
+    .fft = 14100000,
+    .mode = RADIO_MODE_USB,
+    .split = SPLIT_NONE
+};
+
+band_settings_t     *band_settings = NULL;
 
 void bands_activate(band_t *band, bool touch_freq) {
-    params_lock();
-    
-    if (touch_freq) {
-        params_band_save();
-    }
-
-    params.band = band->id;
-    params_band_load(touch_freq);
-    params_unlock(&params.durty.band);
+    band_settings = &band->settings;
+    op_work = &band->work;
 
     if (touch_freq) {
-        radio_set_freq_rx(params_band.freq_rx);
-        radio_set_freq_tx(params_band.freq_tx);
-        radio_set_freq_fft(params_band.freq_fft);
-        band_info_update(params_band.freq_fft);
+        if (op_work->rx == 0) {
+            op_work->rx = band_settings->start / 2 + band_settings->stop / 2;
+        }
+
+        if (op_work->tx == 0) {
+            op_work->tx = band_settings->start / 2 + band_settings->stop / 2;
+        }
+
+        if (op_work->fft == 0) {
+            op_work->fft = band_settings->start / 2 + band_settings->stop / 2;
+        }
     }
 
-    radio_mode_set();
-    radio_load_atu();
+    op_work_activate(touch_freq);
+    lv_msg_send(MSG_MODE_CHANGED, &op_work->mode);
 }
 
 void bands_change(bool up) {
-    band_t band = { .name = NULL };
+    uint64_t    freq = op_work->rx;
+    int32_t     i;
 
-    params_band_freq_rx_set(params_band.freq_rx);
-    params_band_freq_fft_set(params_band.freq_fft);
-    
-    if (params_bands_find_next(params_band.freq_rx, up, &band)) {
-        bands_activate(&band, true);
-        main_screen_band_changed();
-            
-        voice_say_text_fmt("Band %s", band.name);
+    band_settings = NULL;
+
+    if (up) {
+        i = 0;
+
+        while (true) {
+            band_t *band = &bands->item[i];
+
+            if (band->settings.jump && band->settings.start > freq) {
+                bands_activate(band, true);
+                break;
+            }
+
+            i++;
+
+            if (i > bands->count) {
+                i = 0;
+            }
+        }
+    } else {
+        i = bands->count - 1;
+
+        while (true) {
+            band_t *band = &bands->item[i];
+
+            if (band->settings.jump && band->settings.stop < freq) {
+                bands_activate(band, true);
+                break;
+            }
+
+            i--;
+
+            if (i < 0) {
+                i = bands->count - 1;
+            }
+        }
     }
+
+    main_screen_band_changed();
+    voice_say_text_fmt("Band %s", band_settings->label);
+}
+
+bool bands_find(uint64_t freq) {
+    for (int32_t i = 0; i < bands->count; i++) {
+        band_t *band = &bands->item[i];
+
+        if (freq > band->settings.start && freq < band->settings.stop) {
+            bands_activate(band, false);
+            return true;
+        }
+    }
+
+    band_settings = NULL;
+    op_dummy = *op_work;
+    op_work = &op_dummy;
+
+    return false;
+}
+
+bool bands_prior(uint64_t freq) {
+    return band_settings && freq > band_settings->start && freq < band_settings->stop;
+}
+
+bool bands_changed(uint64_t freq) {
+    if (bands_prior(freq)) {
+        return false;
+    }
+
+    return bands_find(freq);
 }

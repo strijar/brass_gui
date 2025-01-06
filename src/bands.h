@@ -12,13 +12,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-typedef struct {
-    uint16_t    id;
-    char        *name;
-    uint64_t    start_freq;
-    uint64_t    stop_freq;
-    uint8_t     type;
-} band_t;
+#include "settings/bands.h"
+
+extern band_settings_t  *band_settings;
 
 void bands_activate(band_t *band, bool touch_freq);
 void bands_change(bool up);
+bool bands_find(uint64_t freq);
+bool bands_prior(uint64_t freq);
+bool bands_changed(uint64_t freq);

@@ -40,6 +40,8 @@
 #include "vt.h"
 #include "render/render.h"
 #include "gpio.h"
+#include "settings/bands.h"
+#include "settings/modes.h"
 
 #define DISP_BUF_SIZE (800 * 480)
 
@@ -65,6 +67,8 @@ int main(void) {
     pthread_mutex_init(&mux, NULL);
 
     params_init();
+    settings_modes_load();
+    settings_bands_load();
 
     lv_init();
     lv_png_init();

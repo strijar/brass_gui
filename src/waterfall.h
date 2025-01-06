@@ -19,6 +19,7 @@ extern float waterfall_auto_max;
 lv_obj_t * waterfall_init(lv_obj_t * parent);
 void waterfall_set_height(lv_coord_t h);
 void waterfall_update_band(uint64_t f);
+void waterfall_clear();
 
 /* From thread */
 

@@ -111,7 +111,7 @@ static void shift_freq(int32_t df) {
 static void waterfall_msg_cb(lv_event_t * e) {
     lv_obj_t *waterfall = lv_event_get_target(e);
     lv_msg_t *m = lv_event_get_msg(e);
-    
+
     switch (lv_msg_get_id(m)) {
         case MSG_FREQ_FFT_SHIFT: {
             const int32_t *df = lv_msg_get_payload(m);
@@ -120,13 +120,10 @@ static void waterfall_msg_cb(lv_event_t * e) {
         } break;
 
         case MSG_RATE_FFT_CHANGED: {
-            const uint8_t *zoom = lv_msg_get_payload(m);
+            const uint8_t   *zoom = lv_msg_get_payload(m);
 
             width_hz = 100000 / *zoom;
-
-            memset(frame->data, 0, frame->data_size);
-            scroll_hor = 0;
-            scroll_hor_surplus = 0;
+            waterfall_clear();
         } break;
     }
 }
@@ -281,4 +278,10 @@ void waterfall_set_height(lv_coord_t h) {
 
     lv_obj_move_foreground(finder);
     band_info_init(obj);
+}
+
+void waterfall_clear() {
+    memset(frame->data, 0, frame->data_size);
+    scroll_hor = 0;
+    scroll_hor_surplus = 0;
 }

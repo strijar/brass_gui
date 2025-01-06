@@ -153,7 +153,7 @@ static button_item_t    buttons[] = {
 };
 
 static void buttons_load_mode() {
-    switch (params_band.mode) {
+    switch (op_work->mode) {
         case RADIO_MODE_LSB:
         case RADIO_MODE_USB:
         case RADIO_MODE_AM:

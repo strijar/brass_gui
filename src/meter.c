@@ -130,14 +130,12 @@ static void meter_msg_cb(lv_event_t * e) {
     }
 }
 
-static void ptt_msg_cb(void *s, lv_msg_t *m) {
-    const int *on = lv_msg_get_payload(m);
-    
-    if (*on) {
-        lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
-    }
+static void rx_msg_cb(void *s, lv_msg_t *m) {
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+}
+
+static void tx_msg_cb(void *s, lv_msg_t *m) {
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
 }
 
 lv_obj_t * meter_init(lv_obj_t * parent) {
@@ -151,7 +149,8 @@ lv_obj_t * meter_init(lv_obj_t * parent) {
 
     lv_obj_add_event_cb(obj, meter_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
     lv_msg_subsribe_obj(MSG_SPECTRUM_AUTO, obj, NULL);
-    lv_msg_subsribe(MSG_PTT, ptt_msg_cb, NULL);
+    lv_msg_subsribe(MSG_RX, rx_msg_cb, NULL);
+    lv_msg_subsribe(MSG_TX, tx_msg_cb, NULL);
 
     return obj;
 }

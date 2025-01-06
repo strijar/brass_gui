@@ -10,6 +10,7 @@
 #include "styles.h"
 #include "params.h"
 #include "dsp/agc.h"
+#include "settings/modes.h"
 
 typedef enum {
     INFO_SPLIT = 0,
@@ -64,7 +65,7 @@ void info_atu_update() {
         lv_obj_set_style_bg_color(items[INFO_ATU], lv_color_black(), 0);
         lv_obj_set_style_bg_opa(items[INFO_ATU], LV_OPA_0, 0);
     } else {
-        if (params_band.shift) {
+        if (op_work->shift) {
             lv_obj_set_style_text_color(items[INFO_ATU], lv_color_hex(0xAAAAAA), 0);
             lv_obj_set_style_bg_opa(items[INFO_ATU], LV_OPA_20, 0);
         } else {
@@ -78,19 +79,19 @@ void info_atu_update() {
 const char* info_params_split() {
     char            *str;
 
-    switch (params_band.split) {
+    switch (op_work->split) {
         case SPLIT_NONE:
             str = "RX/TX";
             break;
-            
+
         case SPLIT_RX:
             str = "RX";
             break;
-            
+
         case SPLIT_TX:
             str = "TX";
             break;
-            
+
         default:
             str = "?";
             break;
@@ -100,22 +101,22 @@ const char* info_params_split() {
 }
 
 const char* info_params_mode() {
-    radio_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = op_work->mode;
     char            *str;
 
     switch (mode) {
         case RADIO_MODE_LSB:
             str = "LSB";
             break;
-            
+
         case RADIO_MODE_USB:
             str = "USB";
             break;
-            
+
         case RADIO_MODE_CW:
             str = "CW";
             break;
-            
+
         case RADIO_MODE_CWR:
             str = "CW-R";
             break;
@@ -123,7 +124,7 @@ const char* info_params_mode() {
         case RADIO_MODE_AM:
             str = "AM";
             break;
-            
+
         case RADIO_MODE_NFM:
             str = "NFM";
             break;
@@ -131,7 +132,7 @@ const char* info_params_mode() {
         case RADIO_MODE_RTTY:
             str = "RTTY";
             break;
-            
+
         default:
             str = "?";
             break;
@@ -143,19 +144,19 @@ const char* info_params_mode() {
 const char* info_params_agc() {
     char        *str;
 
-    switch (params_mode.agc) {
+    switch (op_mode->agc) {
         case AGC_OFF:
             str = "OFF";
             break;
-            
+
         case AGC_LONG:
             str = "LONG";
             break;
-            
+
         case AGC_SLOW:
             str = "SLOW";
             break;
-            
+
         case AGC_MED:
             str = "MED";
             break;
@@ -167,7 +168,7 @@ const char* info_params_agc() {
         case AGC_CUSTOM:
             str = "CUST";
             break;
-            
+
         default:
             str = "?";
             break;
@@ -177,15 +178,11 @@ const char* info_params_agc() {
 }
 
 bool info_params_att() {
-    radio_att_t     att = params_band.att;
-
-    return att == radio_att_on;
+    return op_work->att == radio_att_on;
 }
 
 bool info_params_pre() {
-    radio_pre_t     pre = params_band.pre;
-    
-    return pre == radio_pre_on;
+    return op_work->pre == radio_pre_on;
 }
 
 void info_params_set() {

@@ -98,55 +98,6 @@ typedef struct {
 
 /* * */
 
-typedef struct {
-    int32_t         filter_low;
-    int32_t         filter_high;
-    int32_t         filter_transition;
-    uint8_t         agc;
-
-    uint16_t        freq_step;
-    int16_t         spectrum_factor;
-
-    /* durty flags */
-    
-    struct {
-        bool    filter_low;
-        bool    filter_high;
-        bool    filter_transition;
-        bool    agc;
-
-        bool    freq_step;
-        bool    spectrum_factor;
-    } durty;
-} params_mode_t;
-
-typedef struct {
-    uint64_t        freq_rx;
-    uint64_t        freq_tx;
-    uint64_t        freq_fft;
-    bool            shift;
-    radio_att_t     att;
-    radio_pre_t     pre;
-    radio_mode_t    mode;
-
-    split_mode_t    split;
-    char            label[64];
-
-    /* durty flags */
-    
-    struct {
-        bool    freq_rx;
-        bool    freq_tx;
-        bool    freq_fft;
-        bool    att;
-        bool    pre;
-        bool    mode;
-
-        bool    split;
-        bool    label;
-    } durty;
-} params_band_t;
-
 typedef enum {
     BUTTONS_DARK = 0,
     BUTTONS_LIGHT,
@@ -305,14 +256,6 @@ typedef struct {
     bool                swrscan_linear;
     uint32_t            swrscan_span;
 
-    /* FT8 */
-    
-    bool                ft8_show_all;
-    ftx_protocol_t      ft8_protocol;
-    uint8_t             ft8_band;
-    params_uint16_t     ft8_tx_freq;
-    params_bool_t       ft8_auto;
-
     /* Long press actions */
     
     uint8_t             long_gen;
@@ -429,10 +372,6 @@ typedef struct {
         bool    swrscan_linear;
         bool    swrscan_span;
 
-        bool    ft8_show_all;
-        bool    ft8_protocol;
-        bool    ft8_band;
-
         bool    long_gen;
         bool    long_app;
         bool    long_key;
@@ -465,8 +404,6 @@ typedef struct {
 #define TRANSVERTER_NUM 2
 
 extern params_t params;
-extern params_band_t params_band;
-extern params_mode_t params_mode;
 extern transverter_t params_transverter[TRANSVERTER_NUM];
 
 void params_init();
@@ -482,26 +419,7 @@ void params_str_set(params_str_t *var, const char *x);
 
 uint8_t params_uint8_change(params_uint8_t *var, int16_t df);
 
-void params_band_save();
-void params_band_load(bool set_freq);
-
-void params_memory_save(uint16_t id);
-void params_memory_load(uint16_t id);
-
-void params_mode_save();
-void params_mode_load();
-
-void params_band_freq_rx_set(uint64_t freq);
-void params_band_freq_fft_set(uint64_t freq);
-
-void params_atu_save(uint32_t val);
-uint32_t params_atu_load(bool *loaded);
-
 void params_msg_cw_load();
 void params_msg_cw_new(const char *val);
 void params_msg_cw_edit(uint32_t id, const char *val);
 void params_msg_cw_delete(uint32_t id);
-
-band_t * params_bands_find_all(uint64_t freq, int32_t half_width, uint16_t *count);
-bool params_bands_find(uint64_t freq, band_t *band);
-bool params_bands_find_next(uint64_t freq, bool up, band_t *band);

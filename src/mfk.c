@@ -22,6 +22,7 @@
 #include "backlight.h"
 #include "voice.h"
 #include "dsp/agc.h"
+#include "settings/modes.h"
 
 mfk_state_t  mfk_state = MFK_STATE_EDIT;
 mfk_mode_t   mfk_mode = MFK_FILTER_LOW;
@@ -111,29 +112,26 @@ void mfk_update(int16_t diff, bool voice) {
         case MFK_SPECTRUM_FACTOR:
             if (diff != 0) {
                 update = false;
-                
-                params_lock();
-                params_mode.spectrum_factor += diff;
-                
-                if (params_mode.spectrum_factor < 1) {
-                    params_mode.spectrum_factor = 1;
-                } else if (params_mode.spectrum_factor > 4) {
-                    params_mode.spectrum_factor = 4;
+
+                op_mode->spectrum_factor += diff;
+
+                if (op_mode->spectrum_factor < 1) {
+                    op_mode->spectrum_factor = 1;
+                } else if (op_mode->spectrum_factor > 4) {
+                    op_mode->spectrum_factor = 4;
                 } else {
                     update = true;
                 }
-                
-                params_unlock(&params_mode.durty.spectrum_factor);
-            
+
                 if (update) {
-                    dsp_set_spectrum_factor(params_mode.spectrum_factor);
+                    dsp_set_spectrum_factor(op_mode->spectrum_factor);
                     main_screen_update_range();
                 }
             }
-            msg_set_text_fmt("#%3X Spectrum zoom: x%i", color, params_mode.spectrum_factor);
+            msg_set_text_fmt("#%3X Spectrum zoom: x%i", color, op_mode->spectrum_factor);
 
             if (diff) {
-                voice_say_int("Spectrum zoom", params_mode.spectrum_factor);
+                voice_say_int("Spectrum zoom", op_mode->spectrum_factor);
             } else if (voice) {
                 voice_say_text_fmt("Spectrum zoom");
             }

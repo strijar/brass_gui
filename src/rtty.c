@@ -247,7 +247,7 @@ void rtty_put_audio_samples(float complex *samples, size_t n) {
 
     cbuffercf_write(rx_buf, samples, n);
     
-    radio_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = op_work->mode;
 
     while (cbuffercf_size(rx_buf) > symbol_samples) {
         unsigned int    symbol;

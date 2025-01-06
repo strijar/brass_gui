@@ -102,7 +102,7 @@ void pannel_add_text(const char * text) {
 }
 
 void pannel_visible() {
-    radio_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = op_work->mode;
     bool            on = false;
 
     switch (mode) {
@@ -110,11 +110,11 @@ void pannel_visible() {
         case RADIO_MODE_CWR:
             on = params.cw_decoder;
             break;
-            
+
         case RADIO_MODE_RTTY:
             on = true;
             break;
-            
+
         default:
             break;
     }

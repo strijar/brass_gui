@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
 #include <unistd.h>
@@ -51,6 +51,8 @@
 #include "python/python.h"
 #include "msgs.h"
 #include "vt.h"
+#include "settings/bands.h"
+#include "settings/modes.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
@@ -71,6 +73,8 @@ static void next_freq_step(bool up);
 static uint64_t freq_update();
 
 void mem_load(uint16_t id) {
+    /* REWRITE
+
     params_memory_load(id);
 
     if (params_bands_find(params_band.freq_rx, &params.freq_band)) {
@@ -83,8 +87,8 @@ void mem_load(uint16_t id) {
         params.band = -1;
     }
 
-    radio_freq_set();
-    radio_mode_set();
+    radio_freq_update();
+    settings_mode_update(op_work->mode);
 
     radio_load_atu();
     info_params_set();
@@ -97,14 +101,17 @@ void mem_load(uint16_t id) {
     } else if (id <= MEM_NUM) {
         msg_set_text_fmt("Loaded from memory %i", id);
     }
+    */
 }
 
 void mem_save(uint16_t id) {
+    /* REWRITE
     params_memory_save(id);
-    
+
     if (id <= MEM_NUM) {
         msg_set_text_fmt("Saved in memory %i", id);
     }
+    */
 }
 
 /* * */
@@ -114,9 +121,9 @@ static uint64_t freq_update() {
     uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;
     uint16_t    mhz, khz, hz;
 
-    f = params_band.freq_fft;
+    f = op_work->fft;
 
-    int32_t half = 50000 / params_mode.spectrum_factor;
+    int32_t half = 50000 / op_mode->spectrum_factor;
 
     split_freq(f - half, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[0], "#%03X %i.%03i", color, mhz, khz);
@@ -124,7 +131,7 @@ static uint64_t freq_update() {
     split_freq(f + half, &mhz, &khz, &hz);
     lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
 
-    f = params_band.freq_rx;
+    f = op_work->rx;
 
     split_freq(f, &mhz, &khz, &hz);
 
@@ -136,76 +143,48 @@ static uint64_t freq_update() {
         }
     }
 
-    if (params_band.freq_rx != params_band.freq_tx) {
+    if (op_work->rx != op_work->tx) {
         uint16_t    mhz2, khz2, hz2;
-        uint64_t    f2 = params_band.freq_tx;
+        uint64_t    f2 = op_work->tx;
 
         split_freq(f2, &mhz2, &khz2, &hz2);
-        
+
         lv_label_set_text_fmt(freq[1], "#%03X %i.%03i.%03i / %i.%03i.%03i", color, mhz, khz, hz, mhz2, khz2, hz2);
     } else {
         lv_label_set_text_fmt(freq[1], "#%03X %i.%03i.%03i", color, mhz, khz, hz);
     }
-    
+
     return f;
 }
 
-static bool check_cross_band(uint64_t freq) {
-    uint8_t spectrum_factor = params_mode.spectrum_factor;
-
-    if (params_bands_find(freq, &params.freq_band)) {
-        if (params.freq_band.type != 0) {
-            if (params.freq_band.id != params.band) {
-                bands_activate(&params.freq_band, false);
-                
-                if (params_mode.spectrum_factor != spectrum_factor) {
-                    main_screen_update_range();
-                }
-                
-                info_params_set();
-                return true;
-            }
-        } else {
-            params.band = -1;
-        }
-    } else {
-        params.band = -1;
-    }
-
-    return false;
-}
-
 static void next_freq_step(bool up) {
-    params_lock();
-    
-    switch (params_mode.freq_step) {
+    switch (op_mode->freq_step) {
         case 10:
-            params_mode.freq_step = up ? 100 : 5000;
+            op_mode->freq_step = up ? 100 : 5000;
             break;
-            
+
         case 100:
-            params_mode.freq_step = up ? 500 : 10;
+            op_mode->freq_step = up ? 500 : 10;
             break;
-            
+
         case 500:
-            params_mode.freq_step = up ? 1000 : 100;
+            op_mode->freq_step = up ? 1000 : 100;
             break;
-            
+
         case 1000:
-            params_mode.freq_step = up ? 5000 : 500;
+            op_mode->freq_step = up ? 5000 : 500;
             break;
-            
+
         case 5000:
-            params_mode.freq_step = up ? 10 : 1000;
+            op_mode->freq_step = up ? 10 : 1000;
             break;
-            
+
         default:
             break;
     }
 
-    params_unlock(&params_mode.durty.freq_step);
-    msg_set_text_fmt("Freq step: %i Hz", params_mode.freq_step);
-    voice_say_text_fmt("Frequency step %i herz", params_mode.freq_step);
+    msg_set_text_fmt("Freq step: %i Hz", op_mode->freq_step);
+    voice_say_text_fmt("Frequency step %i herz", op_mode->freq_step);
 }
 
 static void apps_disable() {
@@ -243,7 +222,7 @@ void main_screen_app(app_t app) {
             dialog_construct(dialog_recorder, obj);
             voice_say_text_fmt("Audio recorder window");
             break;
-            
+
         default:
             break;
     }
@@ -283,11 +262,11 @@ void main_screen_action(press_action_t action) {
         case ACTION_STEP_DOWN:
             next_freq_step(false);
             break;
-            
+
         case ACTION_APP_FT8:
             main_screen_app(APP_FT8);
             break;
-            
+
         case ACTION_APP_SETTINGS:
             main_screen_app(APP_SETTINGS);
             break;
@@ -354,7 +333,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 dialog_send(EVENT_BAND_UP, NULL);
             }
             break;
-            
+
         case KEYPAD_BAND_DOWN:
             if (keypad->state == KEYPAD_RELEASE) {
                 if (!band_lock) {
@@ -377,15 +356,13 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (mode_lock) {
                 break;
             }
-        
+
             if (keypad->state == KEYPAD_RELEASE) {
                 radio_change_mode(RADIO_MODE_NEXT);
             } else if (keypad->state == KEYPAD_LONG) {
                 radio_change_mode(RADIO_MODE_SUBSET);
             }
 
-            params_mode_load();
-            radio_mode_set();
             info_params_set();
 
             if (params.mag_info.x) {
@@ -446,17 +423,17 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 case KEYPAD_PRESS:
                     radio_set_ptt(true);
 
-                    switch (radio_current_mode()) {
+                    switch (op_work->mode) {
                         case RADIO_MODE_CW:
                         case RADIO_MODE_CWR:
                             radio_set_morse_key(true);
                             break;
                     }
                     break;
-                    
+
                 case KEYPAD_RELEASE:
                 case KEYPAD_LONG_RELEASE:
-                    switch (radio_current_mode()) {
+                    switch (op_work->mode) {
                         case RADIO_MODE_CW:
                         case RADIO_MODE_CWR:
                             radio_set_morse_key(false);
@@ -494,7 +471,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
                 voice_say_text_fmt("Memory %i stored", hkey->key - HKEY_1 + 1);
             }
             break;
-            
+
         case HKEY_SPCH:
             if (hkey->state == HKEY_RELEASE) {
                 freq_lock = !freq_lock;
@@ -502,7 +479,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
                 voice_say_text_fmt("Frequency %s", freq_lock ? "locked" : "unlocked");
             }
             break;
-            
+
         case HKEY_TUNER:
             if (hkey->state == HKEY_RELEASE) {
                 radio_change_atu();
@@ -539,7 +516,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
                 dialog_send(EVENT_BAND_DOWN, NULL);
             }
             break;
-        
+
         case HKEY_F1:
             if (hkey->state == HKEY_RELEASE) {
                 main_screen_action(params.press_f1);
@@ -555,7 +532,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
                 main_screen_action(params.long_f2);
             }
             break;
-        
+
         default:
             break;
     }
@@ -564,13 +541,13 @@ static void main_screen_hkey_cb(lv_event_t * e) {
 static void main_screen_radio_cb(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
 
-    if (params_band.split) {
+    if (op_work->split) { // ???
         freq_update();
     }
-    
+
     lv_event_send(meter, code, NULL);
     lv_event_send(tx_info, code, NULL);
-    
+
     dialog_send(code, NULL);
 }
 
@@ -593,10 +570,10 @@ static uint16_t freq_accel(uint16_t diff) {
     switch (params.freq_accel.x) {
         case FREQ_ACCEL_NONE:
             return 1;
-            
+
         case FREQ_ACCEL_LITE:
             return (diff < 6) ? 5 : 10;
-            
+
         case FREQ_ACCEL_STRONG:
             return (diff < 6) ? 10 : 30;
     }
@@ -606,43 +583,46 @@ static void freq_shift(int16_t diff) {
     if (freq_lock) {
         return;
     }
-    
-    uint64_t    prev_freq_rx = params_band.freq_rx;
-    uint64_t    prev_freq_tx = params_band.freq_tx;
-    uint64_t    prev_freq_fft = params_band.freq_fft;
-    
-    int32_t     df = diff * params_mode.freq_step * freq_accel(abs(diff));
+
+    uint64_t    prev_freq_rx = op_work->rx;
+    uint64_t    prev_freq_tx = op_work->tx;
+    uint64_t    prev_freq_fft = op_work->fft;
+
+    int32_t     df = diff * op_mode->freq_step * freq_accel(abs(diff));
 
     uint64_t    freq_rx = align_long(prev_freq_rx + df, abs(df));
     uint64_t    freq_tx = align_long(prev_freq_tx + df, abs(df));
     uint64_t    freq_fft = align_long(prev_freq_fft + df, abs(df));
     int32_t     freq_delta = 0;
     int32_t     freq_shift = 0;
-    int32_t     half = 45000 / params_mode.spectrum_factor;
-    
-    switch (params_band.split) {
+    int32_t     half = 45000 / op_mode->spectrum_factor;
+
+    switch (op_work->split) {
         case SPLIT_NONE:
         case SPLIT_RX:
             freq_delta = freq_rx - freq_fft;
             break;
-            
+
         case SPLIT_TX:
             freq_delta = freq_tx - freq_fft;
             break;
     }
-    
+
     switch (params.freq_mode.x) {
         case FREQ_MODE_JOIN:
             radio_set_freqs(freq_rx, freq_tx);
             freq_shift = freq_rx - prev_freq_rx;
             lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
 
-            band_info_update(freq_rx);
+            if (bands_changed(freq_rx)) {
+                main_screen_update_range();
+                info_params_set();
+            }
 
-            check_cross_band(freq_rx);
+            band_info_update(freq_rx);
             voice_say_freq(freq_rx);
             break;
-            
+
         case FREQ_MODE_SLIDE:
             if (freq_delta < -half) {
                 freq_fft += freq_delta + half - df;
@@ -653,27 +633,36 @@ static void freq_shift(int16_t diff) {
             } else {
                 freq_shift = 0;
             }
-            
+
             if (freq_shift != 0) {
                 radio_set_freq_fft(freq_fft);
                 lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             }
 
-            check_cross_band(radio_set_freqs(freq_rx, freq_tx));
+            if (bands_changed(radio_set_freqs(freq_rx, freq_tx))) {
+                op_work->rx = freq_rx;
+                op_work->tx = freq_rx;
+                op_work->fft = freq_fft;
+                radio_set_freq_fft(op_work->fft);
+
+                band_info_update_range();
+                freq_update();
+                info_params_set();
+            }
             band_info_update(prev_freq_fft);
             break;
 
         case FREQ_MODE_RX_ONLY:
-            check_cross_band(radio_set_freqs(freq_rx, freq_tx));
+            radio_set_freqs(freq_rx, freq_tx);
             break;
-            
+
         case FREQ_MODE_FFT_ONLY:
             radio_set_freq_fft(freq_fft);
             freq_shift = freq_fft - prev_freq_fft;
             lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             band_info_update(freq_fft);
             break;
-            
+
         default:
             break;
     }
@@ -684,7 +673,7 @@ static void freq_shift(int16_t diff) {
 
 static void main_screen_rotary_cb(lv_event_t * e) {
     int32_t     diff = lv_event_get_param(e);
-    
+
     freq_shift(diff);
     dialog_rotary(diff);
 }
@@ -698,7 +687,7 @@ static void main_screen_key_cb(lv_event_t * e) {
                 freq_shift(-1);
             }
             break;
-            
+
         case '=':
             if (!freq_lock) {
                 freq_shift(+1);
@@ -717,7 +706,7 @@ static void main_screen_key_cb(lv_event_t * e) {
         case '[':
             vol_update(-1, false);
             break;
-            
+
         case KEY_VOL_RIGHT_EDIT:
         case ']':
             vol_update(+1, false);
@@ -727,30 +716,30 @@ static void main_screen_key_cb(lv_event_t * e) {
         case '{':
             vol_press(-1);
             break;
-            
+
         case KEY_VOL_RIGHT_SELECT:
         case '}':
             vol_press(+1);
             break;
-            
+
         case LV_KEY_LEFT:
             switch (mfk_state) {
                 case MFK_STATE_EDIT:
                     mfk_update(-1, false);
                     break;
-                    
+
                 case MFK_STATE_SELECT:
                     mfk_press(-1);
                     break;
             }
             break;
-            
+
         case LV_KEY_RIGHT:
             switch (mfk_state) {
                 case MFK_STATE_EDIT:
                     mfk_update(+1, false);
                     break;
-                    
+
                 case MFK_STATE_SELECT:
                     mfk_press(+1);
                     break;
@@ -764,7 +753,7 @@ static void main_screen_key_cb(lv_event_t * e) {
                         vol->mode = VOL_SELECT;
                         voice_say_text_fmt("Selection mode");
                         break;
-                        
+
                     case VOL_SELECT:
                         vol->mode = VOL_EDIT;
                         voice_say_text_fmt("Edit mode");
@@ -778,7 +767,7 @@ static void main_screen_key_cb(lv_event_t * e) {
         case KEYBOARD_PRINT_SCR:
             screenshot_take();
             break;
-            
+
         case KEYBOARD_SCRL_LOCK:
             freq_lock = !freq_lock;
             freq_update();
@@ -801,6 +790,8 @@ static void main_screen_key_cb(lv_event_t * e) {
             break;
 
         case KEYBOARD_F10:
+            settings_bands_save();
+            settings_modes_save();
             vt_enable();
             exit(1);
             break;
@@ -811,7 +802,7 @@ static void main_screen_key_cb(lv_event_t * e) {
                 dialog_construct(dialog_freq, obj);
             }
             break;
-            
+
         default:
             break;
     }
@@ -823,7 +814,7 @@ static void main_screen_pressed_cb(lv_event_t * e) {
             mfk_state = MFK_STATE_SELECT;
             voice_say_text_fmt("Selection mode");
             break;
-            
+
         case MFK_STATE_SELECT:
             mfk_state = MFK_STATE_EDIT;
             voice_say_text_fmt("Edit mode");
@@ -862,16 +853,15 @@ void main_screen_lock_mode(bool lock) {
 }
 
 void main_screen_set_freq(uint64_t freq) {
-    if (params_bands_find(freq, &params.freq_band)) {
-        if (params.freq_band.type != 0) {
-            if (params.freq_band.id != params.band) {
-                bands_activate(&params.freq_band, false);
-                info_params_set();
-            }
+    if (!bands_prior(freq)) {
+        if (bands_find(freq)) {
+            main_screen_update_range();
+            info_params_set();
         }
     }
 
     radio_set_freq_rx(freq);
+    radio_set_freq_tx(freq);
     radio_set_freq_fft(freq);
     lv_event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
 }
@@ -893,9 +883,9 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_pressed_cb, LV_EVENT_PRESSED, NULL);
 
     main_screen_keys_enable(true);
-    
+
     y += spectrum_height;
-    
+
     lv_obj_t *f;
 
     f = lv_label_create(obj);
@@ -922,7 +912,7 @@ lv_obj_t * main_screen() {
 
     lv_obj_set_y(waterfall, y);
     waterfall_set_height(480 - y);
-    
+
     buttons_init(obj);
 
     pannel_init(obj);
@@ -931,20 +921,20 @@ lv_obj_t * main_screen() {
 
     clock_init(obj);
     info_init(obj);
-    
+
     meter = meter_init(obj);
     tx_info = tx_info_init(obj);
-    
+
     main_screen_band_changed();
 
-    lv_msg_send(MSG_MODE_CHANGED, &params_band.mode);
-    lv_msg_send(MSG_FREQ_RX_CHANGED, &params_band.freq_rx);
-    lv_msg_send(MSG_FREQ_TX_CHANGED, &params_band.freq_tx);
-    lv_msg_send(MSG_FREQ_FFT_CHANGED, &params_band.freq_fft);
+    lv_msg_send(MSG_MODE_CHANGED, &op_work->mode);
+    lv_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);
+    lv_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
+    lv_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
 
     msg_set_text_fmt("TRX Brass de R1CBU " VERSION);
     msg_set_timeout(2000);
-    
+
     return obj;
 }
 
@@ -954,11 +944,12 @@ void main_screen_band_changed() {
     info_params_set();
     band_info_update_range();
     dsp_auto_clear();
+    waterfall_clear();
 }
 
 void main_screen_update_range() {
-    params_band.freq_fft = params_band.freq_rx;
-    radio_set_freq_fft(params_band.freq_fft);
+    op_work->fft = op_work->rx;
+    radio_set_freq_fft(op_work->fft);
 
     band_info_update_range();
     freq_update();

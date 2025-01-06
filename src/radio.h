@@ -78,9 +78,7 @@ void radio_set_freq_fft(uint64_t freq);
 bool radio_check_freq(uint64_t freq, uint64_t *shift);
 split_mode_t radio_change_split(int16_t d);
 
-void radio_set_mode(radio_mode_t mode);
 void radio_change_mode(radio_change_mode_t select);
-radio_mode_t radio_current_mode();
 
 uint16_t radio_change_rfg(int16_t df);
 uint16_t radio_change_sql(int16_t df);
@@ -117,8 +115,7 @@ void radio_load_atu();
 bool radio_start_swrscan();
 void radio_stop_swrscan();
 
-void radio_freq_set();
-void radio_mode_set();
+void radio_freq_update();
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq);
 void radio_poweroff();

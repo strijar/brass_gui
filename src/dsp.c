@@ -33,6 +33,7 @@
 #include "generator.h"
 #include "mic.h"
 #include "main.h"
+#include "settings/modes.h"
 
 const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
 
@@ -150,16 +151,18 @@ void dsp_reset() {
     delay = 4;
 }
 
-void dsp_set_filter(float low_freq, float high_freq, float transition, float attenuation) {
-    size_t len = firdes_compute_taps_len(12800.0f, transition, attenuation);
+void dsp_set_filter(filter_t *filter) {
+    size_t len = firdes_compute_taps_len(12800.0f, filter->transition, 40.0f);
 
     if (filter_len != len) {
         filter_taps = realloc(filter_taps, len * sizeof(float));
         filter_len = len;
     }
 
-    firdes_band_pass(1.0f, 12800.0f, low_freq, high_freq, filter_taps, filter_len);
+    firdes_band_pass(1.0f, 12800.0f, filter->low, filter->high, filter_taps, filter_len);
     filter_need_update = true;
+
+    lv_msg_send(MSG_FILTER_CHANGED, NULL);
 }
 
 void dsp_set_rx_agc(uint8_t mode) {
@@ -168,16 +171,14 @@ void dsp_set_rx_agc(uint8_t mode) {
 
 uint8_t dsp_change_rx_agc(int16_t df) {
     if (df == 0) {
-        return params_mode.agc;
+        return op_mode->agc;
     }
 
-    params_lock();
-    params_mode.agc = limit(params_mode.agc + df, AGC_OFF, AGC_CUSTOM);
-    params_unlock(&params_mode.durty.agc);
+    op_mode->agc = limit(op_mode->agc + df, AGC_OFF, AGC_CUSTOM);
 
-    dsp_set_rx_agc(params_mode.agc);
+    dsp_set_rx_agc(op_mode->agc);
 
-    return params_mode.agc;
+    return op_mode->agc;
 }
 
 void update_auto(uint64_t now) {
@@ -194,7 +195,6 @@ void update_auto(uint64_t now) {
         auto_time = now;
     }
 }
-
 
 void update_spectrum(uint64_t now) {
     if (now - spectrum_time > spectrum_fps_ms && spectrum_psd_count > 0) {
@@ -309,7 +309,7 @@ void dsp_adc(float complex *data, uint16_t samples) {
         return;
     }
 
-    radio_mode_t    mode = radio_current_mode();
+    radio_mode_t    mode = op_work->mode;
     float           peak = 0.0f;
 
     if (filter_need_update) {
@@ -492,7 +492,7 @@ size_t dsp_dac(float complex *data, size_t max_size) {
     if (state == RADIO_RX) {
         mic_on_air(false);
     } else {
-        radio_mode_t mode = radio_current_mode();
+        radio_mode_t mode = op_work->mode;
 
         switch (mode) {
             case RADIO_MODE_CW:

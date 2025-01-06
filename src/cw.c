@@ -17,6 +17,7 @@
 #include "pannel.h"
 #include "meter.h"
 #include "fpga/adc.h"
+#include "settings/modes.h"
 
 typedef struct {
     uint16_t    n;
@@ -66,8 +67,8 @@ static int compare_fft_items(const void *p1, const void *p2) {
 }
 
 static bool cw_get_peak() {
-    uint32_t    start = FFT / 2 + FFT * params_mode.filter_low / ADC_RATE;
-    uint32_t    stop = FFT / 2 + FFT * params_mode.filter_high / ADC_RATE;
+    uint32_t    start = FFT / 2 + FFT * op_mode->filter.low / ADC_RATE;
+    uint32_t    stop = FFT / 2 + FFT * op_mode->filter.high / ADC_RATE;
     uint16_t    num = stop - start;
 
     float       peak_db = 0;
