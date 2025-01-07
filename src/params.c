@@ -18,7 +18,6 @@
 #include "mfk.h"
 #include "vol.h"
 #include "dialog_msg_cw.h"
-#include "qth.h"
 #include "voice.h"
 #include "dsp/agc.h"
 #include "msgs.h"
@@ -129,9 +128,6 @@ params_t params = {
     .voice_rate             = { .x = 100, .min = 50, .max = 150,                .name = "voice_rate",     .voice = "Voice rate" },
     .voice_pitch            = { .x = 100, .min = 50, .max = 150,                .name = "voice_pitch",    .voice = "Voice pitch" },
     .voice_volume           = { .x = 100, .min = 50, .max = 150,                .name = "voice_volume",   .voice = "Voice volume" },
-
-    .qth                    = { .x = "",  .max_len = 6, .name = "qth" },
-    .callsign               = { .x = "",  .max_len = 12, .name = "callsign" },
 
     .mic_filter_low         = { .x = 150,   .min = 100,     .max = 300,     .name = "mic_filter_low" },
     .mic_filter_high        = { .x = 2900,  .min = 1000,    .max = 3200,    .name = "mic_filter_high" },
@@ -381,13 +377,6 @@ static bool params_load() {
         if (params_load_uint8(&params.freq_accel, name, i)) continue;
         if (params_load_uint8(&params.freq_mode, name, i)) continue;
         if (params_load_int32(&params.txo_offset, name, i)) continue;
-
-        if (params_load_str(&params.qth, name, t)) { 
-            qth_update(t);
-            continue;
-        }
-
-        if (params_load_str(&params.callsign, name, t)) continue;
     }
     
     sqlite3_finalize(stmt);
@@ -581,9 +570,6 @@ static void params_save() {
     params_save_bool(&params.mag_freq);
     params_save_bool(&params.mag_info);
     params_save_bool(&params.mag_alc);
-
-    params_save_str(&params.qth);
-    params_save_str(&params.callsign);
 
     params_exec("COMMIT");
 }

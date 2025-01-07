@@ -42,6 +42,7 @@
 #include "gpio.h"
 #include "settings/bands.h"
 #include "settings/modes.h"
+#include "settings/options.h"
 
 #define DISP_BUF_SIZE (800 * 480)
 
@@ -62,6 +63,14 @@ void lv_unlock() {
     pthread_mutex_unlock(&mux);
 }
 
+void main_exit() {
+    settings_bands_save();
+    settings_modes_save();
+    settings_options_save();
+    vt_enable();
+    exit(1);
+}
+
 int main(void) {
     vt_disable();
     pthread_mutex_init(&mux, NULL);
@@ -69,6 +78,7 @@ int main(void) {
     params_init();
     settings_modes_load();
     settings_bands_load();
+    settings_options_load();
 
     lv_init();
     lv_png_init();

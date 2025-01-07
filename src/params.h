@@ -285,10 +285,7 @@ typedef struct {
     params_uint8_t      voice_rate;
     params_uint8_t      voice_pitch;
     params_uint8_t      voice_volume;
-    
-    params_str_t        qth;
-    params_str_t        callsign;
-    
+
     /* Mic */
 
     params_uint16_t     mic_filter_low;

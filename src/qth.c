@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
 #include <math.h>
@@ -12,45 +12,40 @@
 #include <stdint.h>
 
 #include "qth.h"
-#include "params.h"
+#include "settings/options.h"
 
 static double qth_lon = 0.0;
 static double qth_lat = 0.0;
 
-void qth_set(const char *qth) {
-    params_str_set(&params.qth, qth);
-    qth_update(qth);
-}
-
 void qth_update(const char *qth) {
     grid_pos(qth, &qth_lat, &qth_lon);
-    
+
     qth_lat = qth_lat * M_PI / 180.0;
     qth_lon = qth_lon * M_PI / 180.0;
 }
 
 bool grid_check(const char *grid) {
     uint8_t len = strlen(grid);
-    
+
     switch (len) {
         case 8:
             if (grid[7] < '0' || grid[7] > '9') return false;
             if (grid[6] < '0' || grid[6] > '9') return false;
         case 6:
-            if (toupper(grid[5]) < 'A' || toupper(grid[5]) > 'S') return false;
-            if (toupper(grid[4]) < 'A' || toupper(grid[4]) > 'S') return false;
+            if (toupper(grid[5]) < 'A' || toupper(grid[5]) > 'X') return false;
+            if (toupper(grid[4]) < 'A' || toupper(grid[4]) > 'X') return false;
         case 4:
             if (grid[3] < '0' || grid[3] > '9') return false;
             if (grid[2] < '0' || grid[2] > '9') return false;
         case 2:
-            if (toupper(grid[1]) < 'A' || toupper(grid[1]) > 'S') return false;
-            if (toupper(grid[0]) < 'A' || toupper(grid[0]) > 'S') return false;
+            if (toupper(grid[1]) < 'A' || toupper(grid[1]) > 'R') return false;
+            if (toupper(grid[0]) < 'A' || toupper(grid[0]) > 'R') return false;
             break;
-            
+
         default:
             return false;
     }
-    
+
     return true;
 }
 
@@ -134,15 +129,15 @@ void grid_pos(const char *grid, double *lat, double *lon) {
 
     *lon = -180.0;
     *lat = -90.0;
-    
+
     *lon += (toupper(grid[0]) - 'A') * 20.0;
     *lat += (toupper(grid[1]) - 'A') * 10.0;
-    
+
     if (n >= 4) {
         *lon += (grid[2] - '0') * 2.0;
         *lat += (grid[3] - '0') * 1.0;
     }
-    
+
     if (n >= 6) {
         *lon += (toupper(grid[4]) - 'A') * 5.0 / 60.0;
         *lat += (toupper(grid[5]) - 'A') * 2.5 / 60.0;
@@ -152,7 +147,7 @@ void grid_pos(const char *grid, double *lat, double *lon) {
         *lon += (grid[6] - '0') * 5.0 / 600.0;
         *lat += (grid[7] - '0') * 2.5 / 600.0;
     }
-    
+
     switch (n) {
         case 2:
             *lon += 20.0 / 2;
@@ -163,12 +158,12 @@ void grid_pos(const char *grid, double *lat, double *lon) {
             *lon += 2.0 / 2;
             *lat += 1.0 / 2;
             break;
-            
+
         case 6:
             *lon += 5.0 / 60.0 / 2;
             *lat += 2.5 / 60.0 / 2;
             break;
-            
+
         case 8:
             *lon += 5.0 / 600.0 / 2;
             *lat += 2.5 / 600.0 / 2;
@@ -180,14 +175,14 @@ int32_t grid_dist(const char *grid) {
     double lon = 0;
 
     grid_pos(grid, &lat, &lon);
-    
+
     lat = lat * M_PI / 180.0;
     lon = lon * M_PI / 180.0;
-    
+
     double dlat = lat - qth_lat;
     double dlon = lon - qth_lon;
     double a = sin(dlat / 2.0) * sin(dlat / 2.0) + cos(lat) * cos(qth_lat) * sin(dlon / 2.0) * sin(dlon / 2.0);
     double c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
-    
+
     return c * 6371;
 }

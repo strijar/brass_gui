@@ -50,7 +50,6 @@
 #include "voice.h"
 #include "python/python.h"
 #include "msgs.h"
-#include "vt.h"
 #include "settings/bands.h"
 #include "settings/modes.h"
 
@@ -790,10 +789,7 @@ static void main_screen_key_cb(lv_event_t * e) {
             break;
 
         case KEYBOARD_F10:
-            settings_bands_save();
-            settings_modes_save();
-            vt_enable();
-            exit(1);
+            main_exit();
             break;
 
         case HKEY_FINP:

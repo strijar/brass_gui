@@ -7,6 +7,7 @@
  */
 
 #include "styles.h"
+#include "main.h"
 #include "main_screen.h"
 #include "buttons.h"
 #include "mfk.h"
@@ -27,7 +28,6 @@
 #include "voice.h"
 #include "events.h"
 #include "msgs.h"
-#include "vt.h"
 
 #define BUTTONS     6
 
@@ -180,8 +180,7 @@ static void mode_changed_cb(void *s, lv_msg_t *m) {
 }
 
 static void button_exit_cb(lv_event_t * e) {
-    vt_enable();
-    exit(1);
+    main_exit();
 }
 
 void buttons_init(lv_obj_t *parent) {

@@ -1,19 +1,19 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
 #include "textarea_window.h"
-#include "params.h"
 #include "main_screen.h"
 #include "qth.h"
 #include "msg.h"
 #include "dialog.h"
 #include "events.h"
 #include "dsp.h"
+#include "settings/options.h"
 
 static void construct_cb(lv_obj_t *parent);
 static void destruct_cb();
@@ -33,7 +33,8 @@ static void edit_ok() {
     const char *qth = textarea_window_get();
 
     if (grid_check(qth)) {
-        qth_set(qth);
+        strcpy(options->operator.qth, qth);
+        qth_update(qth);
     } else {
         msg_set_text_fmt("Incorrect QTH Grid");
     }
@@ -45,10 +46,10 @@ static void edit_cancel() {
 
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = textarea_window_open(edit_ok, edit_cancel);
-    
+
     lv_obj_t *text = textarea_window_text();
-    
-    lv_textarea_set_accepted_chars(text, 
+
+    lv_textarea_set_accepted_chars(text,
         "0123456789"
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -58,7 +59,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_textarea_set_placeholder_text(text, "QTH Grid");
     lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
 
-    textarea_window_set(params.qth.x);
+    textarea_window_set(options->operator.qth);
 }
 
 static void destruct_cb() {
@@ -78,7 +79,7 @@ static void key_cb(lv_event_t * e) {
             edit_ok();
             dialog_destruct();
             break;
-            
+
         case KEY_VOL_LEFT_EDIT:
         case KEY_VOL_LEFT_SELECT:
             dsp_change_vol(-1);

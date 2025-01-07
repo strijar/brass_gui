@@ -19,7 +19,6 @@
 #include "dialog.h"
 #include "dialog_ft8.h"
 #include "styles.h"
-#include "params.h"
 #include "dsp.h"
 #include "audio.h"
 #include "keyboard.h"
@@ -36,6 +35,7 @@
 #include "settings/modes.h"
 #include "settings/memory.h"
 #include "settings/ft8.h"
+#include "settings/options.h"
 
 #include "widgets/lv_waterfall.h"
 #include "widgets/lv_finder.h"
@@ -351,9 +351,9 @@ static const char * find_qth(const char *str) {
 }
 
 static bool to_me(const char * text) {
-    int16_t         callsign_len = strlen(params.callsign.x);
+    int16_t         callsign_len = strlen(options->operator.callsign);
 
-    return (callsign_len > 0) && (strncasecmp(text, params.callsign.x, callsign_len) == 0);
+    return (callsign_len > 0) && (strncasecmp(text, options->operator.callsign, callsign_len) == 0);
 }
 
 static void send_rx_text(int16_t snr, const char * text) {
@@ -380,7 +380,7 @@ static void send_rx_text(int16_t snr, const char * text) {
     msg->cell->type = type;
     msg->cell->odd = odd;
 
-    if (params.qth.x[0] != 0) {
+    if (options->operator.qth[0] != 0) {
         const char *qth = find_qth(text);
 
         msg->cell->dist = qth ? grid_dist(qth) : 0;
@@ -889,31 +889,31 @@ static void clean() {
 static void make_tx_msg(ft8_tx_msg_t msg, int16_t snr) {
     char qth[5] = "";
 
-    if (strlen(params.qth.x) >= 4) {
-        strncpy(qth, params.qth.x, sizeof(qth) - 1);
+    if (strlen(options->operator.qth) >= 4) {
+        strncpy(qth, options->operator.qth, sizeof(qth) - 1);
     }
 
     switch (msg) {
         case MSG_TX_CQ:
-            snprintf(tx_msg, sizeof(tx_msg) - 1, "CQ %s %s", params.callsign.x, qth);
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "CQ %s %s", options->operator.callsign, qth);
             break;
 
         case MSG_TX_CALLING:
             qso_item.local_snr = snr;
-            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s %s", qso_item.remote_callsign, params.callsign.x, qth);
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s %s", qso_item.remote_callsign, options->operator.callsign, qth);
             break;
 
         case MSG_TX_REPORT:
             qso_item.local_snr = snr;
-            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s %+02i", qso_item.remote_callsign, params.callsign.x, qso_item.local_snr);
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s %+02i", qso_item.remote_callsign, options->operator.callsign, qso_item.local_snr);
             break;
 
         case MSG_TX_R_REPORT:
-            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s R%+02i", qso_item.remote_callsign, params.callsign.x, qso_item.local_snr);
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s R%+02i", qso_item.remote_callsign, options->operator.callsign, qso_item.local_snr);
             break;
 
         case MSG_TX_RR73:
-            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s RR73", qso_item.remote_callsign, params.callsign.x);
+            snprintf(tx_msg, sizeof(tx_msg) - 1, "%s %s RR73", qso_item.remote_callsign, options->operator.callsign);
             break;
 
         default:
@@ -1287,7 +1287,7 @@ static void mode_auto_cb(lv_event_t * e) {
 }
 
 static void tx_cq_dis_cb(lv_event_t * e) {
-    if (strlen(params.callsign.x) == 0) {
+    if (strlen(options->operator.callsign) == 0) {
         msg_set_text_fmt("Call sign required");
 
         return;
@@ -1314,7 +1314,7 @@ static void tx_call_off() {
 }
 
 static void tx_call_dis_cb(lv_event_t * e) {
-    if (strlen(params.callsign.x) == 0) {
+    if (strlen(options->operator.callsign) == 0) {
         msg_set_text_fmt("Call sign required");
 
         return;

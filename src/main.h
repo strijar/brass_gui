@@ -23,3 +23,5 @@ extern encoder_t    *mfk;
 
 void lv_lock();
 void lv_unlock();
+
+void main_exit();

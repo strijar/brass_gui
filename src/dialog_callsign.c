@@ -1,17 +1,17 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
 #include "textarea_window.h"
-#include "params.h"
 #include "main_screen.h"
 #include "dialog.h"
 #include "events.h"
 #include "dsp.h"
+#include "settings/options.h"
 
 static void construct_cb(lv_obj_t *parent);
 static void destruct_cb();
@@ -28,7 +28,7 @@ static dialog_t             dialog = {
 dialog_t                    *dialog_callsign = &dialog;
 
 static void edit_ok() {
-    params_str_set(&params.callsign, textarea_window_get());
+    strcpy(options->operator.callsign, textarea_window_get());
 }
 
 static void edit_cancel() {
@@ -37,20 +37,20 @@ static void edit_cancel() {
 
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = textarea_window_open(edit_ok, edit_cancel);
-    
+
     lv_obj_t *text = textarea_window_text();
-    
+
     lv_textarea_set_accepted_chars(text, 
         "0123456789/"
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     );
 
-    lv_textarea_set_max_length(text, sizeof(params.callsign.x) - 1);
+    lv_textarea_set_max_length(text, sizeof(options->operator.callsign) - 1);
     lv_textarea_set_placeholder_text(text, "Callsign");
     lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
 
-    textarea_window_set(params.callsign.x);
+    textarea_window_set(options->operator.callsign);
 }
 
 static void destruct_cb() {
@@ -70,7 +70,7 @@ static void key_cb(lv_event_t * e) {
             edit_ok();
             dialog_destruct();
             break;
-            
+
         case KEY_VOL_LEFT_EDIT:
         case KEY_VOL_LEFT_SELECT:
             dsp_change_vol(-1);

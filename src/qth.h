@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
 #pragma once
@@ -11,7 +11,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void qth_set(const char *qth);
 void qth_update(const char *qth);
 
 bool grid_check(const char *grid);
