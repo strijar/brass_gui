@@ -6,3 +6,10 @@ audio:
   vol: 15
   mic:
      filter: {low: 150, high: 2900, transition: 100}
+
+spectrum:
+  beta: 0.7
+  filled: false
+  peak: false
+  peak_hold: 5000
+  peak_speed: 0.5

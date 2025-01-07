@@ -23,6 +23,7 @@
 #include "voice.h"
 #include "dsp/agc.h"
 #include "settings/modes.h"
+#include "settings/options.h"
 
 mfk_state_t  mfk_state = MFK_STATE_EDIT;
 mfk_mode_t   mfk_mode = MFK_FILTER_LOW;
@@ -139,21 +140,19 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_SPECTRUM_BETA:
             if (diff != 0) {
-                params_lock();
-                params.spectrum_beta += (diff < 0) ? -5 : 5;
-                
-                if (params.spectrum_beta < 0) {
-                    params.spectrum_beta = 0;
-                } else if (params.spectrum_beta > 90) {
-                    params.spectrum_beta = 90;
+                f = options->spectrum.beta + diff * 0.05f;
+
+                if (f < 0.0f) {
+                    f = 0.0f;
+                } else if (f > 0.9f) {
+                    f = 0.9f;
                 }
-                params_unlock(&params.durty.spectrum_beta);
-                dsp_set_spectrum_beta(params.spectrum_beta / 100.0f);
+                options->spectrum.beta = f;
             }
-            msg_set_text_fmt("#%3X Spectrum beta: %i", color, params.spectrum_beta);
+            msg_set_text_fmt("#%3X Spectrum beta: %.2f", color, options->spectrum.beta);
 
             if (diff) {
-                voice_say_int("Spectrum beta", params.spectrum_beta);
+                voice_say_float("Spectrum beta", options->spectrum.beta);
             } else if (voice) {
                 voice_say_text_fmt("Spectrum beta");
             }
@@ -161,29 +160,25 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_SPECTRUM_FILL:
             if (diff != 0) {
-                params_lock();
-                params.spectrum_filled = !params.spectrum_filled;
-                params_unlock(&params.durty.spectrum_filled);
+                options->spectrum.filled = !options->spectrum.filled;
             }
-            msg_set_text_fmt("#%3X Spectrum fill: %s", color, params.spectrum_filled ? "On" : "Off");
+            msg_set_text_fmt("#%3X Spectrum fill: %s", color, options->spectrum.filled ? "On" : "Off");
 
             if (diff) {
-                voice_say_bool("Spectrum fill", params.spectrum_filled);
+                voice_say_bool("Spectrum fill", options->spectrum.filled);
             } else if (voice) {
                 voice_say_text_fmt("Spectrum fill switcher");
             }
             break;
-            
+
         case MFK_SPECTRUM_PEAK:
             if (diff != 0) {
-                params_lock();
-                params.spectrum_peak = !params.spectrum_peak;
-                params_unlock(&params.durty.spectrum_peak);
+                options->spectrum.peak = !options->spectrum.peak;
             }
-            msg_set_text_fmt("#%3X Spectrum peak: %s", color, params.spectrum_peak ? "On" : "Off");
+            msg_set_text_fmt("#%3X Spectrum peak: %s", color, options->spectrum.peak ? "On" : "Off");
 
             if (diff) {
-                voice_say_bool("Spectrum peak", params.spectrum_peak);
+                voice_say_bool("Spectrum peak", options->spectrum.peak);
             } else if (voice) {
                 voice_say_text_fmt("Spectrum peak switcher");
             }
@@ -191,50 +186,38 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_PEAK_HOLD:
             if (diff != 0) {
-                i = params.spectrum_peak_hold + diff * 1000;
-                
-                if (i < 1000) {
-                    i = 1000;
-                } else if (i > 10000) {
-                    i = 10000;
-                }
-                
-                params_lock();
-                params.spectrum_peak_hold = i;
-                params_unlock(&params.durty.spectrum_peak_hold);
+                options->spectrum.peak_hold = limit(options->spectrum.peak_hold + diff * 1000, 1000, 10000);
             }
-            msg_set_text_fmt("#%3X Peak hold: %i s", color, params.spectrum_peak_hold / 1000);
+            msg_set_text_fmt("#%3X Peak hold: %i s", color, options->spectrum.peak_hold / 1000);
 
             if (diff) {
-                voice_say_int("Peak hold time", params.spectrum_peak_hold / 1000);
+                voice_say_int("Peak hold time", options->spectrum.peak_hold / 1000);
             } else if (voice) {
                 voice_say_text_fmt("Peak hold time");
             }
             break;
-            
+
         case MFK_PEAK_SPEED:
             if (diff != 0) {
-                f = params.spectrum_peak_speed + diff * 0.1f;
-                
+                f = options->spectrum.peak_speed + diff * 0.1f;
+
                 if (f < 0.1f) {
                     f = 0.1f;
                 } else if (f > 3.0f) {
                     f = 3.0f;
                 }
-                
-                params_lock();
-                params.spectrum_peak_speed = f;
-                params_unlock(&params.durty.spectrum_peak_speed);
+
+                options->spectrum.peak_speed = f;
             }
-            msg_set_text_fmt("#%3X Peak speed: %.1f dB", color, params.spectrum_peak_speed);
+            msg_set_text_fmt("#%3X Peak speed: %.1f dB", color, options->spectrum.peak_speed);
 
             if (diff) {
-                voice_say_float("Peak speed time", params.spectrum_peak_speed);
+                voice_say_float("Peak speed time", options->spectrum.peak_speed);
             } else if (voice) {
                 voice_say_text_fmt("Peak speed time");
             }
             break;
-            
+
         case MFK_KEY_SPEED:
             i = cw_key_change_speed(diff);
             msg_set_text_fmt("#%3X Key speed: %i wpm", color, i);

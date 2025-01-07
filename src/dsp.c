@@ -45,7 +45,6 @@ static pthread_mutex_t  spectrum_mux;
 
 static float            *spectrum_psd;
 static uint16_t         spectrum_psd_count = 0;
-static float            spectrum_beta = 0.7f;
 static uint16_t         spectrum_fps_ms = (1000 / 20);
 static uint64_t         spectrum_time;
 static msgs_auto_t      spectrum_auto_msg;
@@ -202,7 +201,7 @@ void update_spectrum(uint64_t now) {
         for (uint16_t i = 0; i < spectrum_data_msg.size; i++) {
             float x = spectrum_psd[i] / spectrum_psd_count;
 
-            lpf(&spectrum_data_msg.data[i], dB(x), spectrum_beta);
+            lpf(&spectrum_data_msg.data[i], dB(x), options->spectrum.beta);
         }
 
         lv_lock();
@@ -393,14 +392,6 @@ void dsp_adc(float complex *data, uint16_t samples) {
 void dsp_set_spectrum_factor(uint8_t x) {
     control_set_fft_rate(240 * x);
     lv_msg_send(MSG_RATE_FFT_CHANGED, &x);
-}
-
-float dsp_get_spectrum_beta() {
-    return spectrum_beta;
-}
-
-void dsp_set_spectrum_beta(float x) {
-    spectrum_beta = x;
 }
 
 void dsp_auto_clear() {

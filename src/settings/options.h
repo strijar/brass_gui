@@ -27,8 +27,17 @@ typedef struct {
 } options_audio_t;
 
 typedef struct {
+    float               beta;
+    bool                filled;
+    bool                peak;
+    uint16_t            peak_hold;
+    float               peak_speed;
+} options_spectrum_t;
+
+typedef struct {
     options_operator_t  operator;
     options_audio_t     audio;
+    options_spectrum_t  spectrum;
 } options_t;
 
 extern options_t   *options;

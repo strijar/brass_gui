@@ -187,11 +187,6 @@ typedef struct {
     
     /* main screen */
     
-    int16_t             spectrum_beta;
-    bool                spectrum_peak;
-    uint16_t            spectrum_peak_hold;
-    float               spectrum_peak_speed;
-    bool                spectrum_filled;
     params_bool_t       mag_freq;
     params_bool_t       mag_info;
     params_bool_t       mag_alc;
@@ -294,12 +289,7 @@ typedef struct {
         bool    vox_ag;
         bool    vox_delay;
         bool    vox_gain;
-        
-        bool    spectrum_beta;
-        bool    spectrum_peak;
-        bool    spectrum_peak_hold;
-        bool    spectrum_peak_speed;
-        bool    spectrum_filled;
+
         bool    clock_view;
         bool    clock_time_timeout;
         bool    clock_power_timeout;

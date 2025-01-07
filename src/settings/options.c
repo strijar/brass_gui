@@ -10,6 +10,7 @@
 #include "lvgl/lvgl.h"
 #include "options.h"
 #include "src/qth.h"
+#include "src/dsp.h"
 
 static const char  filename[] = "/mnt/settings/options.yaml";
 
@@ -30,9 +31,19 @@ const cyaml_schema_field_t audio_fields_schema[] = {
     CYAML_FIELD_END
 };
 
+const cyaml_schema_field_t spectrum_fields_schema[] = {
+    CYAML_FIELD_FLOAT("beta",           CYAML_FLAG_OPTIONAL, options_spectrum_t, beta),
+    CYAML_FIELD_BOOL("filled",          CYAML_FLAG_OPTIONAL, options_spectrum_t, filled),
+    CYAML_FIELD_BOOL("peak",            CYAML_FLAG_OPTIONAL, options_spectrum_t, peak),
+    CYAML_FIELD_UINT("peak_hold",       CYAML_FLAG_OPTIONAL, options_spectrum_t, peak_hold),
+    CYAML_FIELD_FLOAT("peak_speed",     CYAML_FLAG_OPTIONAL, options_spectrum_t, peak_speed),
+    CYAML_FIELD_END
+};
+
 const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, operator, operator_fields_schema),
     CYAML_FIELD_MAPPING("audio",        CYAML_FLAG_OPTIONAL, options_t, audio, audio_fields_schema),
+    CYAML_FIELD_MAPPING("spectrum",     CYAML_FLAG_OPTIONAL, options_t, spectrum, spectrum_fields_schema),
     CYAML_FIELD_END
 };
 
@@ -57,6 +68,8 @@ void settings_options_load() {
         LV_LOG_ERROR("%s", cyaml_strerror(err));
         return;
     }
+
+    qth_update(options->operator.qth);
 }
 
 void settings_options_save() {
@@ -68,6 +81,4 @@ void settings_options_save() {
         LV_LOG_ERROR("%s", cyaml_strerror(err));
         return;
     }
-
-    qth_update(options->operator.qth);
 }

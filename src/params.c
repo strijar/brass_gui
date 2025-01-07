@@ -33,11 +33,6 @@ params_t params = {
     .brightness_timeout     = 10,
     .brightness_buttons     = BUTTONS_TEMPORARILY,
 
-    .spectrum_beta          = 70,
-    .spectrum_filled        = true,
-    .spectrum_peak          = true,
-    .spectrum_peak_hold     = 5000,
-    .spectrum_peak_speed    = 0.5f,
     .mag_freq               = { .x = true,  .name = "mag_freq",             .voice = "Magnification of frequency" },
     .mag_info               = { .x = true,  .name = "mag_info",             .voice = "Magnification of info" },
     .mag_alc                = { .x = true,  .name = "mag_alc",              .voice = "Magnification of A L C" },
@@ -211,16 +206,6 @@ static bool params_load() {
             params.atu = i;
         } else if (strcmp(name, "pwr") == 0) {
             params.pwr = i * 0.1f;
-        } else if (strcmp(name, "spectrum_beta") == 0) {
-            params.spectrum_beta = i;
-        } else if (strcmp(name, "spectrum_filled") == 0) {
-            params.spectrum_filled = i;
-        } else if (strcmp(name, "spectrum_peak") == 0) {
-            params.spectrum_peak = i;
-        } else if (strcmp(name, "spectrum_peak_hold") == 0) {
-            params.spectrum_peak_hold = i;
-        } else if (strcmp(name, "spectrum_peak_speed") == 0) {
-            params.spectrum_peak_speed = i * 0.1f;
         } else if (strcmp(name, "key_speed") == 0) {
             params.key_speed = i;
         } else if (strcmp(name, "key_mode") == 0) {
@@ -429,12 +414,6 @@ static void params_save() {
     if (params.durty.sql)                   params_write_int("sql", params.sql, &params.durty.sql);
     if (params.durty.atu)                   params_write_int("atu", params.atu, &params.durty.atu);
     if (params.durty.pwr)                   params_write_int("pwr", params.pwr * 10, &params.durty.pwr);
-
-    if (params.durty.spectrum_beta)         params_write_int("spectrum_beta", params.spectrum_beta, &params.durty.spectrum_beta);
-    if (params.durty.spectrum_filled)       params_write_int("spectrum_filled", params.spectrum_filled, &params.durty.spectrum_filled);
-    if (params.durty.spectrum_peak)         params_write_int("spectrum_peak", params.spectrum_peak, &params.durty.spectrum_peak);
-    if (params.durty.spectrum_peak_hold)    params_write_int("spectrum_peak_hold", params.spectrum_peak_hold, &params.durty.spectrum_peak_hold);
-    if (params.durty.spectrum_peak_speed)   params_write_int("spectrum_peak_speed", params.spectrum_peak_speed * 10, &params.durty.spectrum_peak_speed);
 
     if (params.durty.key_speed)             params_write_int("key_speed", params.key_speed, &params.durty.key_speed);
     if (params.durty.key_mode)              params_write_int("key_mode", params.key_mode, &params.durty.key_mode);
