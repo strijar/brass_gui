@@ -140,10 +140,6 @@ void radio_freq_update() {
     control_set_rx_freq(freq - shift);
     control_set_tx_freq(op_work->tx - shift);
     control_set_fft_freq(op_work->fft - shift);
-
-    /* FIXME
-    params_bands_find(freq, &params.freq_band);
-    */
 }
 
 static void radio_msg_cb(void *s, lv_msg_t *m) {
@@ -302,18 +298,6 @@ uint16_t radio_change_moni(int16_t df) {
     params_unlock(&params.durty.moni);
 
     return params.moni;
-}
-
-uint16_t radio_change_rfg(int16_t df) {
-    if (df == 0) {
-        return params.rfg;
-    }
-    
-    params_lock();
-    params.rfg = limit(params.rfg + df, 0, 100);
-    params_unlock(&params.durty.rfg);
-
-    return params.rfg;
 }
 
 uint16_t radio_change_sql(int16_t df) {
@@ -576,87 +560,8 @@ float radio_change_pwr(int16_t d) {
     return params.pwr;
 }
 
-radio_mic_sel_t radio_change_mic(int16_t d) {
-    if (d == 0) {
-        return params.mic;
-    }
-    
-    params_lock();
-    
-    switch (params.mic) {
-        case radio_mic_builtin:
-            params.mic = d > 0 ? radio_mic_handle : radio_mic_auto;
-            break;
-            
-        case radio_mic_handle:
-            params.mic = d > 0 ? radio_mic_auto : radio_mic_builtin;
-            break;
-            
-        case radio_mic_auto:
-            params.mic = d > 0 ? radio_mic_builtin : radio_mic_handle;
-            break;
-    }
-    
-    params_unlock(&params.durty.mic);
-    
-    return params.mic;
-}
-
-uint8_t radio_change_hmic(int16_t d) {
-    if (d == 0) {
-        return params.hmic;
-    }
-
-    params_lock();
-    params.hmic = limit(params.hmic + d, 0, 50);
-    params_unlock(&params.durty.hmic);
-    
-    return params.hmic;
-}
-
-uint8_t radio_change_imic(int16_t d) {
-    if (d == 0) {
-        return params.imic;
-    }
-
-    params_lock();
-    params.imic = limit(params.imic + d, 0, 35);
-    params_unlock(&params.durty.imic);
-    
-    return params.imic;
-}
-
 void radio_poweroff() {
-    if (params.charger == RADIO_CHARGER_SHADOW) {
-    }
-
     state = RADIO_POWEROFF;
-}
-
-radio_charger_t radio_change_charger(int16_t d) {
-    if (d == 0) {
-        return params.charger;
-    }
-
-    params_lock();
-    
-    switch (params.charger) {
-        case RADIO_CHARGER_OFF:
-            params.charger = d > 0 ? RADIO_CHARGER_ON : RADIO_CHARGER_SHADOW;
-            break;
-            
-        case RADIO_CHARGER_ON:
-            params.charger = d > 0 ? RADIO_CHARGER_SHADOW : RADIO_CHARGER_OFF;
-            break;
-            
-        case RADIO_CHARGER_SHADOW:
-            params.charger = d > 0 ? RADIO_CHARGER_OFF : RADIO_CHARGER_ON;
-            break;
-    }
-    
-    params_unlock(&params.durty.charger);
-    
-    return params.charger;
 }
 
 bool radio_change_dnf(int16_t d) {
@@ -755,19 +660,7 @@ uint8_t radio_change_nr_level(int16_t d) {
     return params.nr_level;
 }
 
-void radio_set_ptt(bool tx) {
-}
-
-void radio_set_line_in(uint8_t d) {
-    params_lock();
-    params.line_in = d;
-    params_unlock(&params.durty.line_in);
-}
-
-void radio_set_line_out(uint8_t d) {
-    params_lock();
-    params.line_out = d;
-    params_unlock(&params.durty.line_out);
+void radio_set_ptt(bool on) {
 }
 
 void radio_set_morse_key(bool on) {

@@ -46,20 +46,8 @@ params_t params = {
     .clock_power_timeout    = 3,
     .clock_tx_timeout       = 1,
 
-    .vol                    = 50,
-    .rfg                    = 63,
     .ant                    = 1,
     .pwr                    = 5.0f,
-    .mic                    = radio_mic_auto,
-    .hmic                   = 20,
-    .imic                   = 30,
-    .charger                = true,
-    .bias_drive             = 450,
-    .bias_final             = 650,
-    .rit                    = 0,
-    .xit                    = 0,
-    .line_in                = 10,
-    .line_out               = 10,
     .moni                   = 59,
     .freq_accel             = { .x = FREQ_ACCEL_NONE,   .name = "freq_accel",       .voice = "Frequency acceleration" },
     .freq_mode              = { .x = FREQ_MODE_SLIDE,   .name = "freq_mode",        .voice = "Frequency mode", .min = FREQ_MODE_JOIN, .max = FREQ_MODE_FFT_ONLY },
@@ -119,19 +107,13 @@ params_t params = {
     .long_f1                = ACTION_STEP_DOWN,
     .long_f2                = ACTION_NONE,
     
-    .play_gain              = 100,
-    .rec_gain               = 100,
     .rec_format             = REC_FORMAT_WAV,
 
     .voice_mode             = { .x = VOICE_LCD,                                 .name = "voice_mode" },
     .voice_lang             = { .x = 0,   .min = 0,  .max = (VOICES_NUM - 1),   .name = "voice_lang" },
     .voice_rate             = { .x = 100, .min = 50, .max = 150,                .name = "voice_rate",     .voice = "Voice rate" },
     .voice_pitch            = { .x = 100, .min = 50, .max = 150,                .name = "voice_pitch",    .voice = "Voice pitch" },
-    .voice_volume           = { .x = 100, .min = 50, .max = 150,                .name = "voice_volume",   .voice = "Voice volume" },
-
-    .mic_filter_low         = { .x = 150,   .min = 100,     .max = 300,     .name = "mic_filter_low" },
-    .mic_filter_high        = { .x = 2900,  .min = 1000,    .max = 3200,    .name = "mic_filter_high" },
-    .mic_filter_transition  = { .x = 100,   .min = 50,      .max = 200,     .name = "mic_filter_transition" },
+    .voice_volume           = { .x = 100, .min = 50, .max = 150,                .name = "voice_volume",   .voice = "Voice volume" }
 };
 
 transverter_t params_transverter[TRANSVERTER_NUM] = {
@@ -223,11 +205,7 @@ static bool params_load() {
         const int64_t   l = sqlite3_column_int64(stmt, 1);
         const char      *t = sqlite3_column_text(stmt, 1);
 
-        if (strcmp(name, "vol") == 0) {
-            params.vol = i;
-        } else if (strcmp(name, "rfg") == 0) {
-            params.rfg = i;
-        } else if (strcmp(name, "sql") == 0) {
+        if (strcmp(name, "sql") == 0) {
             params.sql = i;
         } else if (strcmp(name, "atu") == 0) {
             params.atu = i;
@@ -259,14 +237,6 @@ static bool params_load() {
             params.qsk_time = i;
         } else if (strcmp(name, "key_ratio") == 0) {
             params.key_ratio = i;
-        } else if (strcmp(name, "mic") == 0) {
-            params.mic = i;
-        } else if (strcmp(name, "hmic") == 0) {
-            params.hmic = i;
-        } else if (strcmp(name, "imic") == 0) {
-            params.imic = i;
-        } else if (strcmp(name, "charger") == 0) {
-            params.charger = i;
         } else if (strcmp(name, "dnf") == 0) {
             params.dnf = i;
         } else if (strcmp(name, "dnf_center") == 0) {
@@ -309,10 +279,6 @@ static bool params_load() {
             params.rtty_reverse = i;
         } else if (strcmp(name, "ant") == 0) {
             params.ant = i;
-        } else if (strcmp(name, "rit") == 0) {
-            params.rit = i;
-        } else if (strcmp(name, "xit") == 0) {
-            params.xit = i;
         } else if (strcmp(name, "brightness_normal") == 0) {
             params.brightness_normal = i;
         } else if (strcmp(name, "brightness_idle") == 0) {
@@ -321,10 +287,6 @@ static bool params_load() {
             params.brightness_timeout = i;
         } else if (strcmp(name, "brightness_buttons") == 0) {
             params.brightness_buttons = i;
-        } else if (strcmp(name, "line_in") == 0) {
-            params.line_in = i;
-        } else if (strcmp(name, "line_out") == 0) {
-            params.line_out = i;
         } else if (strcmp(name, "moni") == 0) {
             params.moni = i;
         } else if (strcmp(name, "clock_view") == 0) {
@@ -359,10 +321,6 @@ static bool params_load() {
             params.long_f1 = i;
         } else if (strcmp(name, "long_f2") == 0) {
             params.long_f2 = i;
-        } else if (strcmp(name, "play_gain") == 0) {
-            params.play_gain = i;
-        } else if (strcmp(name, "rec_gain") == 0) {
-            params.rec_gain = i;
         } 
         
         if (params_load_bool(&params.mag_freq, name, i)) continue;
@@ -468,9 +426,6 @@ static void params_save() {
         return;
     }
 
-    if (params.durty.band)                  params_write_int("band", params.band, &params.durty.band);
-    if (params.durty.vol)                   params_write_int("vol", params.vol, &params.durty.vol);
-    if (params.durty.rfg)                   params_write_int("rfg", params.rfg, &params.durty.rfg);
     if (params.durty.sql)                   params_write_int("sql", params.sql, &params.durty.sql);
     if (params.durty.atu)                   params_write_int("atu", params.atu, &params.durty.atu);
     if (params.durty.pwr)                   params_write_int("pwr", params.pwr * 10, &params.durty.pwr);
@@ -489,12 +444,6 @@ static void params_save() {
     if (params.durty.key_train)             params_write_int("key_train", params.key_train, &params.durty.key_train);
     if (params.durty.qsk_time)              params_write_int("qsk_time", params.qsk_time, &params.durty.qsk_time);
     if (params.durty.key_ratio)             params_write_int("key_ratio", params.key_ratio, &params.durty.key_ratio);
-
-    if (params.durty.mic)                   params_write_int("mic", params.mic, &params.durty.mic);
-    if (params.durty.hmic)                  params_write_int("hmic", params.hmic, &params.durty.hmic);
-    if (params.durty.imic)                  params_write_int("imic", params.imic, &params.durty.imic);
-
-    if (params.durty.charger)               params_write_int("charger", params.charger, &params.durty.charger);
 
     if (params.durty.dnf)                   params_write_int("dnf", params.dnf, &params.durty.dnf);
     if (params.durty.dnf_center)            params_write_int("dnf_center", params.dnf_center, &params.durty.dnf_center);
@@ -522,11 +471,6 @@ static void params_save() {
     if (params.durty.rtty_reverse)          params_write_int("rtty_reverse", params.rtty_reverse, &params.durty.rtty_reverse);
 
     if (params.durty.ant)                   params_write_int("ant", params.ant, &params.durty.ant);
-    if (params.durty.rit)                   params_write_int("rit", params.rit, &params.durty.rit);
-    if (params.durty.xit)                   params_write_int("xit", params.xit, &params.durty.xit);
-
-    if (params.durty.line_in)               params_write_int("line_in", params.line_in, &params.durty.line_in);
-    if (params.durty.line_out)              params_write_int("line_out", params.line_out, &params.durty.line_out);
 
     if (params.durty.moni)                  params_write_int("moni", params.moni, &params.durty.moni);
 
@@ -554,9 +498,6 @@ static void params_save() {
     if (params.durty.press_f2)              params_write_int("press_f2", params.press_f2, &params.durty.press_f2);
     if (params.durty.long_f1)               params_write_int("long_f1", params.long_f1, &params.durty.long_f1);
     if (params.durty.long_f2)               params_write_int("long_f2", params.long_f2, &params.durty.long_f2);
-
-    if (params.durty.play_gain)             params_write_int("play_gain", params.play_gain, &params.durty.play_gain);
-    if (params.durty.rec_gain)              params_write_int("rec_gain", params.rec_gain, &params.durty.rec_gain);
 
     params_save_uint8(&params.voice_mode);
     params_save_uint8(&params.voice_lang);

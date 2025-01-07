@@ -1,3 +1,8 @@
 operator:
   qth:
   callsign:
+
+audio:
+  vol: 15
+  mic:
+     filter: {low: 150, high: 2900, transition: 100}

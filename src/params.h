@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "ft8/constants.h"
 #include "bands.h"
 #include "radio.h"
 #include "clock.h"
@@ -154,30 +153,13 @@ typedef struct {
     uint16_t            brightness_timeout; /* seconds */
     buttons_light_t     brightness_buttons;
 
-    /* band info */
-    
-    band_t              freq_band;
-
     /* radio */
     
-    int16_t             band;
-    int16_t             vol;
-    int16_t             rfg;
     uint8_t             sql;
     bool                atu;
     bool                atu_loaded;
     uint8_t             ant;
     float               pwr;
-    radio_mic_sel_t     mic;
-    uint8_t             hmic;
-    uint8_t             imic;
-    radio_charger_t     charger;
-    uint16_t            bias_drive;
-    uint16_t            bias_final;
-    int16_t             rit;
-    int16_t             xit;
-    uint8_t             line_in;
-    uint8_t             line_out;
     int16_t             moni;
     params_uint8_t      freq_accel;
     params_uint8_t      freq_mode;
@@ -272,10 +254,6 @@ typedef struct {
     uint8_t             long_f1;
     uint8_t             long_f2;
     
-    /* Audio play/rec, recorder */
-
-    uint16_t            play_gain;
-    uint16_t            rec_gain;
     rec_format_t        rec_format;
     
     /* Voice */
@@ -285,12 +263,6 @@ typedef struct {
     params_uint8_t      voice_rate;
     params_uint8_t      voice_pitch;
     params_uint8_t      voice_volume;
-
-    /* Mic */
-
-    params_uint16_t     mic_filter_low;
-    params_uint16_t     mic_filter_high;
-    params_uint16_t     mic_filter_transition;
 
     /* durty flags */
     
@@ -303,21 +275,10 @@ typedef struct {
         bool    brightness_timeout;
         bool    brightness_buttons;
         
-        bool    band;
-        bool    vol;
-        bool    rfg;
         bool    sql;
         bool    atu;
         bool    ant;
         bool    pwr;
-        bool    mic;
-        bool    hmic;
-        bool    imic;
-        bool    charger;
-        bool    rit;
-        bool    xit;
-        bool    line_in;
-        bool    line_out;
         bool    moni;
         
         bool    dnf;
@@ -380,9 +341,6 @@ typedef struct {
         bool    press_f2;
         bool    long_f1;
         bool    long_f2;
-
-        bool    play_gain;
-        bool    rec_gain;
     } durty;
 } params_t;
 

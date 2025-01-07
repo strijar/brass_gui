@@ -34,6 +34,7 @@
 #include "mic.h"
 #include "main.h"
 #include "settings/modes.h"
+#include "settings/options.h"
 
 const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
 
@@ -143,7 +144,7 @@ void dsp_init() {
 
     delay = 4;
 
-    dsp_set_vol(params.vol);
+    dsp_set_vol(options->audio.vol);
     ready = true;
 }
 
@@ -471,18 +472,15 @@ void dsp_set_vol(uint8_t x) {
 
 uint16_t dsp_change_vol(int16_t df) {
     if (df == 0) {
-        return params.vol;
+        return options->audio.vol;
     }
 
     adc_mute = false;
 
-    params_lock();
-    params.vol = limit(params.vol + df, 0, 100);
-    params_unlock(&params.durty.vol);
+    options->audio.vol = limit(options->audio.vol + df, 0, 100);
+    dsp_set_vol(options->audio.vol);
 
-    dsp_set_vol(params.vol);
-
-    return params.vol;
+    return options->audio.vol;
 }
 
 size_t dsp_dac(float complex *data, size_t max_size) {

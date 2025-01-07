@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <cyaml/cyaml.h>
 #include "lvgl/lvgl.h"
+#include "src/dsp.h"
 #include "modes.h"
 
 static const char filename[] = "/mnt/settings/modes.yaml";
@@ -20,13 +21,6 @@ static const cyaml_strval_t agc_mode_strings[] = {
     { "Med",        AGC_MED },
     { "Fast",       AGC_FAST },
     { "Custom",     AGC_CUSTOM },
-};
-
-static const cyaml_schema_field_t filter_fields_schema[] = {
-    CYAML_FIELD_UINT("low",             CYAML_FLAG_DEFAULT, filter_t, low),
-    CYAML_FIELD_UINT("high",            CYAML_FLAG_DEFAULT, filter_t, high),
-    CYAML_FIELD_UINT("transition",      CYAML_FLAG_DEFAULT, filter_t, transition),
-    CYAML_FIELD_END
 };
 
 static const cyaml_schema_field_t mode_fields_schema[] = {

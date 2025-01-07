@@ -10,14 +10,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "filter.h"
 #include "src/dsp/agc.h"
 #include "src/radio.h"
-
-typedef struct {
-    uint16_t    low;
-    uint16_t    high;
-    uint16_t    transition;
-} filter_t;
 
 typedef struct {
     filter_t    filter;

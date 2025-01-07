@@ -28,12 +28,6 @@ typedef enum {
 } radio_change_mode_t;
 
 typedef enum {
-    radio_mic_builtin = 0,
-    radio_mic_handle,
-    radio_mic_auto
-} radio_mic_sel_t;
-
-typedef enum {
     radio_att_off = 0,
     radio_att_on = 1
 } radio_att_t;
@@ -94,12 +88,6 @@ bool radio_change_att();
 void radio_change_atu();
 float radio_change_pwr(int16_t d);
 
-radio_charger_t radio_change_charger(int16_t d);
-
-radio_mic_sel_t radio_change_mic(int16_t d);
-uint8_t radio_change_hmic(int16_t d);
-uint8_t radio_change_imic(int16_t d);
-
 bool radio_change_dnf(int16_t d);
 uint16_t radio_change_dnf_center(int16_t d);
 uint16_t radio_change_dnf_width(int16_t d);
@@ -119,9 +107,6 @@ void radio_freq_update();
 
 void radio_filter_get(int32_t *from_freq, int32_t *to_freq);
 void radio_poweroff();
-void radio_set_ptt(bool tx);
 
-void radio_set_line_in(uint8_t d);
-void radio_set_line_out(uint8_t d);
-
+void radio_set_ptt(bool on);
 void radio_set_morse_key(bool on);

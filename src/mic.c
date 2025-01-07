@@ -16,7 +16,7 @@
 #include "dsp/firdes.h"
 #include "dsp/agc.h"
 #include "dialog_msg_voice.h"
-#include "params.h"
+#include "settings/options.h"
 
 #define DECIM   441
 #define INTER   128
@@ -33,8 +33,6 @@ static size_t           filter_len = 0;
 static float            *filter_taps = NULL;
 static bool             filter_need_update = false;
 static firfilt_rrrf     filter = NULL;
-
-static void update_filter();
 
 void mic_init() {
     dc_block = firfilt_rrrf_create_dc_blocker(25, 30.0f);
@@ -64,18 +62,18 @@ void mic_init() {
         0.100f                  /* tau_hang_decay */
     );
 
-    update_filter();
+    mic_update_filter();
 }
 
-static void update_filter() {
-    size_t len = firdes_compute_taps_len(44100.0f, params.mic_filter_transition.x, 40.0f);
+void mic_update_filter() {
+    size_t len = firdes_compute_taps_len(44100.0f, options->audio.mic.filter.transition, 40.0f);
 
     if (filter_len != len) {
         filter_taps = realloc(filter_taps, len * sizeof(float));
         filter_len = len;
     }
 
-    firdes_band_pass(1.0f, 44100.0f, params.mic_filter_low.x, params.mic_filter_high.x, filter_taps, filter_len);
+    firdes_band_pass(1.0f, 44100.0f, options->audio.mic.filter.low, options->audio.mic.filter.high, filter_taps, filter_len);
     filter_need_update = true;
 }
 
@@ -110,7 +108,7 @@ static float complex modulate(float x, radio_mode_t mode) {
         default:
             break;
     }
-    
+
     return out;
 }
 
@@ -122,7 +120,7 @@ size_t mic_modulate(float complex *data, size_t max_size, radio_mode_t mode) {
     if (cbufferf_size(out_buf) > part) {
         uint32_t n;
         float *buf;
-        
+
         cbufferf_read(out_buf, part, &buf, &n);
 
         for (uint32_t i = 0; i < n; i++) {
@@ -132,7 +130,7 @@ size_t mic_modulate(float complex *data, size_t max_size, radio_mode_t mode) {
         cbufferf_release(out_buf, n);
         size = n;
     }
-    
+
     return size;
 }
 
@@ -156,7 +154,7 @@ void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
     for (int16_t i = 0; i < nsamples; i++) {
         firfilt_rrrf_push(dc_block, samples[i] / 32768.0f);
         firfilt_rrrf_execute(dc_block, &a);
-        
+
         if (on_air || rec_msg) {
             firfilt_rrrf_execute_one(filter, a, &b);
             b = agc_apply(agc, b);
@@ -176,24 +174,24 @@ void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
 
         return;
     }
-    
+
     if (!on_air) {
         if (cbufferf_size(in_buf) > 0) {
             cbufferf_reset(in_buf);
         }
-        
+
         if (cbufferf_size(out_buf) > 0) {
             cbufferf_reset(out_buf);
         }
 
         return;
     }
-    
+
     while (cbufferf_size(in_buf) > DECIM) {
         cbufferf_read(in_buf, DECIM, &buf, &n);
         rresamp_rrrf_execute(resamp, buf, resamp_buf);
         cbufferf_release(in_buf, n);
-        
+
         cbufferf_write(out_buf, resamp_buf, INTER);
     }
 }

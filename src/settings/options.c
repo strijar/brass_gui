@@ -19,8 +19,20 @@ static const cyaml_schema_field_t operator_fields_schema[] = {
     CYAML_FIELD_END
 };
 
+const cyaml_schema_field_t mic_fields_schema[] = {
+    CYAML_FIELD_MAPPING("filter",       CYAML_FLAG_OPTIONAL, options_mic_t, filter, filter_fields_schema),
+    CYAML_FIELD_END
+};
+
+const cyaml_schema_field_t audio_fields_schema[] = {
+    CYAML_FIELD_UINT("vol",             CYAML_FLAG_OPTIONAL, options_audio_t, vol),
+    CYAML_FIELD_MAPPING("mic",          CYAML_FLAG_OPTIONAL, options_audio_t, mic, mic_fields_schema),
+    CYAML_FIELD_END
+};
+
 const cyaml_schema_field_t options_fields_schema[] = {
-    CYAML_FIELD_MAPPING("operator", CYAML_FLAG_OPTIONAL, options_t, operator, operator_fields_schema),
+    CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, operator, operator_fields_schema),
+    CYAML_FIELD_MAPPING("audio",        CYAML_FLAG_OPTIONAL, options_t, audio, audio_fields_schema),
     CYAML_FIELD_END
 };
 

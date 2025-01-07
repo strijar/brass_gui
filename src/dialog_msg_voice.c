@@ -175,12 +175,9 @@ static void play_item() {
 
     while (state == MSG_VOICE_PLAY) {
         int res = sf_read_short(file, samples_buf, BUF_SIZE);
-            
+
         if (res > 0) {
-            int16_t *samples = audio_gain(samples_buf, res, params.play_gain);
-        
-            audio_play(samples, res);
-            free(samples);
+            audio_play(samples_buf, res);
         } else {
             state = MSG_VOICE_OFF;
         }
