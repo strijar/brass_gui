@@ -28,6 +28,7 @@
 #include "voice.h"
 #include "events.h"
 #include "msgs.h"
+#include "settings/options.h"
 
 #define BUTTONS     6
 
@@ -270,11 +271,9 @@ static void button_vol_hold_cb(void * ptr) {
     button_item_t   *item = (button_item_t*) ptr;
     uint64_t        mask = (uint64_t) 1L << item->data;
 
-    params_lock();
-    params.vol_modes ^= mask;
-    params_unlock(&params.durty.vol_modes);
-    
-    if (params.vol_modes & mask) {
+    options->control.vol ^= mask;
+
+    if (options->control.vol & mask) {
         msg_set_text_fmt("Added to VOL encoder");
         voice_say_text_fmt("Added to volume encoder");
     } else {
@@ -287,11 +286,9 @@ static void button_mfk_hold_cb(void * ptr) {
     button_item_t   *item = (button_item_t*) ptr;
     uint64_t        mask = (uint64_t) 1L << item->data;
 
-    params_lock();
-    params.mfk_modes ^= mask;
-    params_unlock(&params.durty.mfk_modes);
-    
-    if (params.mfk_modes & mask) {
+    options->control.mfk ^= mask;
+
+    if (options->control.mfk & mask) {
         msg_set_text_fmt("Added to MFK encoder");
         voice_say_text_fmt("Added to MFK encoder");
     } else {

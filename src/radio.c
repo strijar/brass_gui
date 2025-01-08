@@ -37,7 +37,6 @@
 static lv_obj_t                 *main_obj;
 
 static radio_state_t            state = RADIO_RX;
-static bool                     mute = false;
 
 bool radio_tick() {
 /*
@@ -281,11 +280,6 @@ split_mode_t radio_change_split(int16_t d) {
     op_work->split = limit(op_work->split + d, 0, 2);
 
     return op_work->split;
-}
-
-void radio_change_mute() {
-    mute = !mute;
-    // x6100_control_rxvol_set(mute ? 0 : params.vol);
 }
 
 uint16_t radio_change_moni(int16_t df) {

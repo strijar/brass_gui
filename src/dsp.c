@@ -457,6 +457,11 @@ static void calc_auto() {
     lv_unlock();
 }
 
+void dsp_change_mute() {
+    adc_mute = !adc_mute;
+    dsp_set_vol(adc_mute ? 0 : options->audio.vol);
+}
+
 void dsp_set_vol(uint8_t x) {
     adc_vol = x / 100.0f;
 }

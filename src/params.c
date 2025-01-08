@@ -25,9 +25,6 @@
 #define PARAMS_SAVE_TIMEOUT  (3 * 1000)
 
 params_t params = {
-    .vol_modes              = (1 << VOL_VOL) | (1 << VOL_PWR),
-    .mfk_modes              = (1 << MFK_FILTER_LOW) | (1 << MFK_FILTER_HIGH) | (1 << MFK_SPECTRUM_FACTOR),
-
     .brightness_normal      = 9,
     .brightness_idle        = 1,
     .brightness_timeout     = 10,
@@ -90,18 +87,13 @@ params_t params = {
     .swrscan_linear         = true,
     .swrscan_span           = 200000,
 
-    .long_gen               = ACTION_SCREENSHOT,
-    .long_app               = ACTION_APP_RECORDER,
-    .long_key               = ACTION_NONE,
-    .long_msg               = ACTION_RECORDER,
-    .long_dfn               = ACTION_VOICE_MODE,
-    .long_dfl               = ACTION_NONE,
-    
+    /*
     .press_f1               = ACTION_STEP_UP,
     .press_f2               = ACTION_NONE,
     .long_f1                = ACTION_STEP_DOWN,
     .long_f2                = ACTION_NONE,
-    
+    */
+
     .rec_format             = REC_FORMAT_WAV,
 
     .voice_mode             = { .x = VOICE_LCD,                                 .name = "voice_mode" },
@@ -250,10 +242,6 @@ static bool params_load() {
             params.cw_encoder_period = i;
         } else if (strcmp(name, "voice_msg_period") == 0) {
             params.voice_msg_period = i;
-        } else if (strcmp(name, "vol_modes") == 0) {
-            params.vol_modes = l;
-        } else if (strcmp(name, "mfk_modes") == 0) {
-            params.mfk_modes = l;
         } else if (strcmp(name, "rtty_rate") == 0) {
             params.rtty_rate = i;
         } else if (strcmp(name, "rtty_shift") == 0) {
@@ -286,18 +274,6 @@ static bool params_load() {
             params.swrscan_linear = i;
         } else if (strcmp(name, "swrscan_span") == 0) {
             params.swrscan_span = i;
-        } else if (strcmp(name, "long_gen") == 0) {
-            params.long_gen = i;
-        } else if (strcmp(name, "long_app") == 0) {
-            params.long_app = i;
-        } else if (strcmp(name, "long_key") == 0) {
-            params.long_key = i;
-        } else if (strcmp(name, "long_msg") == 0) {
-            params.long_msg = i;
-        } else if (strcmp(name, "long_dfn") == 0) {
-            params.long_dfn = i;
-        } else if (strcmp(name, "long_dfl") == 0) {
-            params.long_dfl = i;
         } else if (strcmp(name, "press_f1") == 0) {
             params.press_f1 = i;
         } else if (strcmp(name, "press_f2") == 0) {
@@ -441,9 +417,6 @@ static void params_save() {
     if (params.durty.cw_encoder_period)     params_write_int("cw_encoder_period", params.cw_encoder_period, &params.durty.cw_encoder_period);
     if (params.durty.voice_msg_period)      params_write_int("voice_msg_period", params.voice_msg_period, &params.durty.voice_msg_period);
 
-    if (params.durty.vol_modes)             params_write_int64("vol_modes", params.vol_modes, &params.durty.vol_modes);
-    if (params.durty.mfk_modes)             params_write_int64("mfk_modes", params.mfk_modes, &params.durty.mfk_modes);
-
     if (params.durty.rtty_rate)             params_write_int("rtty_rate", params.rtty_rate, &params.durty.rtty_rate);
     if (params.durty.rtty_shift)            params_write_int("rtty_shift", params.rtty_shift, &params.durty.rtty_shift);
     if (params.durty.rtty_center)           params_write_int("rtty_center", params.rtty_center, &params.durty.rtty_center);
@@ -465,13 +438,6 @@ static void params_save() {
 
     if (params.durty.swrscan_linear)        params_write_int("swrscan_linear", params.swrscan_linear, &params.durty.swrscan_linear);
     if (params.durty.swrscan_span)          params_write_int("swrscan_span", params.swrscan_span, &params.durty.swrscan_span);
-
-    if (params.durty.long_gen)              params_write_int("long_gen", params.long_gen, &params.durty.long_gen);
-    if (params.durty.long_app)              params_write_int("long_app", params.long_app, &params.durty.long_app);
-    if (params.durty.long_key)              params_write_int("long_key", params.long_key, &params.durty.long_key);
-    if (params.durty.long_msg)              params_write_int("long_msg", params.long_msg, &params.durty.long_msg);
-    if (params.durty.long_dfn)              params_write_int("long_dfn", params.long_dfn, &params.durty.long_dfn);
-    if (params.durty.long_dfl)              params_write_int("long_dfl", params.long_dfl, &params.durty.long_dfl);
 
     if (params.durty.press_f1)              params_write_int("press_f1", params.press_f1, &params.durty.press_f1);
     if (params.durty.press_f2)              params_write_int("press_f2", params.press_f2, &params.durty.press_f2);

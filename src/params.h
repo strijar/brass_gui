@@ -104,25 +104,6 @@ typedef enum {
 } buttons_light_t;
 
 typedef enum {
-    ACTION_NONE = 0,
-    ACTION_SCREENSHOT,
-    ACTION_RECORDER,
-    ACTION_MUTE,
-    ACTION_STEP_UP,
-    ACTION_STEP_DOWN,
-    ACTION_VOICE_MODE,
-
-    ACTION_APP_RTTY = 100,
-    ACTION_APP_FT8,
-    ACTION_APP_SWRSCAN,
-    ACTION_APP_GPS,
-    ACTION_APP_SETTINGS,
-    ACTION_APP_RECORDER,
-    ACTION_APP_QTH,
-    ACTION_APP_CALLSIGN
-} press_action_t;
-
-typedef enum {
     FREQ_ACCEL_NONE = 0,
     FREQ_ACCEL_LITE,
     FREQ_ACCEL_STRONG,
@@ -143,9 +124,6 @@ typedef enum {
 /* Params */
 
 typedef struct {
-    uint64_t            vol_modes;
-    uint64_t            mfk_modes;
-    
     /* LCD */
     
     int16_t             brightness_normal;
@@ -233,15 +211,6 @@ typedef struct {
     bool                swrscan_linear;
     uint32_t            swrscan_span;
 
-    /* Long press actions */
-    
-    uint8_t             long_gen;
-    uint8_t             long_app;
-    uint8_t             long_key;
-    uint8_t             long_msg;
-    uint8_t             long_dfn;
-    uint8_t             long_dfl;
-    
     /* HMic F1, F2 actions */
     
     uint8_t             press_f1;
@@ -319,13 +288,6 @@ typedef struct {
 
         bool    swrscan_linear;
         bool    swrscan_span;
-
-        bool    long_gen;
-        bool    long_app;
-        bool    long_key;
-        bool    long_msg;
-        bool    long_dfn;
-        bool    long_dfl;
 
         bool    press_f1;
         bool    press_f2;

@@ -13,3 +13,19 @@ spectrum:
   peak: false
   peak_hold: 5000
   peak_speed: 0.5
+
+control:
+  vol:
+  - vol
+  - pwr
+  - freq_mode
+  - split
+  mfk:
+  - filter_low
+  - filter_high
+  - spectrum_factor
+  long_vol: mute
+  long_mfk: recorder
+  long_app: app_settings
+  long_band_down: none
+  long_band_up: none

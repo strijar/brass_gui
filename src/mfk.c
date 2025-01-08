@@ -544,14 +544,14 @@ void mfk_press(int16_t dir) {
                 mfk_mode--;
             }
         }
-        
+
         uint64_t mask = (uint64_t) 1L << mfk_mode;
-        
-        if (params.mfk_modes & mask) {
+
+        if (options->control.mfk & mask) {
             break;
         }
     }
-    
+
     mfk_update(0, true);
 }
 

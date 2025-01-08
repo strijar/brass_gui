@@ -14,6 +14,7 @@
 #include "voice.h"
 #include "dsp.h"
 #include "info.h"
+#include "settings/options.h"
 
 static vol_mode_t   vol_mode = VOL_VOL;
 
@@ -162,8 +163,8 @@ void vol_press(int16_t dir) {
                 vol_mode--;
             }
         }
-        
-        if (params.vol_modes & (1 << vol_mode)) {
+
+        if (options->control.vol & (1 << vol_mode)) {
             break;
         }
     }

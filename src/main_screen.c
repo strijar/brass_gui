@@ -227,7 +227,7 @@ void main_screen_app(app_t app) {
     }
 }
 
-void main_screen_action(press_action_t action) {
+void main_screen_action(options_action_t action) {
     switch (action) {
         case ACTION_NONE:
             break;
@@ -247,7 +247,7 @@ void main_screen_action(press_action_t action) {
             break;
 
         case ACTION_MUTE:
-            radio_change_mute();
+            dsp_change_mute();
             break;
 
         case ACTION_VOICE_MODE:
@@ -304,7 +304,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 buttons_vol();
             } else if (keypad->state == KEYPAD_LONG) {
-                main_screen_action(params.long_gen);
+                main_screen_action(options->control.long_vol);
             }
             break;
 
@@ -312,6 +312,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 buttons_mfk();
             } else if (keypad->state == KEYPAD_LONG) {
+                main_screen_action(options->control.long_mfk);
             }
             break;
 
@@ -319,7 +320,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
             if (keypad->state == KEYPAD_RELEASE) {
                 buttons_app();
             } else if (keypad->state == KEYPAD_LONG) {
-                main_screen_action(params.long_app);
+                main_screen_action(options->control.long_app);
             }
             break;
 
@@ -330,6 +331,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                     dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
                 dialog_send(EVENT_BAND_UP, NULL);
+            } else if (keypad->state == KEYPAD_LONG) {
+                main_screen_action(options->control.long_band_up);
             }
             break;
 
@@ -340,6 +343,8 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                     dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
                 dialog_send(EVENT_BAND_DOWN, NULL);
+            } else if (keypad->state == KEYPAD_LONG) {
+                main_screen_action(options->control.long_band_down);
             }
             break;
 

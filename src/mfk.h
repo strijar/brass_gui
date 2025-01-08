@@ -15,15 +15,13 @@ typedef enum {
     MFK_FILTER_HIGH,
     MFK_FILTER_TRANSITION,
     MFK_AGC,
-    
+
     MFK_SPECTRUM_FACTOR,
     MFK_SPECTRUM_BETA,
     MFK_PEAK_HOLD,
     MFK_PEAK_SPEED,
-
     MFK_SPECTRUM_FILL,
     MFK_SPECTRUM_PEAK,
-    MFK_CHARGER,
 
     MFK_KEY_SPEED,
     MFK_KEY_MODE,
@@ -42,19 +40,13 @@ typedef enum {
     MFK_NB_WIDTH,
     MFK_NR,
     MFK_NR_LEVEL,
-    
-    MFK_AGC_HANG,   /* Not used */
-    MFK_AGC_KNEE,   /* Not used */
-    MFK_AGC_SLOPE,  /* Not used */
-    
+
     MFK_CW_DECODER,
     MFK_CW_DECODER_SNR,
     MFK_CW_DECODER_PEAK_BETA,
     MFK_CW_DECODER_NOISE_BETA,
 
     MFK_ANT,
-    MFK_SPLIT,
-    MFK_XIT,        /* Not used */
 
     MFK_LAST,
 

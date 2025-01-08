@@ -27,6 +27,7 @@
 #include "voice.h"
 #include "dsp.h"
 #include "fpga/control.h"
+#include "settings/options.h"
 
 static lv_obj_t     *grid;
 
@@ -575,7 +576,7 @@ static uint8_t make_clock(uint8_t row) {
 
 typedef struct {
     char                *label;
-    press_action_t      action;
+    options_action_t    action;
 } action_items_t;
 
 static action_items_t long_action_items[] = {
@@ -599,103 +600,89 @@ static void long_action_update_cb(lv_event_t * e) {
     uint32_t    *i = lv_event_get_user_data(e);
     uint8_t     val = long_action_items[lv_dropdown_get_selected(obj)].action;
 
-    params_lock();
-
     switch (*i) {
         case 0:
-            params.long_gen = val;
-            params_unlock(&params.durty.long_gen);
+            options->control.long_vol = val;
             break;
-        
+
         case 1:
-            params.long_app = val;
-            params_unlock(&params.durty.long_app);
+            options->control.long_mfk = val;
             break;
 
         case 2:
-            params.long_key = val;
-            params_unlock(&params.durty.long_key);
+            options->control.long_app = val;
             break;
 
         case 3:
-            params.long_msg = val;
-            params_unlock(&params.durty.long_msg);
+            options->control.long_band_down = val;
             break;
 
         case 4:
-            params.long_dfn = val;
-            params_unlock(&params.durty.long_dfn);
-            break;
-
-        case 5:
-            params.long_dfl = val;
-            params_unlock(&params.durty.long_dfl);
+            options->control.long_band_up = val;
             break;
     }
 }
 
 static uint8_t make_long_action(uint8_t row) {
-    char        *labels[] = { "GEN long press", "APP long press", "KEY long press", "MSG long press", "DFN long press", "DFL long press" };
+    char        *labels[] = { "VOL long press", "MFK long press", "APP long press", "Band down long press", "Band up long press" };
     lv_obj_t    *obj;
 
-    for (uint8_t i = 0; i < 6; i++) {
+    for (uint8_t i = 0; i < 5; i++) {
         row_dsc[row] = 54;
 
         obj = lv_label_create(grid);
-        
+
         lv_label_set_text(obj, labels[i]);
         lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
         obj = lv_dropdown_create(grid);
 
         dialog_item(&dialog, obj);
-    
+
         lv_obj_set_size(obj, SMALL_6, 56);
         lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
         lv_obj_center(obj);
-    
+
         lv_obj_t *list = lv_dropdown_get_list(obj);
         lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
-    
         lv_dropdown_set_symbol(obj, NULL);
-        
+
         uint8_t x;
-        
+
         switch (i) {
-            case 0: x = params.long_gen;    break;
-            case 1: x = params.long_app;    break;
-            case 2: x = params.long_key;    break;
-            case 3: x = params.long_msg;    break;
-            case 4: x = params.long_dfn;    break;
-            case 5: x = params.long_dfl;    break;
-                
+            case 0: x = options->control.long_vol;          break;
+            case 1: x = options->control.long_mfk;          break;
+            case 2: x = options->control.long_app;          break;
+            case 3: x = options->control.long_band_down;    break;
+            case 4: x = options->control.long_band_up;      break;
+
             default:
                 x = ACTION_NONE;
                 break;
         }
-        
+
         lv_dropdown_clear_options(obj);
-        
+
         uint8_t n = 0;
-        
+
         while (long_action_items[n].label) {
             lv_dropdown_add_option(obj, long_action_items[n].label, LV_DROPDOWN_POS_LAST);
-            
+
             if (long_action_items[n].action == x) {
                 lv_dropdown_set_selected(obj, n);
             }
 
             n++;
         }
-        
+
         uint32_t *param = malloc(sizeof(uint32_t));
         *param = i;
-        
+
         lv_obj_add_event_cb(obj, long_action_update_cb, LV_EVENT_VALUE_CHANGED, param);
-        
+
         row++;
     }
-    
+
     return row;
 }
 

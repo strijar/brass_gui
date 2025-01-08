@@ -9,7 +9,7 @@
 #pragma once
 
 #include "lvgl/lvgl.h"
-#include "params.h"
+#include "settings/options.h"
 
 #define MEM_NUM         8
 
@@ -32,7 +32,7 @@ void main_screen_band_changed();
 void main_screen_keys_enable(bool value);
 void main_screen_dialog_deleted_cb();
 void main_screen_app(app_t app);
-void main_screen_action(press_action_t action);
+void main_screen_action(options_action_t action);
 
 void main_screen_lock_freq(bool lock);
 void main_screen_lock_band(bool lock);

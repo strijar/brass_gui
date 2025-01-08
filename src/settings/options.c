@@ -11,6 +11,8 @@
 #include "options.h"
 #include "src/qth.h"
 #include "src/dsp.h"
+#include "src/vol.h"
+#include "src/mfk.h"
 
 static const char  filename[] = "/mnt/settings/options.yaml";
 
@@ -40,10 +42,67 @@ const cyaml_schema_field_t spectrum_fields_schema[] = {
     CYAML_FIELD_END
 };
 
+static const cyaml_strval_t vol_flags_strings[] = {
+    { "vol",                (1 << VOL_VOL) },
+    { "pwr",                (1 << VOL_PWR) },
+    { "freq_mode",          (1 << VOL_FREQ_MODE) },
+    { "split",              (1 << VOL_SPLIT) },
+    { "voice_lang",         (1 << VOL_VOICE_LANG) },
+    { "voice_rate",         (1 << VOL_VOICE_RATE) },
+    { "voice_pitch",        (1 << VOL_VOICE_PITCH) },
+    { "voice_volume",       (1 << VOL_VOICE_VOLUME) },
+};
+
+static const cyaml_strval_t mfk_flags_strings[] = {
+    { "filter_low",         (1 << MFK_FILTER_LOW ) },
+    { "filter_high",        (1 << MFK_FILTER_HIGH )},
+    { "filter_transition",  (1 << MFK_FILTER_TRANSITION )},
+    { "agc",                (1 << MFK_AGC )},
+    { "spectrum_factor",    (1 << MFK_SPECTRUM_FACTOR )},
+    { "spectrum_beta",      (1 << MFK_SPECTRUM_BETA )},
+    { "peak_hold",          (1 << MFK_PEAK_HOLD )},
+    { "peak_speed",         (1 << MFK_PEAK_SPEED )},
+    { "spectrum_fill",      (1 << MFK_SPECTRUM_FILL )},
+    { "spectrum_peak",      (1 << MFK_SPECTRUM_PEAK )},
+};
+
+static const cyaml_strval_t action_strings[] = {
+    { "none",               ACTION_NONE },
+    { "screenshot",         ACTION_SCREENSHOT },
+    { "recorder",           ACTION_RECORDER },
+    { "mute",               ACTION_MUTE },
+    { "step_up",            ACTION_STEP_UP },
+    { "step_down",          ACTION_STEP_DOWN },
+    { "voice_mode",         ACTION_VOICE_MODE },
+
+    { "app_rtty",           ACTION_APP_RTTY },
+    { "app_ft8",            ACTION_APP_FT8 },
+    { "app_swrscan",        ACTION_APP_SWRSCAN },
+    { "app_gps",            ACTION_APP_GPS },
+    { "app_settings",       ACTION_APP_SETTINGS },
+    { "app_recorder",       ACTION_APP_RECORDER },
+    { "app_qth",            ACTION_APP_QTH },
+    { "app_callsign",       ACTION_APP_CALLSIGN }
+};
+
+#define CONTROL_FLAGS (CYAML_FLAG_OPTIONAL | CYAML_FLAG_STRICT)
+
+const cyaml_schema_field_t control_fields_schema[] = {
+    CYAML_FIELD_FLAGS("vol",            CONTROL_FLAGS, options_control_t, vol, vol_flags_strings, CYAML_ARRAY_LEN(vol_flags_strings)),
+    CYAML_FIELD_FLAGS("mfk",            CONTROL_FLAGS, options_control_t, mfk, mfk_flags_strings, CYAML_ARRAY_LEN(mfk_flags_strings)),
+    CYAML_FIELD_ENUM("long_vol",        CYAML_FLAG_OPTIONAL, options_control_t, long_vol, action_strings, CYAML_ARRAY_LEN(action_strings)),
+    CYAML_FIELD_ENUM("long_mfk",        CYAML_FLAG_OPTIONAL, options_control_t, long_mfk, action_strings, CYAML_ARRAY_LEN(action_strings)),
+    CYAML_FIELD_ENUM("long_app",        CYAML_FLAG_OPTIONAL, options_control_t, long_app, action_strings, CYAML_ARRAY_LEN(action_strings)),
+    CYAML_FIELD_ENUM("long_band_down",  CYAML_FLAG_OPTIONAL, options_control_t, long_band_down, action_strings, CYAML_ARRAY_LEN(action_strings)),
+    CYAML_FIELD_ENUM("long_band_up",    CYAML_FLAG_OPTIONAL, options_control_t, long_band_up, action_strings, CYAML_ARRAY_LEN(action_strings)),
+    CYAML_FIELD_END
+};
+
 const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, operator, operator_fields_schema),
     CYAML_FIELD_MAPPING("audio",        CYAML_FLAG_OPTIONAL, options_t, audio, audio_fields_schema),
     CYAML_FIELD_MAPPING("spectrum",     CYAML_FLAG_OPTIONAL, options_t, spectrum, spectrum_fields_schema),
+    CYAML_FIELD_MAPPING("control",      CYAML_FLAG_OPTIONAL, options_t, control, control_fields_schema),
     CYAML_FIELD_END
 };
 
