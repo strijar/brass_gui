@@ -32,6 +32,7 @@
 #include "recorder.h"
 #include "main.h"
 #include "memory.h"
+#include "queue.h"
 #include "settings/modes.h"
 #include "settings/memory.h"
 #include "settings/ft8.h"
@@ -331,9 +332,7 @@ static void send_info(const char * fmt, ...) {
     msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_RX_INFO;
 
-    lv_lock();
-    lv_event_send(table, EVENT_FT8_MSG, msg);
-    lv_unlock();
+    queue_send(table, EVENT_FT8_MSG, msg);
 }
 
 static const char * find_qth(const char *str) {
@@ -388,9 +387,7 @@ static void send_rx_text(int16_t snr, const char * text) {
         msg->cell->dist = 0;
     }
 
-    lv_lock();
-    lv_event_send(table, EVENT_FT8_MSG, msg);
-    lv_unlock();
+    queue_send(table, EVENT_FT8_MSG, msg);
 }
 
 static void send_tx_text(const char * text) {
@@ -401,9 +398,7 @@ static void send_tx_text(const char * text) {
     msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_TX_MSG;
 
-    lv_lock();
-    lv_event_send(table, EVENT_FT8_MSG, msg);
-    lv_unlock();
+    queue_send(table, EVENT_FT8_MSG, msg);
 }
 
 static void decode() {

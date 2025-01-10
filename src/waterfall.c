@@ -45,7 +45,6 @@ static lv_img_dsc_t     *frame;
 static lv_color_t       palette[256];
 static int32_t          scroll_hor = 0;
 static int32_t          scroll_hor_surplus = 0;
-static int32_t          delay = 0;
 
 static void finder_event_cb(lv_event_t * e) {
     lv_obj_t *finder = lv_event_get_target(e);
@@ -103,7 +102,6 @@ static void shift_freq(int32_t df) {
     }
 
     if (scroll_hor) {
-        delay = 2;
         lv_obj_invalidate(img);
     }
 }
@@ -200,11 +198,6 @@ static void scroll_left(int16_t px) {
 }
 
 void waterfall_data(float *data_buf, size_t size) {
-    if (delay) {
-        delay--;
-        return;
-    }
-
     scroll_down();
     
     float min = waterfall_auto_min + 3.0f;
@@ -221,14 +214,10 @@ void waterfall_data(float *data_buf, size_t size) {
         
         uint8_t id = v * 255;
 
-        lv_lock();
         lv_img_buf_set_px_color(frame, x, 0, palette[id]);
-        lv_unlock();
     }
 
-    lv_lock();
     lv_obj_invalidate(img);
-    lv_unlock();
 }
 
 static void do_scroll_cb(lv_event_t * event) {

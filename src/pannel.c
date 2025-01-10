@@ -16,6 +16,7 @@
 #include "params.h"
 #include "rtty.h"
 #include "msgs.h"
+#include "queue.h"
 
 static lv_obj_t     *obj;
 static char         buf[1024];
@@ -98,7 +99,7 @@ lv_obj_t * pannel_init(lv_obj_t *parent) {
 }
 
 void pannel_add_text(const char * text) {
-    lv_event_send(obj, EVENT_PANNEL_UPDATE, strdup(text));
+    queue_send(obj, EVENT_PANNEL_UPDATE, strdup(text));
 }
 
 void pannel_visible() {

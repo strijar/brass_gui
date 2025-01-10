@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <string.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -29,6 +28,8 @@ static int              fd_d;
 
 static uint8_t          *bram_i;
 static uint8_t          *bram_d;
+
+static uint32_t         count = 0;
 
 void mb_load(const char *filename, uint8_t *bram, bool swap) {
     int fd = open(filename, O_RDONLY);
@@ -63,22 +64,12 @@ void mb_load(const char *filename, uint8_t *bram, bool swap) {
     }
 }
 
-static void * mb_thread(void *arg) {
-    control_mb_enable();
-    control_fft_enable();
+void mb_work() {
+    mb_data_t   *data = (mb_data_t *) bram_d;
 
-    mb_data_t *data = (mb_data_t *) bram_d;
-
-    while (true) {
-        int         res;
-        uint32_t    irq = 1;
-
-        /* IRQ enable */
-        res = write(fd_d, &irq, sizeof(irq));
-
-        /* Wait IRQ */
-        res = read(fd_d, &irq, sizeof(irq));
+    if (data->count != count) {
         dsp_fft(data->out);
+        count = data->count;
     }
 }
 
@@ -122,10 +113,8 @@ bool mb_init() {
 
     /* * */
 
-    pthread_t thread;
-
-    pthread_create(&thread, NULL, mb_thread, NULL);
-    pthread_detach(thread);
+    control_mb_enable();
+    control_fft_enable();
 
     return true;
 }

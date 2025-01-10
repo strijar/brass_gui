@@ -8,9 +8,8 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "lvgl/lvgl.h"
 
-bool mb_init();
-void * mb_data();
-
-void mb_work();
+void queue_init();
+void queue_send(lv_obj_t *obj, lv_event_code_t event_code, void *param);
+void queue_work();

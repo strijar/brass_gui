@@ -204,9 +204,7 @@ void update_spectrum(uint64_t now) {
             lpf(&spectrum_data_msg.data[i], dB(x), options->spectrum.beta);
         }
 
-        lv_lock();
         lv_msg_send(MSG_SPECTRUM_DATA, &spectrum_data_msg);
-        lv_unlock();
 
         spectrum_psd_count = 0;
         memset(spectrum_psd, 0, spectrum_data_msg.size * sizeof(float));
@@ -452,9 +450,7 @@ static void calc_auto() {
         lpf(&waterfall_auto_max, max, 0.4f);
     }
 
-    lv_lock();
     lv_msg_send(MSG_SPECTRUM_AUTO, &spectrum_auto_msg);
-    lv_unlock();
 }
 
 void dsp_change_mute() {

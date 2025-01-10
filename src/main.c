@@ -31,6 +31,7 @@
 #include "rtty.h"
 #include "backlight.h"
 #include "events.h"
+#include "queue.h"
 #include "gps.h"
 #include "fpga/adc.h"
 #include "fpga/dac.h"
@@ -86,6 +87,7 @@ int main(void) {
     fbdev_init();
     mic_init();
     audio_init();
+    queue_init();
     event_init();
     gpio_init();
 
@@ -151,13 +153,17 @@ int main(void) {
         lv_lock();
 
         lv_timer_handler();
+        mb_work();
+        queue_work();
 
         uint64_t now = get_time();
-        lv_tick_inc(now - prev_time);
+        uint64_t delta = now - prev_time;
+
+        lv_tick_inc(delta);
         prev_time = now;
 
         lv_unlock();
-        usleep(10);
+        usleep(100);
     }
 
     return 0;
