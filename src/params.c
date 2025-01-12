@@ -76,13 +76,6 @@ params_t params = {
 
     .cw_encoder_period      = 10,
     .voice_msg_period       = 10,
-    
-    .rtty_center            = 800,
-    .rtty_shift             = 170,
-    .rtty_rate              = 4545,
-    .rtty_reverse           = false,
-    .rtty_bits              = 5,
-    .rtty_snr               = 3.0f,
 
     .swrscan_linear         = true,
     .swrscan_span           = 200000,
@@ -242,14 +235,6 @@ static bool params_load() {
             params.cw_encoder_period = i;
         } else if (strcmp(name, "voice_msg_period") == 0) {
             params.voice_msg_period = i;
-        } else if (strcmp(name, "rtty_rate") == 0) {
-            params.rtty_rate = i;
-        } else if (strcmp(name, "rtty_shift") == 0) {
-            params.rtty_shift = i;
-        } else if (strcmp(name, "rtty_center") == 0) {
-            params.rtty_center = i;
-        } else if (strcmp(name, "rtty_reverse") == 0) {
-            params.rtty_reverse = i;
         } else if (strcmp(name, "ant") == 0) {
             params.ant = i;
         } else if (strcmp(name, "brightness_normal") == 0) {
@@ -416,11 +401,6 @@ static void params_save() {
 
     if (params.durty.cw_encoder_period)     params_write_int("cw_encoder_period", params.cw_encoder_period, &params.durty.cw_encoder_period);
     if (params.durty.voice_msg_period)      params_write_int("voice_msg_period", params.voice_msg_period, &params.durty.voice_msg_period);
-
-    if (params.durty.rtty_rate)             params_write_int("rtty_rate", params.rtty_rate, &params.durty.rtty_rate);
-    if (params.durty.rtty_shift)            params_write_int("rtty_shift", params.rtty_shift, &params.durty.rtty_shift);
-    if (params.durty.rtty_center)           params_write_int("rtty_center", params.rtty_center, &params.durty.rtty_center);
-    if (params.durty.rtty_reverse)          params_write_int("rtty_reverse", params.rtty_reverse, &params.durty.rtty_reverse);
 
     if (params.durty.ant)                   params_write_int("ant", params.ant, &params.durty.ant);
 

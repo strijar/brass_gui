@@ -64,10 +64,20 @@ typedef struct {
 } options_control_t;
 
 typedef struct {
+    uint16_t            center;
+    uint16_t            shift;
+    float               rate;
+    bool                reverse;
+    uint8_t             bits;
+    float               snr;
+} options_rtty_t;
+
+typedef struct {
     options_operator_t  operator;
     options_audio_t     audio;
     options_spectrum_t  spectrum;
     options_control_t   control;
+    options_rtty_t      rtty;
 } options_t;
 
 extern options_t   *options;

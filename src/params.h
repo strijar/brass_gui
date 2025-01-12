@@ -197,15 +197,6 @@ typedef struct {
     uint16_t            cw_encoder_period;  /* seconds */
     uint16_t            voice_msg_period;   /* seconds */
 
-    /* RTTY */
-    
-    uint16_t            rtty_center;
-    uint16_t            rtty_shift;
-    uint32_t            rtty_rate;
-    bool                rtty_reverse;
-    uint8_t             rtty_bits;
-    float               rtty_snr;
-
     /* SWR Scan */
 
     bool                swrscan_linear;
@@ -280,11 +271,6 @@ typedef struct {
         
         bool    cw_encoder_period;
         bool    voice_msg_period;
-
-        bool    rtty_center;
-        bool    rtty_shift;
-        bool    rtty_rate;
-        bool    rtty_reverse;
 
         bool    swrscan_linear;
         bool    swrscan_span;

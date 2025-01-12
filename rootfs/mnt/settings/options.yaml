@@ -29,3 +29,11 @@ control:
   long_app: app_settings
   long_band_down: none
   long_band_up: none
+
+rtty:
+  center: 800
+  shift: 170
+  rate: 45.45
+  reverse: false
+  bits: 5
+  snr: 3.0

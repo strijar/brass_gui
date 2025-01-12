@@ -98,11 +98,22 @@ const cyaml_schema_field_t control_fields_schema[] = {
     CYAML_FIELD_END
 };
 
+const cyaml_schema_field_t rtty_fields_schema[] = {
+    CYAML_FIELD_UINT("center",          CYAML_FLAG_OPTIONAL, options_rtty_t, center),
+    CYAML_FIELD_UINT("shift",           CYAML_FLAG_OPTIONAL, options_rtty_t, shift),
+    CYAML_FIELD_FLOAT("rate",           CYAML_FLAG_OPTIONAL, options_rtty_t, rate),
+    CYAML_FIELD_BOOL("reverse",         CYAML_FLAG_OPTIONAL, options_rtty_t, reverse),
+    CYAML_FIELD_UINT("bits",            CYAML_FLAG_OPTIONAL, options_rtty_t, bits),
+    CYAML_FIELD_FLOAT("snr",            CYAML_FLAG_OPTIONAL, options_rtty_t, snr),
+    CYAML_FIELD_END
+};
+
 const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, operator, operator_fields_schema),
     CYAML_FIELD_MAPPING("audio",        CYAML_FLAG_OPTIONAL, options_t, audio, audio_fields_schema),
     CYAML_FIELD_MAPPING("spectrum",     CYAML_FLAG_OPTIONAL, options_t, spectrum, spectrum_fields_schema),
     CYAML_FIELD_MAPPING("control",      CYAML_FLAG_OPTIONAL, options_t, control, control_fields_schema),
+    CYAML_FIELD_MAPPING("rtty",         CYAML_FLAG_OPTIONAL, options_t, rtty, rtty_fields_schema),
     CYAML_FIELD_END
 };
 
