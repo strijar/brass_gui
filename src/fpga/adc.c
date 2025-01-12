@@ -25,7 +25,8 @@ static int              fd;
 static float complex    samples[ADC_SAMPLES];
 
 static void * adc_thread(void *arg) {
-    control_adc_enable();
+    control_set_rx_rate(ADC_RATE);
+    control_rx_enable();
 
     while (true) {
         int res = read(fd, samples, sizeof(samples));

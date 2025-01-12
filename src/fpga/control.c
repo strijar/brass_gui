@@ -72,6 +72,10 @@ void control_set_rx_freq(uint64_t freq) {
     reg->adc_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
 }
 
+void control_set_rx_rate(uint32_t rate) {
+    reg->adc_rate = 122880000 / 8 / rate;
+}
+
 void control_set_tx_freq(uint64_t freq) {
     float txo = 122880000.0f + params.txo_offset.x;
 
@@ -94,7 +98,7 @@ void control_fft_enable() {
     reg->enable |= RX_ENABLE_FFT;
 }
 
-void control_adc_enable() {
+void control_rx_enable() {
     reg->enable |= RX_ENABLE_ADC;
 }
 
