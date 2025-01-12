@@ -181,11 +181,7 @@ void cw_put_audio_samples(float complex *samples, size_t n) {
 static void * cw_thread(void *arg) {
     while (true) {
         pthread_mutex_lock(&mux);
-
-        while (cbuffercf_size(audio_buf) < FFT_ALL) {
-            pthread_cond_wait(&cond, &mux);
-        }
-
+        pthread_cond_wait(&cond, &mux);
         pthread_mutex_unlock(&mux);
 
         while (cbuffercf_size(audio_buf) > FFT_ALL) {

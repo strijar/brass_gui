@@ -260,11 +260,7 @@ void rtty_put_audio_samples(float complex *samples, size_t n) {
 static void * rtty_thread(void *arg) {
     while (true) {
         pthread_mutex_lock(&mux);
-
-        while (cbuffercf_size(rx_buf) < symbol_samples) {
-            pthread_cond_wait(&cond, &mux);
-        }
-
+        pthread_cond_wait(&cond, &mux);
         pthread_mutex_unlock(&mux);
 
         while (cbuffercf_size(rx_buf) > symbol_samples) {
