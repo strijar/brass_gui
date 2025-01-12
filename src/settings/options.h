@@ -73,11 +73,20 @@ typedef struct {
 } options_rtty_t;
 
 typedef struct {
+    bool                decoder;
+    float               decoder_snr;
+    float               decoder_snr_gist;
+    float               decoder_peak_beta;
+    float               decoder_noise_beta;
+} options_cw_t;
+
+typedef struct {
     options_operator_t  operator;
     options_audio_t     audio;
     options_spectrum_t  spectrum;
     options_control_t   control;
     options_rtty_t      rtty;
+    options_cw_t        cw;
 } options_t;
 
 extern options_t   *options;

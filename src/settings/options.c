@@ -108,12 +108,22 @@ const cyaml_schema_field_t rtty_fields_schema[] = {
     CYAML_FIELD_END
 };
 
+const cyaml_schema_field_t cw_fields_schema[] = {
+    CYAML_FIELD_BOOL("decoder",             CYAML_FLAG_OPTIONAL, options_cw_t, decoder),
+    CYAML_FIELD_FLOAT("decoder_snr",        CYAML_FLAG_OPTIONAL, options_cw_t, decoder_snr),
+    CYAML_FIELD_FLOAT("decoder_snr_gist",   CYAML_FLAG_OPTIONAL, options_cw_t, decoder_snr_gist),
+    CYAML_FIELD_FLOAT("decoder_peak_beta",  CYAML_FLAG_OPTIONAL, options_cw_t, decoder_peak_beta),
+    CYAML_FIELD_FLOAT("decoder_noise_beta", CYAML_FLAG_OPTIONAL, options_cw_t, decoder_noise_beta),
+    CYAML_FIELD_END
+};
+
 const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, operator, operator_fields_schema),
     CYAML_FIELD_MAPPING("audio",        CYAML_FLAG_OPTIONAL, options_t, audio, audio_fields_schema),
     CYAML_FIELD_MAPPING("spectrum",     CYAML_FLAG_OPTIONAL, options_t, spectrum, spectrum_fields_schema),
     CYAML_FIELD_MAPPING("control",      CYAML_FLAG_OPTIONAL, options_t, control, control_fields_schema),
     CYAML_FIELD_MAPPING("rtty",         CYAML_FLAG_OPTIONAL, options_t, rtty, rtty_fields_schema),
+    CYAML_FIELD_MAPPING("cw",           CYAML_FLAG_OPTIONAL, options_t, cw, cw_fields_schema),
     CYAML_FIELD_END
 };
 

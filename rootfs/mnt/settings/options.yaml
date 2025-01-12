@@ -37,3 +37,10 @@ rtty:
   reverse: false
   bits: 5
   snr: 3.0
+
+cw:
+  decoder: true
+  decoder_snr: 10.0
+  decoder_snr_gist: 3.0
+  decoder_peak_beta: 0.1
+  decoder_noise_beta: 0.8

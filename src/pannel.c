@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
 #include <stdio.h>
@@ -13,10 +13,11 @@
 #include "util.h"
 #include "events.h"
 #include "radio.h"
-#include "params.h"
 #include "rtty.h"
 #include "msgs.h"
 #include "queue.h"
+#include "settings/op_work.h"
+#include "settings/options.h"
 
 static lv_obj_t     *obj;
 static char         buf[1024];
@@ -27,18 +28,18 @@ static void check_lines() {
     char        *second_line = NULL;
     char        *ptr = (char *) &buf;
     uint16_t    count = 0;
-    
+
     while (*ptr) {
         if (*ptr == '\n') {
             count++;
-            
+
             if (count == 1) {
                 second_line = ptr + 1;
             }
         }
         ptr++;
     }
-    
+
     if (count > 6) {
         strcpy(tmp_buf, second_line);
         strcpy(buf, tmp_buf);
@@ -52,7 +53,7 @@ static void check_lines() {
         }
         ptr++;
     }
-    
+
     *last_line = '\0';
 }
 
@@ -61,7 +62,7 @@ static void pannel_update_cb(lv_event_t * e) {
     lv_point_t text_size;
 
     char *text = lv_event_get_param(e);
-    
+
     if (strcmp(text, "\n") == 0) {
         if (last_line[strlen(last_line) - 1] != '\n') {
             strcat(last_line, text);
@@ -75,10 +76,9 @@ static void pannel_update_cb(lv_event_t * e) {
             strcat(last_line, "\n");
             check_lines();
         }
-    
         strcat(last_line, text);
     }
-    
+
     lv_label_set_text_static(obj, buf);
 }
 
@@ -109,7 +109,7 @@ void pannel_visible() {
     switch (mode) {
         case RADIO_MODE_CW:
         case RADIO_MODE_CWR:
-            on = params.cw_decoder;
+            on = options->cw.decoder;
             break;
 
         case RADIO_MODE_RTTY:
