@@ -153,7 +153,6 @@ int main(void) {
         lv_lock();
 
         lv_timer_handler();
-        mb_work();
         queue_work();
 
         uint64_t now = get_time();

@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <math.h>
+#include <pthread.h>
 
 #include "lvgl/lvgl.h"
 #include "src/dsp.h"
@@ -64,12 +65,16 @@ void mb_load(const char *filename, uint8_t *bram, bool swap) {
     }
 }
 
-void mb_work() {
+static void * mb_thread(void *arg) {
     mb_data_t   *data = (mb_data_t *) bram_d;
 
-    if (data->count != count) {
-        dsp_fft(data->out);
-        count = data->count;
+    while (true) {
+        if (data->count != count) {
+            dsp_fft(data->out);
+            count = data->count;
+        } else {
+            usleep(5000);
+        }
     }
 }
 
@@ -115,6 +120,11 @@ bool mb_init() {
 
     control_mb_enable();
     control_fft_enable();
+
+    pthread_t thread;
+
+    pthread_create(&thread, NULL, mb_thread, NULL);
+    pthread_detach(thread);
 
     return true;
 }

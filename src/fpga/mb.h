@@ -12,5 +12,3 @@
 
 bool mb_init();
 void * mb_data();
-
-void mb_work();
