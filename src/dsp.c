@@ -161,14 +161,14 @@ void dsp_reset() {
 }
 
 void dsp_set_filter(filter_t *filter) {
-    size_t len = firdes_compute_taps_len(12800.0f, filter->transition, 40.0f);
+    size_t len = firdes_compute_taps_len(ADC_RATE, filter->transition, 40.0f);
 
     if (filter_len != len) {
         filter_taps = realloc(filter_taps, len * sizeof(float));
         filter_len = len;
     }
 
-    firdes_band_pass(1.0f, 12800.0f, filter->low, filter->high, filter_taps, filter_len);
+    firdes_band_pass(1.0f, ADC_RATE, filter->low, filter->high, filter_taps, filter_len);
     filter_need_update = true;
 
     lv_msg_send(MSG_FILTER_CHANGED, NULL);

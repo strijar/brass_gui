@@ -15,7 +15,7 @@
 
 #include "agc.h"
 
-#define MAX_SAMPLE_RATE     (12800.0)
+#define MAX_SAMPLE_RATE     (32000.0)
 #define MAX_N_TAU           (8)
 #define MAX_TAU_ATTACK      (0.01)
 #define RB_SIZE	            (int)(MAX_SAMPLE_RATE * MAX_N_TAU * MAX_TAU_ATTACK + 1)
