@@ -118,8 +118,8 @@ void mfk_update(int16_t diff, bool voice) {
 
                 if (op_mode->spectrum_factor < 1) {
                     op_mode->spectrum_factor = 1;
-                } else if (op_mode->spectrum_factor > 4) {
-                    op_mode->spectrum_factor = 4;
+                } else if (op_mode->spectrum_factor > 8) {
+                    op_mode->spectrum_factor = 8;
                 } else {
                     update = true;
                 }
