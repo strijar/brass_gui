@@ -673,6 +673,7 @@ static void freq_shift(int16_t diff) {
 
     freq_update();
     dialog_send(EVENT_FREQ_UPDATE, NULL);
+    pannel_fade();
 }
 
 static void main_screen_rotary_cb(lv_event_t * e) {
@@ -829,6 +830,11 @@ static void keys_enable_cb(lv_timer_t *t) {
     lv_group_set_editing(keyboard_group, true);
 }
 
+
+static void mode_changed_cb(void *s, lv_msg_t *m) {
+    main_screen_update_finder();
+}
+
 void main_screen_keys_enable(bool value) {
     if (value) {
         lv_timer_t *timer = lv_timer_create(keys_enable_cb, 100, NULL);
@@ -882,6 +888,8 @@ lv_obj_t * main_screen() {
 
     lv_obj_add_event_cb(obj, main_screen_key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(obj, main_screen_pressed_cb, LV_EVENT_PRESSED, NULL);
+
+    lv_msg_subsribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
 
     main_screen_keys_enable(true);
 
@@ -954,4 +962,36 @@ void main_screen_update_range() {
 
     band_info_update_range();
     freq_update();
+}
+
+void main_screen_update_finder() {
+    msg_finder_cursor_t msg;
+
+    msg.cursor[0] = 0;
+
+    switch (op_work->mode) {
+        case RADIO_MODE_LSB:
+        case RADIO_MODE_USB:
+        case RADIO_MODE_AM:
+        case RADIO_MODE_NFM:
+        case RADIO_MODE_CW:
+        case RADIO_MODE_CWR:
+            msg.num = 2;
+            msg.cursor[1] = 0;
+            break;
+
+        case RADIO_MODE_RTTY:
+            msg.num = 3;
+            msg.cursor[1] = options->rtty.center - options->rtty.shift / 2;
+            msg.cursor[2] = options->rtty.center + options->rtty.shift / 2;
+            break;
+
+        case RADIO_MODE_OLIVIA:
+            msg.num = 3;
+            msg.cursor[1] = options->olivia.band_lower;
+            msg.cursor[2] = options->olivia.band_lower + options->olivia.band_width;
+            break;
+    }
+
+    lv_msg_send(MSG_FINDER_CURSOR, &msg);
 }

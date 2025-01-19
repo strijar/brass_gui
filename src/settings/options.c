@@ -117,13 +117,24 @@ const cyaml_schema_field_t cw_fields_schema[] = {
     CYAML_FIELD_END
 };
 
+const cyaml_schema_field_t olivia_fields_schema[] = {
+    CYAML_FIELD_UINT("tones",               CYAML_FLAG_OPTIONAL, options_olivia_t, tones),
+    CYAML_FIELD_UINT("band_width",          CYAML_FLAG_OPTIONAL, options_olivia_t, band_width),
+    CYAML_FIELD_UINT("band_lower",          CYAML_FLAG_OPTIONAL, options_olivia_t, band_lower),
+    CYAML_FIELD_UINT("sync_margin",         CYAML_FLAG_OPTIONAL, options_olivia_t, sync_margin),
+    CYAML_FIELD_UINT("sync_integ",          CYAML_FLAG_OPTIONAL, options_olivia_t, sync_integ),
+    CYAML_FIELD_FLOAT("sync_threshold",     CYAML_FLAG_OPTIONAL, options_olivia_t, sync_threshold),
+    CYAML_FIELD_END
+};
+
 const cyaml_schema_field_t options_fields_schema[] = {
-    CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, operator, operator_fields_schema),
+    CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, op, operator_fields_schema),
     CYAML_FIELD_MAPPING("audio",        CYAML_FLAG_OPTIONAL, options_t, audio, audio_fields_schema),
     CYAML_FIELD_MAPPING("spectrum",     CYAML_FLAG_OPTIONAL, options_t, spectrum, spectrum_fields_schema),
     CYAML_FIELD_MAPPING("control",      CYAML_FLAG_OPTIONAL, options_t, control, control_fields_schema),
     CYAML_FIELD_MAPPING("rtty",         CYAML_FLAG_OPTIONAL, options_t, rtty, rtty_fields_schema),
     CYAML_FIELD_MAPPING("cw",           CYAML_FLAG_OPTIONAL, options_t, cw, cw_fields_schema),
+    CYAML_FIELD_MAPPING("olivia",       CYAML_FLAG_OPTIONAL, options_t, olivia, olivia_fields_schema),
     CYAML_FIELD_END
 };
 
@@ -149,7 +160,7 @@ void settings_options_load() {
         return;
     }
 
-    qth_update(options->operator.qth);
+    qth_update(options->op.qth);
 }
 
 void settings_options_save() {

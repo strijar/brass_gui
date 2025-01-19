@@ -24,6 +24,24 @@ static char         buf[1024];
 static char         tmp_buf[1024];
 static char         *last_line;
 
+static lv_timer_t   *timer = NULL;
+static lv_anim_t    fade;
+static bool         fade_run = false;
+
+static void msg_timer(lv_timer_t *t) {
+    lv_anim_set_values(&fade, lv_obj_get_style_opa_layered(obj, 0), LV_OPA_COVER);
+    lv_anim_start(&fade);
+    timer = NULL;
+}
+
+static void fade_anim(void * obj, int32_t v) {
+    lv_obj_set_style_opa_layered(obj, v, 0);
+}
+
+static void fade_ready(lv_anim_t * a) {
+    fade_run = false;
+}
+
 static void check_lines() {
     char        *second_line = NULL;
     char        *ptr = (char *) &buf;
@@ -91,9 +109,17 @@ lv_obj_t * pannel_init(lv_obj_t *parent) {
 
     lv_obj_add_style(obj, &pannel_style, 0);
     lv_obj_add_event_cb(obj, pannel_update_cb, EVENT_PANNEL_UPDATE, NULL);
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_style_opa_layered(obj, LV_OPA_TRANSP, 0);
 
     lv_msg_subsribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
+
+    /* Fade */
+
+    lv_anim_init(&fade);
+    lv_anim_set_var(&fade, obj);
+    lv_anim_set_time(&fade, 250);
+    lv_anim_set_exec_cb(&fade, fade_anim);
+    lv_anim_set_ready_cb(&fade, fade_ready);
 
     return obj;
 }
@@ -102,30 +128,49 @@ void pannel_add_text(const char * text) {
     queue_send(obj, EVENT_PANNEL_UPDATE, strdup(text));
 }
 
-void pannel_visible() {
-    radio_mode_t    mode = op_work->mode;
-    bool            on = false;
-
-    switch (mode) {
+static bool visible() {
+    switch (op_work->mode) {
         case RADIO_MODE_CW:
         case RADIO_MODE_CWR:
-            on = options->cw.decoder;
-            break;
+            return options->cw.decoder;
 
         case RADIO_MODE_RTTY:
-            on = true;
-            break;
+        case RADIO_MODE_OLIVIA:
+            return true;
 
         default:
             break;
     }
 
-    if (on) {
+    return false;
+}
+
+void pannel_visible() {
+    if (visible()) {
         strcpy(buf, "");
         last_line = (char *) &buf;
         lv_label_set_text_static(obj, buf);
-        lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_opa_layered(obj, LV_OPA_COVER, 0);
     } else {
-        lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_opa_layered(obj, LV_OPA_TRANSP, 0);
+    }
+}
+
+void pannel_fade() {
+    if (!visible()) {
+        return;
+    }
+
+    if (!fade_run) {
+        fade_run = true;
+        lv_anim_set_values(&fade, lv_obj_get_style_opa_layered(obj, 0), LV_OPA_TRANSP);
+        lv_anim_start(&fade);
+    }
+
+    if (timer) {
+        lv_timer_reset(timer);
+    } else {
+        timer = lv_timer_create(msg_timer, 1000, NULL);
+        lv_timer_set_repeat_count(timer, 1);
     }
 }

@@ -30,6 +30,7 @@ typedef struct {
     op_mode_t   am;
     op_mode_t   nfm;
     op_mode_t   rtty;
+    op_mode_t   olivia;
 } op_modes_t;
 
 extern op_modes_t   *op_modes;

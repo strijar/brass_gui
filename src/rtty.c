@@ -15,6 +15,7 @@
 #include "util.h"
 #include "fpga/adc.h"
 #include "main.h"
+#include "main_screen.h"
 #include "settings/options.h"
 
 #define SYMBOL_OVER         8
@@ -54,6 +55,7 @@ static uint8_t          rx_data = 0;
 static bool             rx_letter = true;
 
 static bool             ready = false;
+static bool             update = false;
 static rtty_state_t     state = RTTY_OFF;
 
 static void * rtty_thread(void *arg);
@@ -110,13 +112,6 @@ static void done() {
     fskdem_destroy(demod);
     cbuffercf_destroy(rx_buf);
     free(rx_window);
-}
-
-static void update() {
-    pthread_mutex_lock(&mux);
-    done();
-    init();
-    pthread_mutex_unlock(&mux);
 }
 
 void rtty_init() {
@@ -261,6 +256,13 @@ static void * rtty_thread(void *arg) {
     while (true) {
         pthread_mutex_lock(&mux);
         pthread_cond_wait(&cond, &mux);
+
+        if (update) {
+            done();
+            init();
+            update = false;
+        }
+
         pthread_mutex_unlock(&mux);
 
         while (cbuffercf_size(rx_buf) > symbol_samples) {
@@ -311,20 +313,13 @@ float rtty_change_rate(int16_t df) {
 
     for (int16_t i = 0; i < 8; i++)
         if (rates[i] == options->rtty.rate) {
-            i += df;
-
-            if (i < 0) {
-                i = 7;
-            } else if (i > 7) {
-                i = 0;
-            }
-
+            i = limit(i + df, 0, 7);
             options->rtty.rate = rates[i];
+
             break;
         }
 
-    update();
-
+    update = true;
     return options->rtty.rate;
 }
 
@@ -335,7 +330,7 @@ uint16_t rtty_change_shift(int16_t df) {
 
     switch (options->rtty.shift) {
         case 170:
-            options->rtty.shift = df > 0 ? 425 : 850;
+            options->rtty.shift = df > 0 ? 425 : 170;
             break;
 
         case 425:
@@ -347,7 +342,7 @@ uint16_t rtty_change_shift(int16_t df) {
             break;
 
         case 850:
-            options->rtty.shift = df > 0 ? 170 : 450;
+            options->rtty.shift = df > 0 ? 850 : 450;
             break;
 
         default:
@@ -355,7 +350,8 @@ uint16_t rtty_change_shift(int16_t df) {
             break;
     }
 
-    update();
+    update = true;
+    main_screen_update_finder();
 
     return options->rtty.shift;
 }
@@ -365,11 +361,12 @@ uint16_t rtty_change_center(int16_t df) {
         return options->rtty.center;
     }
 
-    options->rtty.center = limit(align_int(options->rtty.center + df * 10, 10), 800, 1600);
+    options->rtty.center = limit(align_int(options->rtty.center + df * 5, 5), 400, 2000);
 
     pthread_mutex_lock(&mux);
     update_nco();
     pthread_mutex_unlock(&mux);
+    main_screen_update_finder();
 
     return options->rtty.center;
 }

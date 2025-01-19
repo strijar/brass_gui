@@ -40,3 +40,9 @@ rtty:
   freq_step: 100
   spectrum_factor: 1
   is_used: true
+olivia:
+  filter: {low: 350, high: 1600, transition: 50}
+  agc: Med
+  freq_step: 10
+  spectrum_factor: 8
+  is_used: true

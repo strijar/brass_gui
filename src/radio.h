@@ -14,12 +14,13 @@
 
 typedef enum {
     RADIO_MODE_LSB = 0,
-    RADIO_MODE_USB = 2,
-    RADIO_MODE_CW = 4,
-    RADIO_MODE_CWR = 5,
-    RADIO_MODE_AM = 6,
-    RADIO_MODE_NFM = 7,
-    RADIO_MODE_RTTY = 8,
+    RADIO_MODE_USB,
+    RADIO_MODE_CW,
+    RADIO_MODE_CWR,
+    RADIO_MODE_AM,
+    RADIO_MODE_NFM,
+    RADIO_MODE_RTTY,
+    RADIO_MODE_OLIVIA,
 } radio_mode_t;
 
 typedef enum {

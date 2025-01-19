@@ -40,6 +40,7 @@ static const cyaml_schema_field_t modes_fields_schema[] = {
     CYAML_FIELD_MAPPING("am",       CYAML_FLAG_DEFAULT, op_modes_t, am, mode_fields_schema),
     CYAML_FIELD_MAPPING("nfm",      CYAML_FLAG_DEFAULT, op_modes_t, nfm, mode_fields_schema),
     CYAML_FIELD_MAPPING("rtty",     CYAML_FLAG_DEFAULT, op_modes_t, rtty, mode_fields_schema),
+    CYAML_FIELD_MAPPING("olivia",   CYAML_FLAG_DEFAULT, op_modes_t, olivia, mode_fields_schema),
     CYAML_FIELD_END
 };
 
@@ -110,6 +111,10 @@ void settings_mode_update(radio_mode_t mode) {
 
         case RADIO_MODE_RTTY:
             op_mode = &op_modes->rtty;
+            break;
+
+        case RADIO_MODE_OLIVIA:
+            op_mode = &op_modes->olivia;
             break;
     }
 

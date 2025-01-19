@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
 #pragma once
@@ -18,10 +18,13 @@ typedef enum {
     PAGE_CW_1,
     PAGE_CW_2,
     PAGE_CW_3,
-    
+
     PAGE_RTTY_1,
     PAGE_RTTY_2,
-    
+
+    PAGE_OLIVIA_1,
+    PAGE_OLIVIA_2,
+
     PAGE_APP_1,
     PAGE_APP_2,
 

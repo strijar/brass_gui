@@ -24,6 +24,7 @@
 #include "dsp/agc.h"
 #include "settings/modes.h"
 #include "settings/options.h"
+#include "olivia/olivia.h"
 
 mfk_state_t  mfk_state = MFK_STATE_EDIT;
 mfk_mode_t   mfk_mode = MFK_FILTER_LOW;
@@ -73,7 +74,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_AGC:
             i = dsp_change_rx_agc(diff);
-            
+
             switch (i) {
                 case AGC_OFF:
                     str = "Off";
@@ -82,11 +83,11 @@ void mfk_update(int16_t diff, bool voice) {
                 case AGC_LONG:
                     str = "Long";
                     break;
-                    
+
                 case AGC_SLOW:
                     str = "Slow";
                     break;
-                    
+
                 case AGC_MED:
                     str = "Medium";
                     break;
@@ -99,7 +100,7 @@ void mfk_update(int16_t diff, bool voice) {
                     str = "Custom";
                     break;
             }
-            
+
             msg_set_text_fmt("#%3X AGC mode: %s", color, str);
 
             if (diff) {
@@ -231,7 +232,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_KEY_MODE:
             i = cw_key_change_mode(diff);
-            
+
             switch (i) {
                 case cw_key_manual:
                     str = "Manual";
@@ -253,10 +254,10 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_text_fmt("CW key mode selector");
             }
             break;
-            
+
         case MFK_IAMBIC_MODE:
             i = cw_key_change_iambic_mode(diff);
-            
+
             switch (i) {
                 case cw_key_iambic_a:
                     str = "A";
@@ -274,7 +275,7 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_text_fmt("Iambic mode selector");
             }
             break;
-            
+
         case MFK_KEY_TONE:
             i = cw_key_change_tone(diff);
             msg_set_text_fmt("#%3X Key tone: %i Hz", color, i);
@@ -335,7 +336,7 @@ void mfk_update(int16_t diff, bool voice) {
                 params_lock();
                 params.ant = limit(params.ant + diff, 1, 5);
                 params_unlock(&params.durty.ant);
-                
+
                 radio_load_atu();
                 info_atu_update();
             }
@@ -369,7 +370,7 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_text_fmt("DNF center frequency");
             }
             break;
-            
+
         case MFK_DNF_WIDTH:
             i = radio_change_dnf_width(diff);
             msg_set_text_fmt("#%3X DNF width: %i Hz", color, i);
@@ -446,7 +447,7 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_text_fmt("CW decoder switcher");
             }
             break;
-            
+
         case MFK_CW_DECODER_SNR:
             f = cw_change_snr(diff);
             msg_set_text_fmt("#%3X CW decoder SNR: %.1f dB", color, f);
@@ -457,7 +458,7 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_text_fmt("CW decoder SNR level");
             }
             break;
-            
+
         case MFK_CW_DECODER_PEAK_BETA:
             f = cw_change_peak_beta(diff);
             msg_set_text_fmt("#%3X CW decoder peak beta: %.2f", color, f);
@@ -468,7 +469,7 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_text_fmt("CW decoder peak beta");
             }
             break;
-            
+
         case MFK_CW_DECODER_NOISE_BETA:
             f = cw_change_noise_beta(diff);
             msg_set_text_fmt("#%3X CW decoder noise beta: %.2f", color, f);
@@ -501,7 +502,7 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_text_fmt("Teletype frequency shift");
             }
             break;
-        
+
         case MFK_RTTY_CENTER:
             i = rtty_change_center(diff);
             msg_set_text_fmt("#%3X RTTY center: %i Hz", color, i);
@@ -512,7 +513,7 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_text_fmt("Teletype frequency center");
             }
             break;
-        
+
         case MFK_RTTY_REVERSE:
             b = rtty_change_reverse(diff);
             msg_set_text_fmt("#%3X RTTY reverse: %s", color, b ? "On" : "Off");
@@ -521,6 +522,28 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_bool("Teletype reverse", b);
             } else if (voice) {
                 voice_say_text_fmt("Teletype reverse switcher");
+            }
+            break;
+
+        case MFK_OLIVIA_TONES:
+            i = olivia_change_tones(diff);
+            msg_set_text_fmt("#%3X Olivia tones: %i", color, i);
+
+            if (diff) {
+                voice_say_int("Olivia tones", i);
+            } else if (voice) {
+                voice_say_text_fmt("Olivia tones");
+            }
+            break;
+
+        case MFK_OLIVIA_WIDTH:
+            i = olivia_change_width(diff);
+            msg_set_text_fmt("#%3X Olivia band width: %i Hz", color, i);
+
+            if (diff) {
+                voice_say_int("Olivia band width", i);
+            } else if (voice) {
+                voice_say_text_fmt("Olivia band width");
             }
             break;
 

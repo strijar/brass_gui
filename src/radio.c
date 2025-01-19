@@ -333,6 +333,7 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
 
         case RADIO_MODE_USB:
         case RADIO_MODE_RTTY:
+        case RADIO_MODE_OLIVIA:
             *from_freq = op_mode->filter.low;
             *to_freq = op_mode->filter.high;
             break;
@@ -388,8 +389,13 @@ void radio_change_mode(radio_change_mode_t select) {
                     break;
 
                 case RADIO_MODE_RTTY:
-                    mode = RADIO_MODE_CW;
+                    mode = RADIO_MODE_OLIVIA;
                     voice_say_text_fmt("C W modulation");
+                    break;
+
+                case RADIO_MODE_OLIVIA:
+                    mode = RADIO_MODE_CW;
+                    voice_say_text_fmt("Olivia modulation");
                     break;
             }
             break;
@@ -436,14 +442,7 @@ uint32_t radio_change_filter_low(int32_t df) {
         return 0;
     }
 
-    op_mode->filter.low = align_int(op_mode->filter.low + df * 50, 50);
-
-    if (op_mode->filter.low < 0) {
-        op_mode->filter.low = 0;
-    } else if (op_mode->filter.low > op_mode->filter.high - 100) {
-        op_mode->filter.low = op_mode->filter.high - 100;
-    }
-
+    op_mode->filter.low = limit(align_int(op_mode->filter.low + df * 50, 50), 0, op_mode->filter.high - 100);
     dsp_set_filter(&op_mode->filter);
 
     return op_mode->filter.low;
@@ -456,14 +455,7 @@ uint32_t radio_change_filter_high(int32_t df) {
 
     radio_mode_t    mode = op_work->mode;
 
-    op_mode->filter.high = align_int(op_mode->filter.high + df * 50, 50);
-
-    if (op_mode->filter.high < 600) {
-        op_mode->filter.high = 600;
-    } else if (op_mode->filter.high < op_mode->filter.low + 100) {
-        op_mode->filter.high = op_mode->filter.low + 100;
-    }
-
+    op_mode->filter.high = limit(align_int(op_mode->filter.high + df * 50, 50), op_mode->filter.low + 100, 6000);
     dsp_set_filter(&op_mode->filter);
 
     return op_mode->filter.high;
@@ -474,14 +466,7 @@ uint32_t radio_change_filter_transition(int32_t df) {
         return op_mode->filter.transition;
     }
 
-    op_mode->filter.transition = align_int(op_mode->filter.transition + df * 2, 2);
-
-    if (op_mode->filter.transition < 50) {
-        op_mode->filter.transition = 50;
-    } else if (op_mode->filter.transition > 200) {
-        op_mode->filter.transition = 200;
-    }
-
+    op_mode->filter.transition = limit(align_int(op_mode->filter.transition + df * 2, 2), 50, 200);
     dsp_set_filter(&op_mode->filter);
 
     return op_mode->filter.transition;

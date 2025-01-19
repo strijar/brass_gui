@@ -56,6 +56,9 @@ typedef enum {
     MFK_RTTY_SHIFT,
     MFK_RTTY_CENTER,
     MFK_RTTY_REVERSE,
+
+    MFK_OLIVIA_TONES,
+    MFK_OLIVIA_WIDTH
 } mfk_mode_t;
 
 typedef enum {

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "widgets/lv_finder.h"
 
 typedef struct {
     float   min;
@@ -19,6 +20,11 @@ typedef struct {
     float   *data;
     size_t  size;
 } msgs_floats_t;
+
+typedef struct {
+    uint8_t num;
+    int16_t cursor[LV_FINDER_CURSORS];
+} msg_finder_cursor_t;
 
 typedef enum {
     MSG_MODE_CHANGED = 1,
@@ -33,5 +39,6 @@ typedef enum {
     MSG_SPECTRUM_DATA,      /* msgs_floats_t */
     MSG_PTT,                /* int32_t */
     MSG_TX,
-    MSG_RX
+    MSG_RX,
+    MSG_FINDER_CURSOR,
 } msgs_t;

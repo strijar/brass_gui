@@ -28,7 +28,7 @@ static dialog_t             dialog = {
 dialog_t                    *dialog_callsign = &dialog;
 
 static void edit_ok() {
-    strcpy(options->operator.callsign, textarea_window_get());
+    strcpy(options->op.callsign, textarea_window_get());
 }
 
 static void edit_cancel() {
@@ -46,11 +46,11 @@ static void construct_cb(lv_obj_t *parent) {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     );
 
-    lv_textarea_set_max_length(text, sizeof(options->operator.callsign) - 1);
+    lv_textarea_set_max_length(text, sizeof(options->op.callsign) - 1);
     lv_textarea_set_placeholder_text(text, "Callsign");
     lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
 
-    textarea_window_set(options->operator.callsign);
+    textarea_window_set(options->op.callsign);
 }
 
 static void destruct_cb() {

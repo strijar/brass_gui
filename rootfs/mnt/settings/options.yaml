@@ -44,3 +44,11 @@ cw:
   decoder_snr_gist: 3.0
   decoder_peak_beta: 0.1
   decoder_noise_beta: 0.8
+
+olivia:
+  tones: 32
+  band_width: 1000
+  band_lower: 500
+  sync_margin: 4
+  sync_integ: 4
+  sync_threshold: 3.0

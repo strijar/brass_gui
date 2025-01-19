@@ -35,6 +35,7 @@
 #include "main.h"
 #include "settings/modes.h"
 #include "settings/options.h"
+#include "olivia/olivia.h"
 
 const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
 
@@ -191,6 +192,10 @@ uint8_t dsp_change_rx_agc(int16_t df) {
 }
 
 static void auto_timer_cb(lv_timer_t *t) {
+    if (auto_psd_count == 0) {
+        return;
+    }
+
     pthread_mutex_lock(&auto_mux);
 
     for (size_t i = 0; i < FFT_SAMPLES; i++) {
@@ -205,6 +210,10 @@ static void auto_timer_cb(lv_timer_t *t) {
 }
 
 static void spectrum_timer_cb(lv_timer_t *t) {
+    if (spectrum_psd_count == 0) {
+        return;
+    }
+
     pthread_mutex_lock(&spectrum_mux);
 
     for (uint16_t i = 0; i < spectrum_data_msg.size; i++) {
@@ -222,6 +231,10 @@ static void spectrum_timer_cb(lv_timer_t *t) {
 }
 
 static void waterfall_timer_cb(lv_timer_t *t) {
+    if (waterfall_psd_count == 0) {
+        return;
+    }
+
     pthread_mutex_lock(&waterfall_mux);
 
     for (uint16_t i = 0; i < FFT_SAMPLES; i++) {
@@ -292,6 +305,7 @@ static float demodulate(float complex in, radio_mode_t mode) {
         case RADIO_MODE_USB:
         case RADIO_MODE_CW:
         case RADIO_MODE_RTTY:
+        case RADIO_MODE_OLIVIA:
             firhilbf_c2r_execute(demod_ssb, in, &a, &b);
             out = b;
             break;
@@ -398,6 +412,10 @@ void dsp_adc(float complex *data, uint16_t samples) {
 
         case RADIO_MODE_RTTY:
             rtty_put_audio_samples(data, samples);
+            break;
+
+        case RADIO_MODE_OLIVIA:
+            olivia_put_audio_samples(adc_buf, samples);
             break;
 
         default:

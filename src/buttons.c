@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
 #include "styles.h"
@@ -29,6 +29,7 @@
 #include "events.h"
 #include "msgs.h"
 #include "settings/options.h"
+#include "olivia/olivia.h"
 
 #define BUTTONS     6
 
@@ -45,6 +46,7 @@ static void button_app_page_cb(lv_event_t * e);
 static void button_vol_update_cb(lv_event_t * e);
 static void button_mfk_update_cb(lv_event_t * e);
 static void button_mem_load_cb(lv_event_t * e);
+static void button_olivia_preset_cb(lv_event_t * e);
 
 static void button_vol_hold_cb(void * ptr);
 static void button_mfk_hold_cb(void * ptr);
@@ -94,7 +96,7 @@ static button_item_t    buttons[] = {
     { .label = "CW Noise\nBeta",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_CW_DECODER_NOISE_BETA },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
-    
+
     /* RTTY */
 
     { .label = "Filter\nLow",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_LOW },
@@ -111,6 +113,22 @@ static button_item_t    buttons[] = {
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
 
+    /* Olivia */
+
+    { .label = "Filter\nLow",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_LOW },
+    { .label = "Filter\nHigh",      .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_HIGH },
+    { .label = "Filter\nTransition",.press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_TRANSITION },
+    { .label = "AGC",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC },
+    { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
+    { .label = "Info",              .press = olivia_info_cb },
+
+    { .label = "Tones",             .press = button_mfk_update_cb,      .data = MFK_OLIVIA_TONES },
+    { .label = "Band\nWidth",       .press = button_mfk_update_cb,      .data = MFK_OLIVIA_WIDTH },
+    { .label = "8/250",             .press = button_olivia_preset_cb,   .data = 0 },
+    { .label = "8/500",             .press = button_olivia_preset_cb,   .data = 1 },
+    { .label = "16/500",            .press = button_olivia_preset_cb,   .data = 2 },
+    { .label = "32/100",            .press = button_olivia_preset_cb,   .data = 3 },
+
     /* APP */
 
     { .label = "FT8",               .press = button_app_page_cb,    .data = APP_FT8 },
@@ -126,7 +144,7 @@ static button_item_t    buttons[] = {
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
-    
+
     /* APP MSG CW */
 
     { .label = "",                  .press = NULL },
@@ -173,6 +191,11 @@ static void buttons_load_mode() {
             buttons_unload_page();
             buttons_load_page(PAGE_RTTY_1);
             break;
+
+        case RADIO_MODE_OLIVIA:
+            buttons_unload_page();
+            buttons_load_page(PAGE_OLIVIA_1);
+            break;
     }
 }
 
@@ -191,7 +214,7 @@ void buttons_init(lv_obj_t *parent) {
 
     for (uint8_t i = 0; i < BUTTONS; i++) {
         lv_obj_t *f = lv_btn_create(parent);
-        
+
         lv_obj_remove_style_all(f); 
         lv_obj_add_style(f, &btn_style, 0);
 
@@ -199,9 +222,9 @@ void buttons_init(lv_obj_t *parent) {
         lv_obj_set_size(f, width, btn_height);
 
         x += width;
-        
+
         lv_obj_t *label = lv_label_create(f);
-        
+
         lv_obj_center(label);
         lv_obj_set_user_data(f, label);
         lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
@@ -267,6 +290,12 @@ static void button_mfk_update_cb(lv_event_t * e) {
     mfk_update(0, true);
 }
 
+static void button_olivia_preset_cb(lv_event_t * e) {
+    button_item_t *item = lv_event_get_user_data(e);
+
+    olivia_preset(item->data);
+}
+
 static void button_vol_hold_cb(void * ptr) {
     button_item_t   *item = (button_item_t*) ptr;
     uint64_t        mask = (uint64_t) 1L << item->data;
@@ -314,7 +343,7 @@ static void button_mem_save_cb(void * ptr) {
 void buttons_press(uint8_t n, bool hold) {
     if (hold) {
         button_item_t *item = btn[n].item;
-        
+
         if (item != NULL && item->hold) {
             item->hold(item);
         }
@@ -356,6 +385,16 @@ void buttons_mfk() {
             buttons_load_page(PAGE_RTTY_1);
             break;
 
+        case PAGE_OLIVIA_1:
+            buttons_unload_page();
+            buttons_load_page(PAGE_OLIVIA_2);
+            break;
+
+        case PAGE_OLIVIA_2:
+            buttons_unload_page();
+            buttons_load_page(PAGE_OLIVIA_1);
+            break;
+
         default:
             buttons_load_mode();
             break;
@@ -373,7 +412,7 @@ void buttons_app() {
             buttons_unload_page();
             buttons_load_page(PAGE_APP_1);
             break;
-            
+
         default:
             buttons_unload_page();
             buttons_load_page(PAGE_APP_1);

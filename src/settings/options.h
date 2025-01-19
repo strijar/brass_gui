@@ -81,12 +81,22 @@ typedef struct {
 } options_cw_t;
 
 typedef struct {
-    options_operator_t  operator;
+    uint16_t            tones;
+    uint16_t            band_width;
+    uint16_t            band_lower;
+    uint16_t            sync_margin;
+    uint16_t            sync_integ;
+    float               sync_threshold;
+} options_olivia_t;
+
+typedef struct {
+    options_operator_t  op;
     options_audio_t     audio;
     options_spectrum_t  spectrum;
     options_control_t   control;
     options_rtty_t      rtty;
     options_cw_t        cw;
+    options_olivia_t    olivia;
 } options_t;
 
 extern options_t   *options;

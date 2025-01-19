@@ -25,6 +25,7 @@ add_subdirectory(dsp)
 add_subdirectory(python)
 add_subdirectory(render)
 add_subdirectory(settings)
+add_subdirectory(olivia)
 
 include_directories(utf8)
 include_directories(${CMAKE_SYSROOT}/usr/include/RHVoice/)

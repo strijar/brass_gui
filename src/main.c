@@ -44,6 +44,7 @@
 #include "settings/bands.h"
 #include "settings/modes.h"
 #include "settings/options.h"
+#include "olivia/olivia.h"
 
 #define DISP_BUF_SIZE (800 * 480)
 
@@ -136,6 +137,7 @@ int main(void) {
     cw_key_init();
     dsp_init();
     rtty_init();
+    olivia_init();
     radio_init(main_obj);
     adc_init();
     dac_init();

@@ -33,7 +33,7 @@ static void edit_ok() {
     const char *qth = textarea_window_get();
 
     if (grid_check(qth)) {
-        strcpy(options->operator.qth, qth);
+        strcpy(options->op.qth, qth);
         qth_update(qth);
     } else {
         msg_set_text_fmt("Incorrect QTH Grid");
@@ -59,7 +59,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_textarea_set_placeholder_text(text, "QTH Grid");
     lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
 
-    textarea_window_set(options->operator.qth);
+    textarea_window_set(options->op.qth);
 }
 
 static void destruct_cb() {

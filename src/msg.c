@@ -11,6 +11,7 @@
 #include "styles.h"
 #include "util.h"
 #include "events.h"
+#include "queue.h"
 
 static lv_obj_t     *obj;
 static char         buf[512];
@@ -77,7 +78,7 @@ void msg_set_text_fmt(const char * fmt, ...) {
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
 
-    lv_event_send(obj, EVENT_MSG_UPDATE, NULL);
+    queue_send(obj, EVENT_MSG_UPDATE, NULL);
 }
 
 void msg_set_timeout(uint16_t x) {

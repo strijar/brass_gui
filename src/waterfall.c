@@ -49,7 +49,7 @@ static int32_t          scroll_hor_surplus = 0;
 static void finder_event_cb(lv_event_t * e) {
     lv_obj_t *finder = lv_event_get_target(e);
     lv_msg_t *m = lv_event_get_msg(e);
-    
+
     switch (lv_msg_get_id(m)) {
         case MSG_FILTER_CHANGED: {
             int32_t from, to;
@@ -65,10 +65,10 @@ static void finder_event_cb(lv_event_t * e) {
             lv_finder_set_span(finder, 100000 / *zoom);
             lv_obj_invalidate(finder);
         } break;
-        
+
         case MSG_FREQ_RX_CHANGED: {
             const uint64_t *freq = lv_msg_get_payload(m);
-            
+
             lv_finder_set_value(finder, *freq);
         } break;
 
@@ -78,7 +78,16 @@ static void finder_event_cb(lv_event_t * e) {
             lv_finder_set_center(finder, *freq);
             lv_obj_invalidate(finder);
         } break;
-        
+
+        case MSG_FINDER_CURSOR: {
+            const msg_finder_cursor_t *msg = lv_msg_get_payload(m);
+
+            lv_finder_set_cursor_num(finder, msg->num);
+            lv_finder_set_cursor(finder, 1, msg->cursor[0]);
+            lv_finder_set_cursor(finder, 2, msg->cursor[1]);
+            lv_finder_set_cursor(finder, 3, msg->cursor[2]);
+        } break;
+
         default:
             break;
     }
@@ -156,6 +165,7 @@ lv_obj_t * waterfall_init(lv_obj_t * parent) {
     lv_msg_subsribe_obj(MSG_RATE_FFT_CHANGED, finder, NULL);
     lv_msg_subsribe_obj(MSG_FREQ_RX_CHANGED, finder, NULL);
     lv_msg_subsribe_obj(MSG_FREQ_FFT_CHANGED, finder, NULL);
+    lv_msg_subsribe_obj(MSG_FINDER_CURSOR, finder, NULL);
 
     return obj;
 }

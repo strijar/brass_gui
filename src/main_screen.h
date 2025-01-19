@@ -44,3 +44,4 @@ void mem_load(uint16_t id);
 void mem_save(uint16_t id);
 
 void main_screen_update_range();
+void main_screen_update_finder();

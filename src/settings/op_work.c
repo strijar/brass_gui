@@ -21,7 +21,8 @@ static const cyaml_strval_t radio_mode_strings[] = {
     { "cwr",    RADIO_MODE_CWR },
     { "am",     RADIO_MODE_AM },
     { "nfm",    RADIO_MODE_NFM },
-    { "rtty",   RADIO_MODE_RTTY }
+    { "rtty",   RADIO_MODE_RTTY },
+    { "olivia", RADIO_MODE_OLIVIA }
 };
 
 static const cyaml_strval_t split_mode_strings[] = {

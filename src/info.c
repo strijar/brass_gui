@@ -133,6 +133,10 @@ const char* info_params_mode() {
             str = "RTTY";
             break;
 
+        case RADIO_MODE_OLIVIA:
+            str = "OLIV";
+            break;
+
         default:
             str = "?";
             break;
