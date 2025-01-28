@@ -48,7 +48,6 @@ void op_work_activate(bool set_freq) {
         radio_set_freq_rx(op_work->rx);
         radio_set_freq_tx(op_work->tx);
         radio_set_freq_fft(op_work->fft);
-        band_info_update(op_work->fft);
     }
 
     settings_mode_update(op_work->mode);

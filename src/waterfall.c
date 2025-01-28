@@ -13,7 +13,7 @@
 #include "radio.h"
 #include "events.h"
 #include "params.h"
-#include "bands.h"
+#include "bands/bands.h"
 #include "band_info.h"
 #include "meter.h"
 #include "backlight.h"
@@ -51,6 +51,10 @@ static void finder_event_cb(lv_event_t * e) {
     lv_msg_t *m = lv_event_get_msg(e);
 
     switch (lv_msg_get_id(m)) {
+        case MSG_BAND_CHANGED:
+            waterfall_clear();
+            break;
+
         case MSG_FILTER_CHANGED: {
             int32_t from, to;
 

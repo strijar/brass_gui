@@ -28,9 +28,14 @@ static lv_timer_t   *timer = NULL;
 static lv_anim_t    fade;
 static bool         fade_run = false;
 
+static bool visible();
+
 static void msg_timer(lv_timer_t *t) {
-    lv_anim_set_values(&fade, lv_obj_get_style_opa_layered(obj, 0), LV_OPA_COVER);
-    lv_anim_start(&fade);
+    if (visible()) {
+        lv_anim_set_values(&fade, lv_obj_get_style_opa_layered(obj, 0), LV_OPA_COVER);
+        lv_anim_start(&fade);
+    }
+
     timer = NULL;
 }
 

@@ -39,6 +39,14 @@ bands:
 - settings: {label: 6m, start: 50000000, stop: 53900000, tx: true, jump: true}
   work: {mode: usb, split: None}
 
+# Markers
+
+- settings: {label: FT8, start: 14074000, stop: 14077000, tx: true, jump: false}
+  work: {mode: usb, split: None}
+
+- settings: {label: SSTV, start: 14230000, stop: 14233000, tx: true, jump: false}
+  work: {mode: usb, split: None}
+
 # Broadcast
 
 - settings: {label: Broadcast 75m, start: 3900000, stop: 4000000}

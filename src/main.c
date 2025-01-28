@@ -23,7 +23,6 @@
 #include "waterfall.h"
 #include "keypad.h"
 #include "params.h"
-#include "bands.h"
 #include "audio.h"
 #include "cw.h"
 #include "cw_key.h"
@@ -45,6 +44,7 @@
 #include "settings/modes.h"
 #include "settings/options.h"
 #include "olivia/olivia.h"
+#include "bands/bands.h"
 
 #define DISP_BUF_SIZE (800 * 480)
 
@@ -91,6 +91,7 @@ int main(void) {
     queue_init();
     event_init();
     gpio_init();
+    bands_init();
 
     lv_disp_draw_buf_init(&disp_buf, buf_1, buf_2, DISP_BUF_SIZE);
     lv_disp_drv_init(&disp_drv);

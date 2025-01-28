@@ -27,7 +27,6 @@ typedef enum {
 } app_t;
 
 lv_obj_t * main_screen();
-void main_screen_band_changed();
 
 void main_screen_keys_enable(bool value);
 void main_screen_dialog_deleted_cb();

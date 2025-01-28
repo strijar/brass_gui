@@ -14,7 +14,7 @@
 #include "lvgl/lvgl.h"
 #include "params.h"
 #include "util.h"
-#include "bands.h"
+#include "bands/bands.h"
 #include "mfk.h"
 #include "vol.h"
 #include "dialog_msg_cw.h"

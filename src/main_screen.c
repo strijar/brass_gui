@@ -20,7 +20,6 @@
 #include "msg_tiny.h"
 #include "dsp.h"
 #include "params.h"
-#include "bands.h"
 #include "clock.h"
 #include "info.h"
 #include "meter.h"
@@ -52,6 +51,7 @@
 #include "msgs.h"
 #include "settings/bands.h"
 #include "settings/modes.h"
+#include "bands/bands.h"
 
 static uint16_t     spectrum_height = (480 / 3);
 static uint16_t     freq_height = 36;
@@ -70,6 +70,7 @@ static lv_obj_t     *tx_info;
 static void freq_shift(int16_t diff);
 static void next_freq_step(bool up);
 static uint64_t freq_update();
+static void band_changed_cb(void *s, lv_msg_t *m);
 
 void mem_load(uint16_t id) {
     /* REWRITE
@@ -617,13 +618,6 @@ static void freq_shift(int16_t diff) {
             radio_set_freqs(freq_rx, freq_tx);
             freq_shift = freq_rx - prev_freq_rx;
             lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
-
-            if (bands_changed(freq_rx)) {
-                main_screen_update_range();
-                info_params_set();
-            }
-
-            band_info_update(freq_rx);
             voice_say_freq(freq_rx);
             break;
 
@@ -643,17 +637,7 @@ static void freq_shift(int16_t diff) {
                 lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             }
 
-            if (bands_changed(radio_set_freqs(freq_rx, freq_tx))) {
-                op_work->rx = freq_rx;
-                op_work->tx = freq_rx;
-                op_work->fft = freq_fft;
-                radio_set_freq_fft(op_work->fft);
-
-                band_info_update_range();
-                freq_update();
-                info_params_set();
-            }
-            band_info_update(prev_freq_fft);
+            radio_set_freqs(freq_rx, freq_tx);
             break;
 
         case FREQ_MODE_RX_ONLY:
@@ -664,7 +648,6 @@ static void freq_shift(int16_t diff) {
             radio_set_freq_fft(freq_fft);
             freq_shift = freq_fft - prev_freq_fft;
             lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
-            band_info_update(freq_fft);
             break;
 
         default:
@@ -860,13 +843,6 @@ void main_screen_lock_mode(bool lock) {
 }
 
 void main_screen_set_freq(uint64_t freq) {
-    if (!bands_prior(freq)) {
-        if (bands_find(freq)) {
-            main_screen_update_range();
-            info_params_set();
-        }
-    }
-
     radio_set_freq_rx(freq);
     radio_set_freq_tx(freq);
     radio_set_freq_fft(freq);
@@ -890,6 +866,7 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_pressed_cb, LV_EVENT_PRESSED, NULL);
 
     lv_msg_subsribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
+    lv_msg_subsribe(MSG_BAND_CHANGED, band_changed_cb, NULL);
 
     main_screen_keys_enable(true);
 
@@ -934,12 +911,14 @@ lv_obj_t * main_screen() {
     meter = meter_init(obj);
     tx_info = tx_info_init(obj);
 
-    main_screen_band_changed();
-
     lv_msg_send(MSG_MODE_CHANGED, &op_work->mode);
     lv_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);
     lv_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
     lv_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
+
+    freq_update();
+    info_params_set();
+    dsp_auto_clear();
 
     msg_set_text_fmt("TRX Brass de R1CBU " VERSION);
     msg_set_timeout(2000);
@@ -947,20 +926,28 @@ lv_obj_t * main_screen() {
     return obj;
 }
 
-void main_screen_band_changed() {
+static void band_changed_cb(void *s, lv_msg_t *m) {
     uint64_t freq = freq_update();
 
     info_params_set();
-    band_info_update_range();
     dsp_auto_clear();
-    waterfall_clear();
+
+    switch (params.freq_mode.x) {
+        case FREQ_MODE_SLIDE:
+            if (op_work) {
+                radio_set_freq_fft(op_work->fft);
+            }
+            break;
+
+        default:
+            break;
+    }
 }
 
 void main_screen_update_range() {
     op_work->fft = op_work->rx;
     radio_set_freq_fft(op_work->fft);
 
-    band_info_update_range();
     freq_update();
 }
 

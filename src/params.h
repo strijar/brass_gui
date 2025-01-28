@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "bands.h"
+#include "bands/bands.h"
 #include "radio.h"
 #include "clock.h"
 #include "voice.h"

@@ -189,6 +189,8 @@ void radio_set_freq_rx(uint64_t freq) {
         return;
     }
 
+    lv_msg_send(MSG_FREQ_RX_PRE_CHANGED, &freq);
+
     op_work->rx = freq;
     op_work->shift = (shift != 0);
 
@@ -205,6 +207,8 @@ void radio_set_freq_tx(uint64_t freq) {
         LV_LOG_ERROR("Freq %llu incorrect", freq);
         return;
     }
+
+    lv_msg_send(MSG_FREQ_TX_PRE_CHANGED, &freq);
 
     op_work->tx = freq;
     op_work->shift = (shift != 0);

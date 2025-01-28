@@ -25,6 +25,8 @@ lv_style_t  info_item_style;
 lv_style_t  meter_style;
 lv_style_t  tx_info_style;
 lv_style_t  rx_finder_style;
+lv_style_t  band_info_ind_style;
+lv_style_t  band_info_tick_style;
 
 lv_style_t  panel_top_style;
 lv_style_t  panel_mid_style;
@@ -39,7 +41,6 @@ lv_style_t  dialog_dropdown_list_style;
 
 lv_color_t  bg_color;
 
-lv_font_t   *font_band_info = &jura_22;
 lv_font_t   *font_clock_time = &jura_36;
 lv_font_t   *font_clock_power = &jura_28;
 lv_font_t   *font_dialog_freq = &jura_44;
@@ -230,6 +231,21 @@ void styles_init() {
     lv_style_set_bg_img_src(&tx_info_style, PATH "images/top_big.bin");
     lv_style_set_bg_img_opa(&tx_info_style, LV_OPA_COVER);
     lv_style_set_bg_opa(&tx_info_style, LV_OPA_0);
+
+    lv_style_init(&band_info_ind_style);
+    lv_style_set_bg_color(&band_info_ind_style, bg_color);
+    lv_style_set_bg_opa(&band_info_ind_style, LV_OPA_50);
+    lv_style_set_border_width(&band_info_ind_style, 2);
+    lv_style_set_border_color(&band_info_ind_style, lv_color_white());
+    lv_style_set_border_opa(&band_info_ind_style, LV_OPA_50);
+    lv_style_set_text_color(&band_info_ind_style, lv_color_white());
+    lv_style_set_text_font(&band_info_ind_style, &jura_22);
+
+    lv_style_init(&band_info_tick_style);
+    lv_style_set_bg_color(&band_info_tick_style, lv_color_hex(0xAAAAAA));
+    lv_style_set_bg_opa(&band_info_tick_style, LV_OPA_COVER);
+    lv_style_set_text_color(&band_info_tick_style, lv_color_black());
+    lv_style_set_text_font(&band_info_tick_style, &jura_bold_22);
 }
 
 void styles_waterfall_palette(lv_color_t *palette, uint16_t size) {

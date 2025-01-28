@@ -10,7 +10,7 @@
 #include <cyaml/cyaml.h>
 #include "lvgl/lvgl.h"
 #include "bands.h"
-#include "src/bands.h"
+#include "src/bands/bands.h"
 
 static const char  filename[] = "/mnt/settings/bands.yaml";
 

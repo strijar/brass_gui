@@ -27,6 +27,8 @@ extern lv_style_t   info_item_style;
 extern lv_style_t   meter_style;
 extern lv_style_t   tx_info_style;
 extern lv_style_t   rx_finder_style;
+extern lv_style_t   band_info_ind_style;
+extern lv_style_t   band_info_tick_style;
 
 extern lv_style_t   panel_top_style;
 extern lv_style_t   panel_mid_style;
@@ -39,7 +41,6 @@ extern lv_style_t   dialog_item_focus_style;
 extern lv_style_t   dialog_item_edited_style;
 extern lv_style_t   dialog_dropdown_list_style;
 
-extern lv_font_t    *font_band_info;
 extern lv_font_t    *font_clock_time;
 extern lv_font_t    *font_clock_power;
 extern lv_font_t    *font_dialog_freq;

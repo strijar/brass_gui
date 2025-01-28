@@ -6,25 +6,27 @@
  *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
-#include "bands.h"
 #include "band_info.h"
 #include "styles.h"
 #include "events.h"
 #include "backlight.h"
+#include "msgs.h"
 
 #include "settings/bands.h"
 #include "settings/modes.h"
+#include "bands/bands.h"
 
 static lv_obj_t         *obj;
 
 static lv_coord_t       band_info_height = 24;
 static int32_t          width_hz = 100000;
-static uint64_t         freq;
 static lv_anim_t        fade;
 static bool             fade_run = false;
 static int16_t          band_id = -1;
 
 static lv_timer_t       *timer = NULL;
+
+static void show();
 
 static void band_info_timer(lv_timer_t *t) {
     lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_TRANSP);
@@ -32,23 +34,39 @@ static void band_info_timer(lv_timer_t *t) {
     timer = NULL;
 }
 
+static void msg_event_cb(void *s, lv_msg_t *m) {
+    switch (lv_msg_get_id(m)) {
+        case MSG_FREQ_FFT_CHANGED:
+        case MSG_FREQ_RX_CHANGED:
+            show();
+            break;
+
+        case MSG_RATE_FFT_CHANGED: {
+            const uint8_t *zoom = lv_msg_get_payload(m);
+
+            width_hz = 100000 / *zoom;
+        } break;
+    }
+}
+
 static void band_info_draw_cb(lv_event_t * e) {
     lv_event_code_t     code = lv_event_get_code(e);
     lv_obj_t            *obj = lv_event_get_target(e);
     lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+    band_list_t         *list = bands_list();
 
-    if (!bands || band_id < 0) {
+    if (!list) {
         return;
     }
 
-    lv_coord_t x1 = obj->coords.x1;
-    lv_coord_t y1 = obj->coords.y1;
+    lv_coord_t      x1 = obj->coords.x1;
+    lv_coord_t      y1 = obj->coords.y1;
+    lv_coord_t      w = lv_obj_get_width(obj);
+    lv_coord_t      h = lv_obj_get_height(obj) - 1;
+    band_listtrav_t *trav = band_listtrav_new(list);
+    uint64_t        freq = op_work->fft;
 
-    lv_coord_t w = lv_obj_get_width(obj);
-    lv_coord_t h = lv_obj_get_height(obj) - 1;
-
-    for (uint16_t i = band_id; i < bands->count; i++) {
-        band_t  *band = &(bands->item[i]);
+    for (const band_t *band = band_listtrav_first(trav); band != NULL; band = band_listtrav_next(trav)) {
         int32_t start = (int64_t)(band->settings.start - freq) * w / width_hz;
         int32_t stop = (int64_t)(band->settings.stop - freq) * w / width_hz;
 
@@ -67,18 +85,23 @@ static void band_info_draw_cb(lv_event_t * e) {
             stop = w;
         }
 
-        /* Rect */
 
         lv_draw_rect_dsc_t  rect_dsc;
         lv_area_t           area;
+        lv_draw_label_dsc_t dsc_label;
 
+        lv_draw_label_dsc_init(&dsc_label);
         lv_draw_rect_dsc_init(&rect_dsc);
 
-        rect_dsc.bg_color = bg_color;
-        rect_dsc.bg_opa = LV_OPA_50;
-        rect_dsc.border_width = 2;
-        rect_dsc.border_color = lv_color_white();
-        rect_dsc.border_opa = LV_OPA_50;
+        if (band->settings.stop - band->settings.start >= 5000) {
+            lv_obj_init_draw_rect_dsc(obj, LV_PART_INDICATOR, &rect_dsc);
+            lv_obj_init_draw_label_dsc(obj, LV_PART_INDICATOR, &dsc_label);
+        } else {
+            lv_obj_init_draw_rect_dsc(obj, LV_PART_TICKS, &rect_dsc);
+            lv_obj_init_draw_label_dsc(obj, LV_PART_TICKS, &dsc_label);
+        }
+
+        /* Rect */
 
         area.x1 = x1 + start + 2;
         area.y1 = y1;
@@ -89,11 +112,10 @@ static void band_info_draw_cb(lv_event_t * e) {
 
         /* Label */
 
-        lv_draw_label_dsc_t dsc_label;
-        lv_draw_label_dsc_init(&dsc_label);
-
+        /*
         dsc_label.color = lv_color_white();
         dsc_label.font = font_band_info;
+        */
 
         lv_point_t label_size;
         lv_txt_get_size(&label_size, band->settings.label, dsc_label.font, 0, 0, LV_COORD_MAX, 0);
@@ -107,6 +129,8 @@ static void band_info_draw_cb(lv_event_t * e) {
             lv_draw_label(draw_ctx, &dsc_label, &area, band->settings.label, NULL);
         }
     }
+
+    band_listtrav_delete(trav);
 }
 
 static void fade_anim(void * obj, int32_t v) {
@@ -128,7 +152,14 @@ lv_obj_t * band_info_init(lv_obj_t *parent) {
     lv_obj_set_style_border_width(obj, 0, 0);
     lv_obj_set_style_bg_opa(obj, LV_OPA_0, 0);
 
+    lv_obj_add_style(obj, &band_info_ind_style, LV_PART_INDICATOR);
+    lv_obj_add_style(obj, &band_info_tick_style, LV_PART_TICKS);
+
     lv_obj_add_event_cb(obj, band_info_draw_cb, LV_EVENT_DRAW_MAIN_END, NULL);
+
+    lv_msg_subsribe(MSG_RATE_FFT_CHANGED, msg_event_cb, NULL);
+    lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, msg_event_cb, NULL);
+    lv_msg_subsribe(MSG_FREQ_RX_CHANGED, msg_event_cb, NULL);
 
     lv_anim_init(&fade);
     lv_anim_set_var(&fade, obj);
@@ -139,27 +170,7 @@ lv_obj_t * band_info_init(lv_obj_t *parent) {
     return obj;
 }
 
-void band_info_update(uint64_t f) {
-    freq = f;
-    band_id = -1;
-
-    lv_coord_t w = lv_obj_get_width(obj);
-
-    for (uint16_t i = 0; i < bands->count; i++) {
-        band_t *band = &(bands->item[i]);
-
-        int32_t start = (int64_t)(band->settings.start - freq) * w / width_hz;
-        int32_t stop = (int64_t)(band->settings.stop - freq) * w / width_hz;
-
-        start += w / 2;
-        stop += w / 2;
-
-        if ((start > 0 && start < w) || (stop > 0 && stop < w) || (start < 0 && stop > w)) {
-            band_id = i;
-            break;
-        }
-    }
-
+static void show() {
     if (backlight_is_on()) {
         lv_obj_invalidate(obj);
     }
@@ -176,8 +187,4 @@ void band_info_update(uint64_t f) {
         timer = lv_timer_create(band_info_timer, 2000, NULL);
         lv_timer_set_repeat_count(timer, 1);
     }
-}
-
-void band_info_update_range() {
-    width_hz = 100000 / op_mode->spectrum_factor;
 }

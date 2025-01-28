@@ -5,7 +5,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     styles.c radio.c dsp.c util.c 
     waterfall.c rotary.c keyboard.c encoder.c
     events.c msg.c msg_tiny.c keypad.c params.c
-    bands.c hkey.c clock.c info.c
+    hkey.c clock.c info.c
     meter.c band_info.c tx_info.c
     audio.c mfk.c cw.c cw_decoder.c pannel.c
     rtty.c screenshot.c backlight.c gps.c
@@ -26,6 +26,7 @@ add_subdirectory(python)
 add_subdirectory(render)
 add_subdirectory(settings)
 add_subdirectory(olivia)
+add_subdirectory(bands)
 
 include_directories(utf8)
 include_directories(${CMAKE_SYSROOT}/usr/include/RHVoice/)
