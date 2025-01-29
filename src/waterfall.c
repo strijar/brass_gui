@@ -51,10 +51,6 @@ static void finder_event_cb(lv_event_t * e) {
     lv_msg_t *m = lv_event_get_msg(e);
 
     switch (lv_msg_get_id(m)) {
-        case MSG_BAND_CHANGED:
-            waterfall_clear();
-            break;
-
         case MSG_FILTER_CHANGED: {
             int32_t from, to;
 
@@ -102,13 +98,13 @@ static void shift_freq(int32_t df) {
     int16_t     surplus = df % div;
 
     scroll_hor += df / div;
-    
+
     if (surplus) {
         scroll_hor_surplus += surplus;
     } else {
         scroll_hor_surplus = 0;
     }
-    
+
     if (abs(scroll_hor_surplus) > div) {
         scroll_hor += scroll_hor_surplus / div;
         scroll_hor_surplus = scroll_hor_surplus % div;
@@ -124,6 +120,10 @@ static void waterfall_msg_cb(lv_event_t * e) {
     lv_msg_t *m = lv_event_get_msg(e);
 
     switch (lv_msg_get_id(m)) {
+        case MSG_BAND_CHANGED:
+            waterfall_clear();
+            break;
+
         case MSG_FREQ_FFT_SHIFT: {
             const int32_t *df = lv_msg_get_payload(m);
 
@@ -141,18 +141,19 @@ static void waterfall_msg_cb(lv_event_t * e) {
 
 lv_obj_t * waterfall_init(lv_obj_t * parent) {
     obj = lv_obj_create(parent);
-    
+
     lv_obj_add_style(obj, &waterfall_style, 0);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_add_event_cb(obj, waterfall_msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
     lv_msg_subsribe_obj(MSG_FREQ_FFT_SHIFT, obj, NULL);
     lv_msg_subsribe_obj(MSG_RATE_FFT_CHANGED, obj, NULL);
+    lv_msg_subsribe_obj(MSG_BAND_CHANGED, obj, NULL);
 
     /* Finder */
 
     finder = lv_finder_create(obj);
-    
+
     lv_finder_set_cursor(finder, 1, 0);
 
     lv_obj_add_style(finder, &rx_finder_style, LV_PART_MAIN);

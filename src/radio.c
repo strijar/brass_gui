@@ -189,8 +189,6 @@ void radio_set_freq_rx(uint64_t freq) {
         return;
     }
 
-    lv_msg_send(MSG_FREQ_RX_PRE_CHANGED, &freq);
-
     op_work->rx = freq;
     op_work->shift = (shift != 0);
 
@@ -208,8 +206,6 @@ void radio_set_freq_tx(uint64_t freq) {
         return;
     }
 
-    lv_msg_send(MSG_FREQ_TX_PRE_CHANGED, &freq);
-
     op_work->tx = freq;
     op_work->shift = (shift != 0);
 
@@ -224,17 +220,21 @@ uint64_t radio_set_freqs(uint64_t rx, uint64_t tx) {
 
     switch (op_work->split) {
         case SPLIT_NONE:
+            lv_msg_send(MSG_FREQ_RX_PRE_CHANGED, &rx);
+            lv_msg_send(MSG_FREQ_TX_PRE_CHANGED, &tx);
             radio_set_freq_rx(rx);
             radio_set_freq_tx(tx);
             ret = rx;
             break;
 
         case SPLIT_RX:
+            lv_msg_send(MSG_FREQ_RX_PRE_CHANGED, &rx);
             radio_set_freq_rx(rx);
             ret = rx;
             break;
 
         case SPLIT_TX:
+            lv_msg_send(MSG_FREQ_TX_PRE_CHANGED, &tx);
             radio_set_freq_tx(tx);
             ret = tx;
     }
