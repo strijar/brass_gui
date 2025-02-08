@@ -11,6 +11,7 @@
 #include <math.h>
 
 #include "mic.h"
+#include "dsp.h"
 #include "audio.h"
 #include "fpga/dac.h"
 #include "dsp/firdes.h"
@@ -27,7 +28,6 @@ static cbufferf         in_buf;
 static rresamp_rrrf     resamp;
 static float            resamp_buf[INTER];
 static cbufferf         out_buf;
-static firhilbf         ssb;
 static agc_t            *agc;
 static size_t           filter_len = 0;
 static float            *filter_taps = NULL;
@@ -39,7 +39,6 @@ void mic_init() {
     in_buf = cbufferf_create(AUDIO_CAPTURE_RATE / 4);
     resamp = rresamp_rrrf_create_default(INTER, DECIM);     /* DAC_RATE <- AUDIO_CAPTURE_RATE */
     out_buf = cbufferf_create(DAC_RATE / 4);
-    ssb = firhilbf_create(15, 60.0f);
 
     agc = agc_create(
         AGC_FAST,               /* mode */
@@ -77,41 +76,6 @@ void mic_update_filter() {
     filter_need_update = true;
 }
 
-static float complex modulate(float x, radio_mode_t mode) {
-    static float phase = 0;
-
-    float complex b;
-    float complex out = 0;
-
-    switch (mode) {
-        case RADIO_MODE_USB:
-            firhilbf_r2c_execute(ssb, x, &b);
-            __real__ out = __real__ b;
-            __imag__ out = __imag__ b;
-            break;
-
-        case RADIO_MODE_LSB:
-            firhilbf_r2c_execute(ssb, x, &b);
-            __real__ out = __imag__ b;
-            __imag__ out = __real__ b;
-            break;
-
-        case RADIO_MODE_NFM:
-            phase += x * 0.5f;
-            out = cexpf(_Complex_I * phase);
-            break;
-
-        case RADIO_MODE_AM:
-            out = _Complex_I * (x * 0.3f + 0.7f);
-            break;
-
-        default:
-            break;
-    }
-
-    return out;
-}
-
 size_t mic_modulate(float complex *data, size_t max_size, radio_mode_t mode) {
     size_t size = 0;
 
@@ -124,7 +88,7 @@ size_t mic_modulate(float complex *data, size_t max_size, radio_mode_t mode) {
         cbufferf_read(out_buf, part, &buf, &n);
 
         for (uint32_t i = 0; i < n; i++) {
-            data[i] = modulate(buf[i], mode);
+            data[i] = dsp_modulate(buf[i], mode);
         }
 
         cbufferf_release(out_buf, n);
@@ -169,7 +133,7 @@ void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
     if (rec_msg) {
         cbufferf_read(in_buf, nsamples, &buf, &n);
 
-        dialog_msg_voice_put_audio_samples(n, buf);
+        dialog_msg_voice_put_audio_samples(buf, n);
         cbufferf_reset(in_buf);
 
         return;

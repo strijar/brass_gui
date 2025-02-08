@@ -127,6 +127,11 @@ const cyaml_schema_field_t olivia_fields_schema[] = {
     CYAML_FIELD_END
 };
 
+const cyaml_schema_field_t msg_fields_schema[] = {
+    CYAML_FIELD_UINT("voice_period",        CYAML_FLAG_OPTIONAL, options_msg_t, voice_period),
+    CYAML_FIELD_END
+};
+
 const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, op, operator_fields_schema),
     CYAML_FIELD_MAPPING("audio",        CYAML_FLAG_OPTIONAL, options_t, audio, audio_fields_schema),
@@ -135,6 +140,7 @@ const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("rtty",         CYAML_FLAG_OPTIONAL, options_t, rtty, rtty_fields_schema),
     CYAML_FIELD_MAPPING("cw",           CYAML_FLAG_OPTIONAL, options_t, cw, cw_fields_schema),
     CYAML_FIELD_MAPPING("olivia",       CYAML_FLAG_OPTIONAL, options_t, olivia, olivia_fields_schema),
+    CYAML_FIELD_MAPPING("msg",          CYAML_FLAG_OPTIONAL, options_t, msg, msg_fields_schema),
     CYAML_FIELD_END
 };
 

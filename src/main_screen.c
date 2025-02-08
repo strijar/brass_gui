@@ -223,6 +223,11 @@ void main_screen_app(app_t app) {
             voice_say_text_fmt("Audio recorder window");
             break;
 
+        case APP_MSG_VOICE:
+            dialog_construct(dialog_msg_voice, obj);
+            voice_say_text_fmt("Voice messages window");
+            break;
+
         default:
             break;
     }
@@ -290,6 +295,12 @@ void main_screen_action(options_action_t action) {
 static void main_screen_keypad_cb(lv_event_t * e) {
     event_keypad_t *keypad = lv_event_get_param(e);
 
+    if (dialog_is_run()) {
+        if (dialog_keypad(keypad)) {
+            return;
+        }
+    }
+
     switch (keypad->key) {
         case KEYPAD_POWER:
             if (keypad->state == KEYPAD_RELEASE) {
@@ -319,7 +330,11 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
         case KEYPAD_APP:
             if (keypad->state == KEYPAD_RELEASE) {
-                buttons_app();
+                if (dialog_is_run()) {
+                    dialog_keypad(KEYPAD_APP);
+                } else {
+                    buttons_app();
+                }
             } else if (keypad->state == KEYPAD_LONG) {
                 main_screen_action(options->control.long_app);
             }
@@ -541,19 +556,6 @@ static void main_screen_hkey_cb(lv_event_t * e) {
         default:
             break;
     }
-}
-
-static void main_screen_radio_cb(lv_event_t * e) {
-    lv_event_code_t code = lv_event_get_code(e);
-
-    if (op_work->split) { // ???
-        freq_update();
-    }
-
-    lv_event_send(meter, code, NULL);
-    lv_event_send(tx_info, code, NULL);
-
-    dialog_send(code, NULL);
 }
 
 static void main_screen_update_cb(lv_event_t * e) {
@@ -857,8 +859,6 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_rotary_cb, EVENT_ROTARY, NULL);
     lv_obj_add_event_cb(obj, main_screen_keypad_cb, EVENT_KEYPAD, NULL);
     lv_obj_add_event_cb(obj, main_screen_hkey_cb, EVENT_HKEY, NULL);
-    lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_TX, NULL);
-    lv_obj_add_event_cb(obj, main_screen_radio_cb, EVENT_RADIO_RX, NULL);
     lv_obj_add_event_cb(obj, main_screen_update_cb, EVENT_SCREEN_UPDATE, NULL);
     lv_obj_add_event_cb(obj, main_screen_atu_update_cb, EVENT_ATU_UPDATE, NULL);
 

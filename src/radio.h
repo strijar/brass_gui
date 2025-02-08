@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #pragma once
@@ -41,11 +41,12 @@ typedef enum {
 typedef enum {
     RADIO_RX = 0,
     RADIO_TX,
+    RADIO_STOP_TX,
     RADIO_ATU_START,
     RADIO_ATU_WAIT,
     RADIO_ATU_RUN,
     RADIO_SWRSCAN,
-    
+
     RADIO_POWEROFF,
     RADIO_OFF
 } radio_state_t;
@@ -108,4 +109,5 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq);
 void radio_poweroff();
 
 void radio_set_ptt(bool on);
+void radio_stop_tx();
 void radio_set_morse_key(bool on);

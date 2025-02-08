@@ -90,6 +90,10 @@ typedef struct {
 } options_olivia_t;
 
 typedef struct {
+    uint16_t            voice_period;
+} options_msg_t;
+
+typedef struct {
     options_operator_t  op;
     options_audio_t     audio;
     options_spectrum_t  spectrum;
@@ -97,6 +101,7 @@ typedef struct {
     options_rtty_t      rtty;
     options_cw_t        cw;
     options_olivia_t    olivia;
+    options_msg_t       msg;
 } options_t;
 
 extern options_t   *options;

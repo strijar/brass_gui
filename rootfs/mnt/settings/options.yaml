@@ -52,3 +52,6 @@ olivia:
   sync_margin: 4
   sync_integ: 4
   sync_threshold: 3.0
+
+msg:
+  voice_period: 10

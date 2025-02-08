@@ -27,11 +27,6 @@ typedef enum {
 
     PAGE_APP_1,
     PAGE_APP_2,
-
-    PAGE_APP_MSG_CW_1,
-
-    PAGE_APP_MSG_VOICE_1,
-    PAGE_APP_MSG_VOICE_2
 } button_page_t;
 
 typedef void (*hold_cb_t)(void *);

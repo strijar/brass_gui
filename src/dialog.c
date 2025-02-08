@@ -21,11 +21,11 @@ void dialog_construct(dialog_t *dialog, lv_obj_t *parent) {
     if (dialog && !dialog->run) {
         main_screen_keys_enable(false);
         dialog->construct_cb(parent);
-        
+
         dialog->run = true;
     }
 
-    current_dialog = dialog;    
+    current_dialog = dialog;
 }
 
 void dialog_destruct() {
@@ -34,7 +34,7 @@ void dialog_destruct() {
 
         main_screen_keys_enable(true);
         main_screen_dialog_deleted_cb();
-        
+
         if (current_dialog->destruct_cb) {
             current_dialog->destruct_cb();
         }
@@ -52,6 +52,30 @@ void dialog_send(lv_event_code_t event_code, void *param) {
     if (dialog_is_run()) {
         lv_event_send(current_dialog->obj, event_code, param);
     }
+}
+
+bool dialog_keypad(event_keypad_t *keypad) {
+    if (dialog_is_run() && current_dialog->keypad_cb) {
+        return current_dialog->keypad_cb(keypad);
+    }
+
+    return false;
+}
+
+bool dialog_modulate_state() {
+    if (dialog_is_run() && current_dialog->modulate_state_cb) {
+        return current_dialog->modulate_state_cb();
+    }
+
+    return false;
+}
+
+size_t dialog_modulate(float complex *data, size_t max_size, radio_mode_t mode) {
+    if (current_dialog->modulate_cb) {
+        return current_dialog->modulate_cb(data, max_size, mode);
+    }
+
+    return 0;
 }
 
 bool dialog_is_run() {
@@ -83,9 +107,9 @@ void dialog_item(dialog_t *dialog, lv_obj_t *obj) {
     lv_obj_set_style_border_color(obj, lv_color_white(), LV_STATE_FOCUS_KEY | LV_PART_INDICATOR);
 
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
-    
+
     lv_group_add_obj(keyboard_group, obj);
-    
+
     if (dialog->key_cb) {
         lv_obj_add_event_cb(obj, dialog->key_cb, LV_EVENT_KEY, NULL);
     }

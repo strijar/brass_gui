@@ -58,6 +58,8 @@ static firhilbf         demod_ssb;
 static firfilt_rrrf     demod_dc_block;
 static agc_t            *rx_agc;
 
+static firhilbf         mod_ssb;
+
 static size_t           filter_len = 0;
 static float            *filter_taps = NULL;
 static bool             filter_need_update = false;
@@ -124,6 +126,8 @@ void dsp_init() {
 
     demod_ssb = firhilbf_create(15, 60.0f);
     demod_dc_block = firfilt_rrrf_create_dc_blocker(25, 20.0f);
+
+    mod_ssb = firhilbf_create(15, 60.0f);
 
     rx_agc = agc_create(
         AGC_FAST,   /* mode */
@@ -289,7 +293,42 @@ void dsp_fft(float *data) {
     pthread_mutex_unlock(&spectrum_mux);
 }
 
-static float demodulate(float complex in, radio_mode_t mode) {
+float complex dsp_modulate(float x, radio_mode_t mode) {
+    static float phase = 0;
+
+    float complex b;
+    float complex out = 0;
+
+    switch (mode) {
+        case RADIO_MODE_USB:
+            firhilbf_r2c_execute(mod_ssb, x, &b);
+            __real__ out = __real__ b;
+            __imag__ out = __imag__ b;
+            break;
+
+        case RADIO_MODE_LSB:
+            firhilbf_r2c_execute(mod_ssb, x, &b);
+            __real__ out = __imag__ b;
+            __imag__ out = __real__ b;
+            break;
+
+        case RADIO_MODE_NFM:
+            phase += x * 0.5f;
+            out = cexpf(_Complex_I * phase);
+            break;
+
+        case RADIO_MODE_AM:
+            out = _Complex_I * (x * 0.3f + 0.7f);
+            break;
+
+        default:
+            break;
+    }
+
+    return out;
+}
+
+float dsp_demodulate(float complex in, radio_mode_t mode) {
     static float    last_phase = 0;
     float           phase, dphase;
     float           a, b;
@@ -363,7 +402,7 @@ void dsp_adc(float complex *data, uint16_t samples) {
     for (int i = 0; i < samples; i++) {
         float x, y;
 
-        x = demodulate(data[i], mode);
+        x = dsp_demodulate(data[i], mode);
         firfilt_rrrf_execute_one(filter, x, &y);
 
         if (fabs(y) > peak) {
@@ -495,6 +534,11 @@ void dsp_change_mute() {
     dsp_set_vol(adc_mute ? 0 : options->audio.vol);
 }
 
+void dsp_set_mute(bool on) {
+    adc_mute = on;
+    dsp_set_vol(on ? 0 : options->audio.vol);
+}
+
 void dsp_set_vol(uint8_t x) {
     adc_vol = x / 100.0f;
 }
@@ -536,13 +580,22 @@ size_t dsp_dac(float complex *data, size_t max_size) {
             case RADIO_MODE_USB:
             case RADIO_MODE_AM:
             case RADIO_MODE_NFM:
-                mic_on_air(true);
-                size = mic_modulate(data, max_size, mode);
+                if (dialog_modulate_state()) {
+                    mic_on_air(false);
+                    size = dialog_modulate(data, max_size, mode);
+                } else {
+                    mic_on_air(true);
+                    size = mic_modulate(data, max_size, mode);
+                }
                 break;
 
             default:
                 mic_on_air(false);
                 break;
+        }
+
+        if (size > max_size) {
+            radio_stop_tx();
         }
     }
 

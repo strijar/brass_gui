@@ -215,7 +215,7 @@ static void tx_cb(lv_event_t * e) {
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = dialog_init(parent);
 
-    lv_obj_add_event_cb(dialog.obj, tx_cb, EVENT_RADIO_TX, NULL);
+    lv_obj_add_event_cb(dialog.obj, tx_cb, EVENT_RADIO_TX, NULL); // FIXME
 
     table = lv_table_create(dialog.obj);
     

@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include <unistd.h>
@@ -31,6 +31,7 @@
 #include "msg.h"
 #include "msgs.h"
 #include "settings/modes.h"
+#include "gpio.h"
 
 #define FLOW_RESTART_TIMOUT     300
 
@@ -148,14 +149,12 @@ static void radio_msg_cb(void *s, lv_msg_t *m) {
 
             if (*on) {
                 if (band_settings && band_settings->tx) {
-                    state = RADIO_TX;
-                    lv_msg_send(MSG_TX, NULL);
+                    radio_set_ptt(true);
                 } else {
                     msg_set_text_fmt("TX not permitted");
                 }
             } else {
-                state = RADIO_RX;
-                lv_msg_send(MSG_RX, NULL);
+                radio_set_ptt(false);
             }
         } break;
 
@@ -627,7 +626,7 @@ bool radio_change_nr(int16_t d) {
     params_lock();
     params.nr = !params.nr;
     params_unlock(&params.durty.nr);
-    
+
     return params.nr;
 }
 
@@ -639,11 +638,30 @@ uint8_t radio_change_nr_level(int16_t d) {
     params_lock();
     params.nr_level = limit(params.nr_level + d * 5, 0, 60);
     params_unlock(&params.durty.nr_level);
-    
+
     return params.nr_level;
 }
 
 void radio_set_ptt(bool on) {
+    if (on) {
+        gpio_set_preamp(false);
+        gpio_set_tx(true);
+
+        state = RADIO_TX;
+        lv_msg_send(MSG_TX, NULL);
+    } else {
+        gpio_set_preamp(true);
+        gpio_set_tx(false);
+
+        state = RADIO_RX;
+        lv_msg_send(MSG_RX, NULL);
+    }
+}
+
+void radio_stop_tx() {
+    if (state == RADIO_TX) {
+        state = RADIO_STOP_TX;
+    }
 }
 
 void radio_set_morse_key(bool on) {

@@ -24,31 +24,20 @@
 
 static int              fd;
 static float complex    samples[DAC_SAMPLES];
-static bool             prev_tx = false;
 
 static void * dac_thread(void *arg) {
     while (true) {
         size_t size = dsp_dac(samples, DAC_SAMPLES);
 
         if (size > 0) {
-            if (!prev_tx) {
-                prev_tx = true;
-                gpio_set_preamp(false);
-                gpio_set_tx(true);
-            }
-
             int res = write(fd, samples, size * sizeof(float complex));
 
             if (res != size * sizeof(float complex)) {
                 LV_LOG_WARN("Fix me");
             }
         } else {
-            if (prev_tx) {
-                prev_tx = false;
-                gpio_set_preamp(true);
-                gpio_set_tx(false);
-            }
-            usleep(1000);
+            memset(samples, 0, sizeof(samples));
+            write(fd, samples, sizeof(samples));
         }
     }
 }

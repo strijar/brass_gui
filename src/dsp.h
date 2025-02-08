@@ -26,9 +26,13 @@ void dsp_set_spectrum_beta(float x);
 void dsp_auto_clear();
 
 void dsp_change_mute();
+void dsp_set_mute(bool on);
 void dsp_set_vol(uint8_t x);
 uint16_t dsp_change_vol(int16_t df);
 uint8_t dsp_change_rx_agc(int16_t df);
+
+float complex dsp_modulate(float x, radio_mode_t mode);
+float dsp_demodulate(float complex in, radio_mode_t mode);
 
 /* From thread */
 

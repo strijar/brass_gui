@@ -72,7 +72,7 @@ static button_item_t    buttons[] = {
     { .label = "Filter\nTransition",.press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_TRANSITION },
     { .label = "AGC",               .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_AGC },
     { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
-    { .label = "",                  .press = NULL },
+    { .label = "Msg",               .press = button_app_page_cb,    .data = APP_MSG_VOICE },
 
     /* CW, CWR */
 
@@ -139,31 +139,6 @@ static button_item_t    buttons[] = {
     { .label = "Settings",          .press = button_app_page_cb,    .data = APP_SETTINGS },
 
     { .label = "Exit",              .press = button_exit_cb },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* APP MSG CW */
-
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    /* APP MSG VOICE */
-
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-    { .label = "",                  .press = NULL },
-
-    { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
