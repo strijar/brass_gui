@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #pragma once
@@ -18,6 +18,5 @@ void audio_init();
 
 int audio_play(int16_t *buf, size_t samples);
 void audio_play_wait();
-int16_t* audio_gain(int16_t *buf, size_t samples, uint16_t gain);
 
 int audio_adc_play(int16_t *buf, size_t samples);

@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include <sys/stat.h>
@@ -18,16 +18,16 @@
 #include "lvgl/lvgl.h"
 #include "audio.h"
 #include "recorder.h"
-#include "dialog.h"
 #include "dialog_recorder.h"
 #include "styles.h"
-#include "params.h"
+#include "settings/options.h"
 #include "events.h"
 #include "util.h"
 #include "pannel.h"
 #include "keyboard.h"
 #include "textarea_window.h"
 #include "msg.h"
+#include "msgs.h"
 #include "buttons.h"
 #include "dsp.h"
 
@@ -51,11 +51,14 @@ static void rec_start_cb(lv_event_t * e);
 static void play_start_cb(lv_event_t * e);
 static void rename_cb(lv_event_t * e);
 static void delete_cb(lv_event_t * e);
+static void format_cb(lv_event_t * e);
 
 static button_item_t button_rec_start   = { .label = "Rec",         .press = rec_start_cb };
 static button_item_t button_rename      = { .label = "Rename",      .press = rename_cb };
 static button_item_t button_delete      = { .label = "Delete",      .press = delete_cb };
 static button_item_t button_play_start  = { .label = "Play",        .press = play_start_cb };
+static button_item_t button_format_wav  = { .label = "Format\nWav", .press = format_cb };
+static button_item_t button_format_mp3  = { .label = "Format\nMP3", .press = format_cb };
 
 static button_item_t button_rec_stop    = { .label = "Rec\nStop",   .press = rec_stop_cb };
 static button_item_t button_play_stop   = { .label = "Play\nStop",  .press = play_stop_cb };
@@ -70,20 +73,38 @@ static dialog_t             dialog = {
 
 dialog_t                    *dialog_recorder = &dialog;
 
+static void buttons_format() {
+    switch (options->audio.rec_format) {
+        case REC_FORMAT_WAV:
+            buttons_load(4, &button_format_wav);
+            break;
+
+        case REC_FORMAT_MP3:
+            buttons_load(4, &button_format_mp3);
+            break;
+
+        default:
+            break;
+    }
+}
+
 static void buttons_default() {
     buttons_load(0, &button_rec_start);
     buttons_load(1, &button_rename);
     buttons_load(2, &button_delete);
     buttons_load(3, &button_play_start);
+    buttons_format();
 }
 
 static void load_table() {
     lv_table_set_row_cnt(table, 1);
+    lv_table_set_cell_value(table, 0, 0, "");
+
     table_rows = 0;
 
     DIR             *dp;
     struct dirent   *ep;
-    
+
     dp = opendir(recorder_path);
 
     if (dp != NULL) {
@@ -94,7 +115,7 @@ static void load_table() {
 
             lv_table_set_cell_value(table, table_rows++, 0, ep->d_name);
         }
-          
+
         closedir(dp);
     }
 }
@@ -116,7 +137,7 @@ static const char* get_item() {
     if (row == LV_TABLE_CELL_NONE) {
         return NULL;
     }
-    
+
     return lv_table_get_cell_value(table, row, col);
 }
 
@@ -126,9 +147,9 @@ static void play_item() {
     if (!item) {
         return;
     }
-    
+
     char filename[64];
-        
+
     strcpy(filename, recorder_path);
     strcat(filename, "/");
     strcat(filename, item);
@@ -142,7 +163,7 @@ static void play_item() {
     if (!file) {
         return;
     }
-    
+
     if (recorder_is_on()) {
         recorder_set_on(false);
     }
@@ -178,18 +199,18 @@ static void * play_thread(void *arg) {
 static void textarea_window_close_cb() {
     lv_group_add_obj(keyboard_group, table);
     lv_group_set_editing(keyboard_group, true);
-    
+
     free(prev_filename);
     prev_filename = NULL;
 }
 
 static void textarea_window_edit_ok_cb() {
     const char *new_filename = textarea_window_get();
-    
+
     if (strcmp(prev_filename, new_filename) != 0) {
         char prev[64];
         char new[64];
-        
+
         snprintf(prev, sizeof(prev), "%s/%s", recorder_path, prev_filename);
         snprintf(new, sizeof(new), "%s/%s", recorder_path, new_filename);
 
@@ -203,31 +224,39 @@ static void textarea_window_edit_ok_cb() {
     }
 }
 
-static void tx_cb(lv_event_t * e) {
-    if (play_state) {
-        play_state = false;
+static void msg_cb(lv_event_t * e) {
+    lv_msg_t *m = lv_event_get_msg(e);
 
-        buttons_unload_page();
-        buttons_default();
+    switch (lv_msg_get_id(m)) {
+        case MSG_PTT: {
+            const int *on = lv_msg_get_payload(m);
+
+            if (*on) {
+                if (play_state) {
+                    play_state = false;
+
+                    buttons_unload_page();
+                    buttons_default();
+                }
+            }
+        } break;
     }
 }
 
 static void construct_cb(lv_obj_t *parent) {
     dialog.obj = dialog_init(parent);
 
-    lv_obj_add_event_cb(dialog.obj, tx_cb, EVENT_RADIO_TX, NULL); // FIXME
-
     table = lv_table_create(dialog.obj);
-    
+
     lv_obj_remove_style(table, NULL, LV_STATE_ANY | LV_PART_MAIN);
 
     lv_obj_set_size(table, 775, 325);
-    
+
     lv_table_set_col_cnt(table, 1);
     lv_table_set_col_width(table, 0, 770);
 
     lv_obj_set_style_border_width(table, 0, LV_PART_ITEMS);
-    
+
     lv_obj_set_style_bg_opa(table, LV_OPA_TRANSP, LV_PART_ITEMS);
     lv_obj_set_style_text_color(table, lv_color_white(), LV_PART_ITEMS);
     lv_obj_set_style_pad_top(table, 5, LV_PART_ITEMS);
@@ -239,15 +268,18 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_set_style_bg_color(table, lv_color_white(), LV_PART_ITEMS | LV_STATE_EDITED);
     lv_obj_set_style_bg_opa(table, 128, LV_PART_ITEMS | LV_STATE_EDITED);
 
+    lv_obj_add_event_cb(table, msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
+    lv_msg_subsribe_obj(MSG_PTT, table, NULL);
+
     lv_obj_add_event_cb(table, key_cb, LV_EVENT_KEY, NULL);
     lv_group_add_obj(keyboard_group, table);
     lv_group_set_editing(keyboard_group, true);
 
     lv_obj_center(table);
-    
+
     mkdir(recorder_path, 0755);
     load_table();
-    
+
     if (recorder_is_on()) {
         buttons_unload_page();
         buttons_load(0, &button_rec_stop);
@@ -303,7 +335,7 @@ static void play_stop_cb(lv_event_t * e) {
 
 static void rename_cb(lv_event_t * e) {
     prev_filename = strdup(get_item());
-    
+
     if (prev_filename) {
         lv_group_remove_obj(table);
         textarea_window_open(textarea_window_edit_ok_cb, textarea_window_close_cb);
@@ -316,14 +348,34 @@ static void delete_cb(lv_event_t * e) {
 
     if (item) {
         char filename[64];
-        
+
         strcpy(filename, recorder_path);
         strcat(filename, "/");
         strcat(filename, item);
-        
+
         unlink(filename);
         load_table();
     }
+}
+
+static void format_cb(lv_event_t * e) {
+    rec_format_t format = options->audio.rec_format;
+
+    switch (format) {
+        case REC_FORMAT_WAV:
+            format = REC_FORMAT_MP3;
+            break;
+
+        case REC_FORMAT_MP3:
+            format = REC_FORMAT_WAV;
+            break;
+
+        default:
+            break;
+    }
+
+    options->audio.rec_format = format;
+    buttons_format();
 }
 
 void dialog_recorder_set_on(bool on) {

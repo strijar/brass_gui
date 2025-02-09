@@ -23,13 +23,19 @@ static const cyaml_schema_field_t operator_fields_schema[] = {
 };
 
 const cyaml_schema_field_t mic_fields_schema[] = {
-    CYAML_FIELD_MAPPING("filter",       CYAML_FLAG_OPTIONAL, options_mic_t, filter, filter_fields_schema),
+    CYAML_FIELD_MAPPING("filter",       CYAML_FLAG_FLOW, options_mic_t, filter, filter_fields_schema),
     CYAML_FIELD_END
+};
+
+static const cyaml_strval_t rec_format_strings[] = {
+    { "wav",                REC_FORMAT_WAV },
+    { "mp3",                REC_FORMAT_MP3 }
 };
 
 const cyaml_schema_field_t audio_fields_schema[] = {
     CYAML_FIELD_UINT("vol",             CYAML_FLAG_OPTIONAL, options_audio_t, vol),
     CYAML_FIELD_MAPPING("mic",          CYAML_FLAG_OPTIONAL, options_audio_t, mic, mic_fields_schema),
+    CYAML_FIELD_ENUM("rec_format",      CYAML_FLAG_OPTIONAL, options_audio_t, rec_format, rec_format_strings, CYAML_ARRAY_LEN(rec_format_strings)),
     CYAML_FIELD_END
 };
 
@@ -84,6 +90,7 @@ static const cyaml_strval_t action_strings[] = {
     { "app_qth",            ACTION_APP_QTH },
     { "app_callsign",       ACTION_APP_CALLSIGN }
 };
+
 
 #define CONTROL_FLAGS (CYAML_FLAG_OPTIONAL | CYAML_FLAG_STRICT)
 

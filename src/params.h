@@ -116,11 +116,6 @@ typedef enum {
     FREQ_MODE_FFT_ONLY
 } rx_freq_mode_t;
 
-typedef enum {
-    REC_FORMAT_WAV = 0,
-    REC_FORMAT_MP3
-} rec_format_t;
-
 /* Params */
 
 typedef struct {
@@ -187,7 +182,6 @@ typedef struct {
     /* Msg */
     
     uint16_t            cw_encoder_period;  /* seconds */
-    uint16_t            voice_msg_period;   /* seconds */
 
     /* SWR Scan */
 
@@ -200,8 +194,6 @@ typedef struct {
     uint8_t             press_f2;
     uint8_t             long_f1;
     uint8_t             long_f2;
-    
-    rec_format_t        rec_format;
     
     /* Voice */
 
@@ -257,7 +249,6 @@ typedef struct {
         bool    key_ratio;
 
         bool    cw_encoder_period;
-        bool    voice_msg_period;
 
         bool    swrscan_linear;
         bool    swrscan_span;

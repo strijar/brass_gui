@@ -69,7 +69,6 @@ params_t params = {
     .key_ratio              = 30,
 
     .cw_encoder_period      = 10,
-    .voice_msg_period       = 10,
 
     .swrscan_linear         = true,
     .swrscan_span           = 200000,
@@ -80,8 +79,6 @@ params_t params = {
     .long_f1                = ACTION_STEP_DOWN,
     .long_f2                = ACTION_NONE,
     */
-
-    .rec_format             = REC_FORMAT_WAV,
 
     .voice_mode             = { .x = VOICE_LCD,                                 .name = "voice_mode" },
     .voice_lang             = { .x = 0,   .min = 0,  .max = (VOICES_NUM - 1),   .name = "voice_lang" },
@@ -219,8 +216,6 @@ static bool params_load() {
             params.nr_level = i;
         } else if (strcmp(name, "cw_encoder_period") == 0) {
             params.cw_encoder_period = i;
-        } else if (strcmp(name, "voice_msg_period") == 0) {
-            params.voice_msg_period = i;
         } else if (strcmp(name, "ant") == 0) {
             params.ant = i;
         } else if (strcmp(name, "brightness_normal") == 0) {
@@ -381,7 +376,6 @@ static void params_save() {
     if (params.durty.nr_level)              params_write_int("nr_level", params.nr_level, &params.durty.nr_level);
 
     if (params.durty.cw_encoder_period)     params_write_int("cw_encoder_period", params.cw_encoder_period, &params.durty.cw_encoder_period);
-    if (params.durty.voice_msg_period)      params_write_int("voice_msg_period", params.voice_msg_period, &params.durty.voice_msg_period);
 
     if (params.durty.ant)                   params_write_int("ant", params.ant, &params.durty.ant);
 

@@ -86,7 +86,7 @@ static int16_t          adc_buf[ADC_SAMPLES];
 static float            adc_vol = 0;
 static bool             adc_mute = false;
 
-static int16_t          rec_buf[ADC_SAMPLES];
+static float            rec_buf[ADC_SAMPLES];
 
 static void calc_auto();
 static void spectrum_timer_cb(lv_timer_t *t);
@@ -411,6 +411,8 @@ void dsp_adc(float complex *data, uint16_t samples) {
 
         y = agc_apply(rx_agc, y);
 
+        rec_buf[i] = y;
+
         y *= 16384.0f;
 
         if (y > 16384.0f) {
@@ -418,8 +420,6 @@ void dsp_adc(float complex *data, uint16_t samples) {
         } else if (y < -16384.0f) {
             y = -16384.0f;
         }
-
-        rec_buf[i] = (int16_t) y;
 
         y *= adc_vol;
 
@@ -435,7 +435,7 @@ void dsp_adc(float complex *data, uint16_t samples) {
     audio_adc_play(adc_buf, samples);
 
     if (recorder_is_on()) {
-        recorder_put_audio_samples(rec_buf);
+        recorder_put_audio_samples(rec_buf, samples);
     }
 
     pthread_mutex_lock(&meter_mux);

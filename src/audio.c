@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include <unistd.h>
@@ -50,7 +50,7 @@ static void read_callback(pa_stream *s, size_t nbytes, void *udata) {
 void audio_init() {
     mloop = pa_threaded_mainloop_new();
     pa_threaded_mainloop_start(mloop);
-    
+
     mlapi = pa_threaded_mainloop_get_api(mloop);
     ctx = pa_context_new(mlapi, "Brass GUI");
 
@@ -58,13 +58,13 @@ void audio_init() {
     pa_context_set_state_callback(ctx, on_state_change, NULL);
     pa_context_connect(ctx, NULL, 0, NULL);
     pa_threaded_mainloop_unlock(mloop);
-    
+
     while (PA_CONTEXT_READY != pa_context_get_state(ctx))  {
         pa_threaded_mainloop_wait(mloop);
     }
-    
+
     LV_LOG_INFO("Conected");
-    
+
     pa_buffer_attr  attr;
 
     pa_sample_spec  spec = {
@@ -85,14 +85,14 @@ void audio_init() {
     pa_threaded_mainloop_lock(mloop);
     pa_stream_connect_playback(play_stm, NULL, &attr, PA_STREAM_ADJUST_LATENCY, NULL, NULL);
     pa_threaded_mainloop_unlock(mloop);
-    
+
     /* Capture */
 
     spec.rate = AUDIO_CAPTURE_RATE,
     attr.fragsize = attr.tlength = pa_usec_to_bytes(CAPTURE_RATE_MS * PA_USEC_PER_MSEC, &spec);
 
     capture_stm = pa_stream_new(ctx, "Brass GUI Capture", &spec, NULL);
-    
+
     pa_threaded_mainloop_lock(mloop);
     pa_stream_set_read_callback(capture_stm, read_callback, NULL);
     pa_stream_connect_record(capture_stm, NULL, &attr, PA_STREAM_ADJUST_LATENCY);
@@ -114,26 +114,26 @@ void audio_init() {
 int audio_play(int16_t *samples_buf, size_t samples) {
     while (true) {
         size_t size;
-    
+
         pa_threaded_mainloop_lock(mloop);
         size = pa_stream_writable_size(play_stm);
         pa_threaded_mainloop_unlock(mloop);
-        
+
         if (size >= (samples * 2)) {
             break;
         }
-        
+
         usleep(1000);
     }
 
     pa_threaded_mainloop_lock(mloop);
     int res = pa_stream_write(play_stm, samples_buf, samples * 2, NULL, 0, PA_SEEK_RELATIVE);
     pa_threaded_mainloop_unlock(mloop);
-    
+
     if (res < 0) {
         LV_LOG_ERROR("pa_stream_write() failed: %s", pa_strerror(pa_context_errno(ctx)));
     }
-    
+
     return res;
 }
 
@@ -149,7 +149,7 @@ void audio_play_wait() {
         pa_threaded_mainloop_lock(mloop);
         r = pa_operation_get_state(op);
         pa_threaded_mainloop_unlock(mloop);
-      
+
         if (r == PA_OPERATION_DONE || r == PA_OPERATION_CANCELLED) {
             break;
         }
@@ -158,26 +158,6 @@ void audio_play_wait() {
     }
 
     pa_operation_unref(op);
-}
-
-int16_t* audio_gain(int16_t *buf, size_t samples, uint16_t gain) {
-    int16_t *out_samples = malloc(samples * sizeof(int16_t));
-
-    for (uint16_t i = 0; i < samples; i++) {
-        int32_t x = buf[i] * gain / 100;
-        
-        if (x > 32767) {
-            x = 32767;
-        }
-        
-        if (x < -32767) {
-            x = -32767;
-        }
-    
-        out_samples[i] = x;
-    }
-    
-    return out_samples;
 }
 
 int audio_adc_play(int16_t *samples_buf, size_t samples) {

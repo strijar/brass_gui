@@ -24,6 +24,7 @@
 #include "keypad.h"
 #include "params.h"
 #include "audio.h"
+#include "recorder.h"
 #include "cw.h"
 #include "cw_key.h"
 #include "pannel.h"
@@ -88,6 +89,7 @@ int main(void) {
     fbdev_init();
     mic_init();
     audio_init();
+    recorder_init();
     queue_init();
     event_init();
     gpio_init();

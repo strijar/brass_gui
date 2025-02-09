@@ -6,6 +6,7 @@ audio:
   vol: 15
   mic:
      filter: {low: 150, high: 2900, transition: 100}
+  rec_format: mp3
 
 spectrum:
   beta: 0.7
