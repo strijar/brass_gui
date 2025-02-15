@@ -12,7 +12,6 @@
 #define PATH "A:/usr/share/brass/"
 
 lv_style_t  background_style;
-lv_style_t  spectrum_style;
 lv_style_t  freq_style;
 lv_style_t  freq_main_style;
 lv_style_t  waterfall_style;
@@ -66,16 +65,6 @@ void styles_init() {
 
     lv_style_init(&background_style);
     lv_style_set_bg_color(&background_style, bg_color);
-
-    lv_style_init(&spectrum_style);
-    lv_style_set_bg_color(&spectrum_style, lv_color_black());
-    lv_style_set_bg_opa(&spectrum_style, LV_OPA_COVER);
-    lv_style_set_radius(&spectrum_style, 0);
-    lv_style_set_x(&spectrum_style, 0);
-    lv_style_set_y(&spectrum_style, 0);
-    lv_style_set_width(&spectrum_style, 800);
-    lv_style_set_height(&spectrum_style, 480 / 3);
-    lv_style_set_pad_hor(&spectrum_style, 0);
 
     lv_style_init(&rx_finder_style);
     lv_style_set_radius(&rx_finder_style, 0);

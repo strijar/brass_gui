@@ -14,7 +14,6 @@
 extern lv_color_t   bg_color;
 
 extern lv_style_t   background_style;
-extern lv_style_t   spectrum_style;
 extern lv_style_t   freq_style;
 extern lv_style_t   freq_main_style;
 extern lv_style_t   waterfall_style;

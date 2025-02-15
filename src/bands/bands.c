@@ -7,6 +7,7 @@
  */
 
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "lvgl/lvgl.h"
 #include "bands.h"
@@ -70,6 +71,13 @@ void bands_init() {
     lv_msg_subsribe(MSG_RATE_FFT_CHANGED, reload_cb, NULL);
     lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, reload_cb, NULL);
     lv_msg_subsribe(MSG_FREQ_RX_PRE_CHANGED, rx_pre_changed_cb, NULL);
+
+    band_t *band = band_tree_find(tree, op_work->rx, op_work->rx);
+
+    if (band) {
+        band_settings = &band->settings;
+        op_work = &band->work;
+    }
 }
 
 band_list_t * bands_list() {

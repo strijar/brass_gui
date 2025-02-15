@@ -893,7 +893,6 @@ lv_obj_t * main_screen() {
     y += freq_height;
 
     buttons_init(obj);
-
     pannel_init(obj);
     msg = msg_init(obj);
     msg_tiny = msg_tiny_init(obj);
