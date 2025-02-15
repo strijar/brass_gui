@@ -17,7 +17,6 @@
 #include "radio.h"
 #include "dsp.h"
 #include "main_screen.h"
-#include "waterfall.h"
 #include "hkey.h"
 #include "params.h"
 #include "tx_info.h"

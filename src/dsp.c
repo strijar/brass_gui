@@ -11,7 +11,6 @@
 #include <math.h>
 
 #include "dsp.h"
-#include "waterfall.h"
 #include "util.h"
 #include "radio.h"
 #include "params.h"
@@ -52,7 +51,9 @@ static pthread_mutex_t  spectrum_mux;
 static float            *waterfall_psd;
 static uint16_t         waterfall_psd_count = 0;
 static lv_timer_t       *waterfall_timer = NULL;
+static msgs_auto_t      waterfall_auto_msg;
 static pthread_mutex_t  waterfall_mux;
+static msgs_floats_t    waterfall_data_msg;
 
 static firhilbf         demod_ssb;
 static firfilt_rrrf     demod_dc_block;
@@ -123,6 +124,9 @@ void dsp_init() {
 
     waterfall_psd = (float *) malloc(FFT_SAMPLES * sizeof(float));
     auto_psd = (float *) malloc(FFT_SAMPLES * sizeof(float));
+
+    waterfall_data_msg.size = FFT_SAMPLES;
+    waterfall_data_msg.data = waterfall_psd;
 
     demod_ssb = firhilbf_create(15, 60.0f);
     demod_dc_block = firfilt_rrrf_create_dc_blocker(25, 20.0f);
@@ -247,7 +251,7 @@ static void waterfall_timer_cb(lv_timer_t *t) {
         waterfall_psd[i] = dB(x);
     }
 
-    waterfall_data(waterfall_psd, FFT_SAMPLES);
+    lv_msg_send(MSG_WATERFALL_DATA, &waterfall_data_msg);
 
     waterfall_psd_count = 0;
     memset(waterfall_psd, 0, FFT_SAMPLES * sizeof(float));
@@ -514,19 +518,20 @@ static void calc_auto() {
         spectrum_auto_msg.min = min;
         spectrum_auto_msg.max = max;
 
-        waterfall_auto_min = min;
-        waterfall_auto_max = max;
+        waterfall_auto_msg.min = min;
+        waterfall_auto_msg.max = max;
 
         auto_clear = false;
     } else {
         lpf(&spectrum_auto_msg.min, min, 0.7f);
         lpf(&spectrum_auto_msg.max, max, 0.7f);
 
-        lpf(&waterfall_auto_min, min, 0.4f);
-        lpf(&waterfall_auto_max, max, 0.4f);
+        lpf(&waterfall_auto_msg.min, min, 0.4f);
+        lpf(&waterfall_auto_msg.max, max, 0.4f);
     }
 
     lv_msg_send(MSG_SPECTRUM_AUTO, &spectrum_auto_msg);
+    lv_msg_send(MSG_WATERFALL_AUTO, &waterfall_auto_msg);
 }
 
 void dsp_change_mute() {

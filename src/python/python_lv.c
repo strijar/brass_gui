@@ -3,12 +3,14 @@
  *
  *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include "python_lv.h"
 #include "src/widgets/lv_spectrum.h"
+#include "src/widgets/lv_waterfall.h"
 #include "src/widgets/lv_finder.h"
+#include "src/styles.h"
 
 /* Style */
 
@@ -25,11 +27,11 @@ static PyObject * style_new(PyTypeObject *type, PyObject *args, PyObject *kwds) 
     LV_LOG_INFO("begin");
 
     style_object_t *self = (style_object_t *) type->tp_alloc(type, 0);
-    
+
     if (self != NULL) {
         lv_style_init(&self->style);
     }
-    
+
     return (PyObject *) self;
 }
 
@@ -37,11 +39,11 @@ static PyObject * style_set_bg_color(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_color_t color;
-    
+
     if (PyArg_ParseTuple(args, "I", &color)) {
         lv_style_set_bg_color(&self->style, color);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -49,11 +51,11 @@ static PyObject * style_set_bg_opa(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_opa_t opa;
-    
+
     if (PyArg_ParseTuple(args, "b", &opa)) {
         lv_style_set_bg_opa(&self->style, opa);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -61,11 +63,11 @@ static PyObject * style_set_radius(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_coord_t radius;
-    
+
     if (PyArg_ParseTuple(args, "i", &radius)) {
         lv_style_set_radius(&self->style, radius);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -73,11 +75,11 @@ static PyObject * style_set_x(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_coord_t x;
-    
+
     if (PyArg_ParseTuple(args, "i", &x)) {
         lv_style_set_x(&self->style, x);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -85,11 +87,11 @@ static PyObject * style_set_y(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_coord_t y;
-    
+
     if (PyArg_ParseTuple(args, "i", &y)) {
         lv_style_set_y(&self->style, y);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -97,11 +99,11 @@ static PyObject * style_set_width(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_coord_t width;
-    
+
     if (PyArg_ParseTuple(args, "i", &width)) {
         lv_style_set_width(&self->style, width);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -109,11 +111,11 @@ static PyObject * style_set_height(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_coord_t height;
-    
+
     if (PyArg_ParseTuple(args, "i", &height)) {
         lv_style_set_height(&self->style, height);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -121,11 +123,11 @@ static PyObject * style_set_pad_hor(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_coord_t pad;
-    
+
     if (PyArg_ParseTuple(args, "i", &pad)) {
         lv_style_set_pad_hor(&self->style, pad);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -133,11 +135,11 @@ static PyObject * style_set_pad_ver(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_coord_t pad;
-    
+
     if (PyArg_ParseTuple(args, "i", &pad)) {
         lv_style_set_pad_ver(&self->style, pad);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -145,11 +147,11 @@ static PyObject * style_set_line_width(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_coord_t width;
-    
+
     if (PyArg_ParseTuple(args, "i", &width)) {
         lv_style_set_line_width(&self->style, width);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -157,11 +159,11 @@ static PyObject * style_set_line_color(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_color_t color;
-    
+
     if (PyArg_ParseTuple(args, "I", &color)) {
         lv_style_set_line_color(&self->style, color);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -169,11 +171,11 @@ static PyObject * style_set_line_opa(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_opa_t opa;
-    
+
     if (PyArg_ParseTuple(args, "b", &opa)) {
         lv_style_set_line_opa(&self->style, opa);
     }
-    
+
     Py_RETURN_NONE;
 }
 
@@ -225,7 +227,7 @@ static PyObject * obj_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 
     obj_object_t *self = (obj_object_t *) type->tp_alloc(type, 0);
     self->obj = NULL;
-    
+
     return (PyObject *) self;
 }
 
@@ -249,13 +251,13 @@ static PyObject * obj_add_style(obj_object_t *self, PyObject *args) {
 
     PyObject    *obj = NULL;
     lv_part_t   selector;
-    
+
     if (PyArg_ParseTuple(args, "Ol", &obj, &selector)) {
         if (PyObject_TypeCheck(obj, &style_type)) {
             Py_INCREF(obj);
 
             style_object_t *style = (style_object_t *) obj;
-            
+
             lv_obj_add_style(self->obj, &style->style, selector);
         }
     }
@@ -267,7 +269,7 @@ static PyObject * obj_clear_flag(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     lv_obj_flag_t flag;
-    
+
     if (PyArg_ParseTuple(args, "i", &flag)) {
         lv_obj_clear_flag(self->obj, flag);
     }
@@ -280,7 +282,7 @@ static PyObject * obj_set_style_line_width(obj_object_t *self, PyObject *args) {
 
     lv_coord_t          width;
     lv_style_selector_t selector;
-    
+
     if (PyArg_ParseTuple(args, "il", &width, &selector)) {
         lv_obj_set_style_line_width(self->obj, width, selector);
     }
@@ -293,7 +295,7 @@ static PyObject * obj_set_style_line_color(obj_object_t *self, PyObject *args) {
 
     lv_color_t          color;
     lv_style_selector_t selector;
-    
+
     if (PyArg_ParseTuple(args, "Ll", &color, &selector)) {
         lv_obj_set_style_line_color(self->obj, color, selector);
     }
@@ -344,7 +346,7 @@ static PyObject * spectrum_set_data_size(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     int size;
-    
+
     if (PyArg_ParseTuple(args, "i", &size)) {
         lv_spectrum_set_data_size(self->obj, size);
     }
@@ -417,6 +419,66 @@ static PyTypeObject spectrum_type = {
     .tp_methods = spectrum_methods,
 };
 
+/* Waterfall */
+
+static int waterfall_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+    lv_obj_t    *parent = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        parent = python_lv_get_obj(obj);
+    }
+
+    self->obj = lv_waterfall_create(parent);
+
+    lv_color_t palette[256];
+
+    styles_waterfall_palette(palette, 256);
+    lv_waterfall_set_palette(self->obj, palette, 256);
+
+    return 0;
+}
+
+static PyObject * waterfall_set_data_size(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    int w;
+
+    if (PyArg_ParseTuple(args, "i", &w)) {
+        lv_waterfall_set_data_size(self->obj, w);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * waterfall_clear_data(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_waterfall_clear_data(self->obj);
+
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef waterfall_methods[] = {
+    { "set_data_size", (PyCFunction) waterfall_set_data_size, METH_VARARGS, "" },
+    { "clear_data", (PyCFunction) waterfall_clear_data, METH_NOARGS, "" },
+    { NULL }
+};
+
+static PyTypeObject waterfall_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_base = &obj_type,
+    .tp_name = "lv.waterfall",
+    .tp_doc = PyDoc_STR("LVGL waterfall"),
+    .tp_basicsize = sizeof(obj_object_t),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_init = (initproc) waterfall_init,
+    .tp_methods = waterfall_methods,
+};
+
 /* Finder */
 
 static int finder_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
@@ -438,8 +500,8 @@ static PyObject * finder_set_cursor(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     uint8_t index;
-    int     hz;    
-    
+    int     hz;
+
     if (PyArg_ParseTuple(args, "bi", &index, &hz)) {
         lv_finder_set_cursor(self->obj, index, hz);
     }
@@ -477,6 +539,7 @@ PyMODINIT_FUNC PyInit_lv() {
     PyType_Ready(&style_type);
     PyType_Ready(&obj_type);
     PyType_Ready(&spectrum_type);
+    PyType_Ready(&waterfall_type);
     PyType_Ready(&finder_type);
 
     PyObject *m = PyModule_Create(&lv_module);
@@ -488,8 +551,9 @@ PyMODINIT_FUNC PyInit_lv() {
     PyModule_AddObjectRef(m, "style", (PyObject *) &style_type);
     PyModule_AddObjectRef(m, "obj", (PyObject *) &obj_type);
     PyModule_AddObjectRef(m, "spectrum", (PyObject *) &spectrum_type);
+    PyModule_AddObjectRef(m, "waterfall", (PyObject *) &waterfall_type);
     PyModule_AddObjectRef(m, "finder", (PyObject *) &finder_type);
-    
+
     return m;
 }
 
@@ -499,6 +563,6 @@ lv_obj_t * python_lv_get_obj(PyObject *obj) {
 
         return self->obj;
     }
-    
+
     return NULL;
 }

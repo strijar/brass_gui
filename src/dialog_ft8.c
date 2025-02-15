@@ -1127,9 +1127,10 @@ static void construct_cb(lv_obj_t *parent) {
 
     lv_color_t palette[256];
 
+    lv_obj_set_size(waterfall, WIDTH, 325);
     styles_waterfall_palette(palette, 256);
     lv_waterfall_set_palette(waterfall, palette, 256);
-    lv_waterfall_set_size(waterfall, WIDTH, 325);
+    lv_waterfall_set_data_size(waterfall, WIDTH);
 
     lv_obj_set_pos(waterfall, 13, 13);
 

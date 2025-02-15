@@ -20,7 +20,6 @@
 #include "dsp.h"
 #include "util.h"
 #include "keyboard.h"
-#include "waterfall.h"
 #include "keypad.h"
 #include "params.h"
 #include "audio.h"

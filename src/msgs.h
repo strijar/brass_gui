@@ -40,6 +40,7 @@ typedef enum {
     MSG_SPECTRUM_AUTO,          /* msgs_auto_t */
     MSG_WATERFALL_AUTO,         /* msgs_auto_t */
     MSG_SPECTRUM_DATA,          /* msgs_floats_t */
+    MSG_WATERFALL_DATA,         /* msgs_floats_t */
     MSG_PTT,                    /* int32_t */
     MSG_TX,
     MSG_RX,

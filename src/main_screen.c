@@ -12,7 +12,6 @@
 
 #include "main_screen.h"
 #include "styles.h"
-#include "waterfall.h"
 #include "util.h"
 #include "radio.h"
 #include "events.h"
@@ -61,7 +60,6 @@ static bool         mode_lock = false;
 static bool         band_lock = false;
 
 static lv_obj_t     *freq[3];
-static lv_obj_t     *waterfall;
 static lv_obj_t     *msg;
 static lv_obj_t     *msg_tiny;
 static lv_obj_t     *meter;
@@ -893,11 +891,6 @@ lv_obj_t * main_screen() {
     freq[2] = f;
 
     y += freq_height;
-
-    waterfall = waterfall_init(obj);
-
-    lv_obj_set_y(waterfall, y);
-    waterfall_set_height(480 - y);
 
     buttons_init(obj);
 
