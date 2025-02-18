@@ -1,4 +1,4 @@
 TOP_HEIGHT          = 60
 SPECTRUM_HEIGHT     = 160
-FREQ_HEIGHT         = 36
+FREQ_HEIGHT         = 40
 BUTTONS_HEIGHT      = 62

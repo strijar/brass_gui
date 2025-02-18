@@ -11,6 +11,8 @@
 #include "src/widgets/lv_waterfall.h"
 #include "src/widgets/lv_finder.h"
 #include "src/styles.h"
+#include "src/msgs.h"
+#include "src/fonts/jura.h"
 
 /* Style */
 
@@ -179,6 +181,42 @@ static PyObject * style_set_line_opa(style_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * style_set_text_color(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_color_t color;
+
+    if (PyArg_ParseTuple(args, "I", &color)) {
+        lv_style_set_text_color(&self->style, color);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_text_align(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_text_align_t align;
+
+    if (PyArg_ParseTuple(args, "b", &align)) {
+        lv_style_set_text_align(&self->style, align);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_text_font(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    void *font;
+
+    if (PyArg_ParseTuple(args, "k", &font)) {
+        lv_style_set_text_font(&self->style, font);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef style_methods[] = {
     { "set_bg_color", (PyCFunction) style_set_bg_color, METH_VARARGS, "" },
     { "set_bg_opa", (PyCFunction) style_set_bg_opa, METH_VARARGS, "" },
@@ -192,6 +230,9 @@ static PyMethodDef style_methods[] = {
     { "set_line_width", (PyCFunction) style_set_line_width, METH_VARARGS, "" },
     { "set_line_color", (PyCFunction) style_set_line_color, METH_VARARGS, "" },
     { "set_line_opa", (PyCFunction) style_set_line_opa, METH_VARARGS, "" },
+    { "set_text_color", (PyCFunction) style_set_text_color, METH_VARARGS, "" },
+    { "set_text_align", (PyCFunction) style_set_text_align, METH_VARARGS, "" },
+    { "set_text_font", (PyCFunction) style_set_text_font, METH_VARARGS, "" },
     { NULL }
 };
 
@@ -246,6 +287,55 @@ static int obj_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
     return 0;
 }
 
+static void obj_msg_cb(void *s, lv_msg_t *m) {
+    PyObject    *call = lv_msg_get_user_data(m);
+    PyObject    *arg;
+    uint32_t    msg = lv_msg_get_id(m);
+
+    switch (msg) {
+        case MSG_FREQ_FFT_CHANGED:
+        case MSG_FREQ_TX_CHANGED:
+        case MSG_FREQ_RX_CHANGED: {
+            const uint64_t *freq = lv_msg_get_payload(m);
+
+            arg = Py_BuildValue("IL", msg, *freq);
+        } break;
+
+        case MSG_RATE_FFT_CHANGED: {
+            const uint8_t *zoom = lv_msg_get_payload(m);
+
+            arg = Py_BuildValue("Ib", msg, *zoom);
+        } break;
+
+        default:
+            arg = Py_BuildValue("IO", msg, Py_None);
+            break;
+    }
+
+    PyObject *res = PyObject_Call(call, arg, NULL);
+
+    Py_XDECREF(arg);
+
+    if (res) {
+        Py_XDECREF(res);
+    }
+}
+
+static PyObject * obj_msg_subscribe(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    uint32_t    msg_id;
+    PyObject    *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "iO", &msg_id, &obj)) {
+        Py_XINCREF(obj);
+
+        lv_msg_subscribe(msg_id, obj_msg_cb, obj);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject * obj_add_style(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
@@ -272,6 +362,26 @@ static PyObject * obj_clear_flag(obj_object_t *self, PyObject *args) {
 
     if (PyArg_ParseTuple(args, "i", &flag)) {
         lv_obj_clear_flag(self->obj, flag);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * obj_set_pos(obj_object_t *self, PyObject *args) {
+    lv_coord_t x, y;
+
+    if (PyArg_ParseTuple(args, "ii", &x, &y)) {
+        lv_obj_set_pos(self->obj, x, y);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * obj_set_size(obj_object_t *self, PyObject *args) {
+    lv_coord_t w, h;
+
+    if (PyArg_ParseTuple(args, "ii", &w, &h)) {
+        lv_obj_set_size(self->obj, w, h);
     }
 
     Py_RETURN_NONE;
@@ -304,8 +414,11 @@ static PyObject * obj_set_style_line_color(obj_object_t *self, PyObject *args) {
 }
 
 static PyMethodDef obj_methods[] = {
+    { "msg_subscribe", (PyCFunction) obj_msg_subscribe, METH_VARARGS, "" },
     { "add_style", (PyCFunction) obj_add_style, METH_VARARGS, "" },
     { "clear_flag", (PyCFunction) obj_clear_flag, METH_VARARGS, "" },
+    { "set_pos", (PyCFunction) obj_set_pos, METH_VARARGS, "" },
+    { "set_size", (PyCFunction) obj_set_size, METH_VARARGS, "" },
     { "set_style_line_width", (PyCFunction) obj_set_style_line_width, METH_VARARGS, "" },
     { "set_style_line_color", (PyCFunction) obj_set_style_line_color, METH_VARARGS, "" },
     { NULL }
@@ -323,6 +436,50 @@ static PyTypeObject obj_type = {
     .tp_dealloc = (destructor) obj_dealloc,
     .tp_members = NULL,
     .tp_methods = obj_methods,
+};
+
+/* Label */
+
+static int label_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+    lv_obj_t    *parent = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        parent = python_lv_get_obj(obj);
+    }
+
+    self->obj = lv_label_create(parent);
+
+    return 0;
+}
+
+static PyObject * label_set_text(obj_object_t *self, PyObject *args) {
+    const char *text;
+
+    if (PyArg_ParseTuple(args, "s", &text)) {
+        lv_label_set_text(self->obj, text);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef label_methods[] = {
+    { "set_text", (PyCFunction) label_set_text, METH_VARARGS, "" },
+    { NULL }
+};
+
+static PyTypeObject label_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_base = &obj_type,
+    .tp_name = "lv.label",
+    .tp_doc = PyDoc_STR("LVGL label"),
+    .tp_basicsize = sizeof(obj_object_t),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_init = (initproc) label_init,
+    .tp_methods = label_methods,
 };
 
 /* Spectrum */
@@ -538,6 +695,7 @@ static PyModuleDef lv_module = {
 PyMODINIT_FUNC PyInit_lv() {
     PyType_Ready(&style_type);
     PyType_Ready(&obj_type);
+    PyType_Ready(&label_type);
     PyType_Ready(&spectrum_type);
     PyType_Ready(&waterfall_type);
     PyType_Ready(&finder_type);
@@ -550,9 +708,54 @@ PyMODINIT_FUNC PyInit_lv() {
 
     PyModule_AddObjectRef(m, "style", (PyObject *) &style_type);
     PyModule_AddObjectRef(m, "obj", (PyObject *) &obj_type);
+    PyModule_AddObjectRef(m, "label", (PyObject *) &label_type);
     PyModule_AddObjectRef(m, "spectrum", (PyObject *) &spectrum_type);
     PyModule_AddObjectRef(m, "waterfall", (PyObject *) &waterfall_type);
     PyModule_AddObjectRef(m, "finder", (PyObject *) &finder_type);
+
+    /* Fonts */
+
+    PyModule_AddObjectRef(m, "JURA_8", PyLong_FromVoidPtr((void *) &jura_8));
+    PyModule_AddObjectRef(m, "JURA_10", PyLong_FromVoidPtr((void *) &jura_10));
+    PyModule_AddObjectRef(m, "JURA_12", PyLong_FromVoidPtr((void *) &jura_12));
+    PyModule_AddObjectRef(m, "JURA_14", PyLong_FromVoidPtr((void *) &jura_14));
+    PyModule_AddObjectRef(m, "JURA_16", PyLong_FromVoidPtr((void *) &jura_16));
+    PyModule_AddObjectRef(m, "JURA_18", PyLong_FromVoidPtr((void *) &jura_18));
+    PyModule_AddObjectRef(m, "JURA_20", PyLong_FromVoidPtr((void *) &jura_20));
+    PyModule_AddObjectRef(m, "JURA_22", PyLong_FromVoidPtr((void *) &jura_22));
+    PyModule_AddObjectRef(m, "JURA_24", PyLong_FromVoidPtr((void *) &jura_24));
+    PyModule_AddObjectRef(m, "JURA_26", PyLong_FromVoidPtr((void *) &jura_26));
+    PyModule_AddObjectRef(m, "JURA_28", PyLong_FromVoidPtr((void *) &jura_28));
+    PyModule_AddObjectRef(m, "JURA_30", PyLong_FromVoidPtr((void *) &jura_30));
+    PyModule_AddObjectRef(m, "JURA_32", PyLong_FromVoidPtr((void *) &jura_32));
+    PyModule_AddObjectRef(m, "JURA_34", PyLong_FromVoidPtr((void *) &jura_34));
+    PyModule_AddObjectRef(m, "JURA_36", PyLong_FromVoidPtr((void *) &jura_36));
+    PyModule_AddObjectRef(m, "JURA_38", PyLong_FromVoidPtr((void *) &jura_38));
+    PyModule_AddObjectRef(m, "JURA_40", PyLong_FromVoidPtr((void *) &jura_40));
+    PyModule_AddObjectRef(m, "JURA_42", PyLong_FromVoidPtr((void *) &jura_42));
+    PyModule_AddObjectRef(m, "JURA_44", PyLong_FromVoidPtr((void *) &jura_44));
+    PyModule_AddObjectRef(m, "JURA_60", PyLong_FromVoidPtr((void *) &jura_60));
+
+    PyModule_AddObjectRef(m, "JURA_BOLD_8", PyLong_FromVoidPtr((void *) &jura_bold_8));
+    PyModule_AddObjectRef(m, "JURA_BOLD_10", PyLong_FromVoidPtr((void *) &jura_bold_10));
+    PyModule_AddObjectRef(m, "JURA_BOLD_12", PyLong_FromVoidPtr((void *) &jura_bold_12));
+    PyModule_AddObjectRef(m, "JURA_BOLD_14", PyLong_FromVoidPtr((void *) &jura_bold_14));
+    PyModule_AddObjectRef(m, "JURA_BOLD_16", PyLong_FromVoidPtr((void *) &jura_bold_16));
+    PyModule_AddObjectRef(m, "JURA_BOLD_18", PyLong_FromVoidPtr((void *) &jura_bold_18));
+    PyModule_AddObjectRef(m, "JURA_BOLD_20", PyLong_FromVoidPtr((void *) &jura_bold_20));
+    PyModule_AddObjectRef(m, "JURA_BOLD_22", PyLong_FromVoidPtr((void *) &jura_bold_22));
+    PyModule_AddObjectRef(m, "JURA_BOLD_24", PyLong_FromVoidPtr((void *) &jura_bold_24));
+    PyModule_AddObjectRef(m, "JURA_BOLD_26", PyLong_FromVoidPtr((void *) &jura_bold_26));
+    PyModule_AddObjectRef(m, "JURA_BOLD_28", PyLong_FromVoidPtr((void *) &jura_bold_28));
+    PyModule_AddObjectRef(m, "JURA_BOLD_30", PyLong_FromVoidPtr((void *) &jura_bold_30));
+    PyModule_AddObjectRef(m, "JURA_BOLD_32", PyLong_FromVoidPtr((void *) &jura_bold_32));
+    PyModule_AddObjectRef(m, "JURA_BOLD_34", PyLong_FromVoidPtr((void *) &jura_bold_34));
+    PyModule_AddObjectRef(m, "JURA_BOLD_36", PyLong_FromVoidPtr((void *) &jura_bold_36));
+    PyModule_AddObjectRef(m, "JURA_BOLD_38", PyLong_FromVoidPtr((void *) &jura_bold_38));
+    PyModule_AddObjectRef(m, "JURA_BOLD_40", PyLong_FromVoidPtr((void *) &jura_bold_40));
+    PyModule_AddObjectRef(m, "JURA_BOLD_42", PyLong_FromVoidPtr((void *) &jura_bold_42));
+    PyModule_AddObjectRef(m, "JURA_BOLD_44", PyLong_FromVoidPtr((void *) &jura_bold_44));
+    PyModule_AddObjectRef(m, "JURA_BOLD_60", PyLong_FromVoidPtr((void *) &jura_bold_60));
 
     return m;
 }

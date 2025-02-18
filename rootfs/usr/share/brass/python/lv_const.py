@@ -52,3 +52,8 @@ LV_OPA_80                       = 204
 LV_OPA_90                       = 229
 LV_OPA_100                      = 255
 LV_OPA_COVER                    = 255
+
+LV_TEXT_ALIGN_AUTO              = 0
+LV_TEXT_ALIGN_LEFT              = 1
+LV_TEXT_ALIGN_CENTER            = 2
+LV_TEXT_ALIGN_RIGHT             = 3

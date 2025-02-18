@@ -12,8 +12,6 @@
 #define PATH "A:/usr/share/brass/"
 
 lv_style_t  background_style;
-lv_style_t  freq_style;
-lv_style_t  freq_main_style;
 lv_style_t  waterfall_style;
 lv_style_t  btn_style;
 lv_style_t  msg_style;
@@ -49,8 +47,6 @@ lv_font_t   *font_panel = &jura_bold_24;
 lv_font_t   *font_textarea = &jura_40;
 lv_font_t   *font_tx_info = &jura_22;
 
-lv_font_t   *font_freq = &jura_28;
-lv_font_t   *font_freq_main = &jura_bold_34;
 lv_font_t   *font_btn = &jura_bold_18;
 lv_font_t   *font_msg = &jura_38;
 lv_font_t   *font_msg_tiny = &jura_60;
@@ -73,22 +69,6 @@ void styles_init() {
     lv_style_set_height(&rx_finder_style, 100);
     lv_style_set_x(&rx_finder_style, 0);
     lv_style_set_y(&rx_finder_style, 0);
-
-    lv_style_init(&freq_style);
-    lv_style_set_text_color(&freq_style, lv_color_white());
-    lv_style_set_text_font(&freq_style, font_freq);
-    lv_style_set_pad_ver(&freq_style, 7);
-    lv_style_set_width(&freq_style, 150);
-    lv_style_set_height(&freq_style, 36);
-    lv_style_set_text_align(&freq_style, LV_TEXT_ALIGN_CENTER);
-
-    lv_style_init(&freq_main_style);
-    lv_style_set_text_color(&freq_main_style, lv_color_white());
-    lv_style_set_text_font(&freq_main_style, font_freq_main);
-    lv_style_set_pad_ver(&freq_main_style, 5);
-    lv_style_set_width(&freq_main_style, 500);
-    lv_style_set_height(&freq_main_style, 36);
-    lv_style_set_text_align(&freq_main_style, LV_TEXT_ALIGN_CENTER);
 
     lv_style_init(&waterfall_style);
     lv_style_set_bg_color(&waterfall_style, lv_color_hex(0x000000));

@@ -52,14 +52,11 @@
 #include "settings/modes.h"
 #include "bands/bands.h"
 
-static uint16_t     spectrum_height = (480 / 3);
-static uint16_t     freq_height = 36;
 static lv_obj_t     *obj;
 static bool         freq_lock = false;
 static bool         mode_lock = false;
 static bool         band_lock = false;
 
-static lv_obj_t     *freq[3];
 static lv_obj_t     *msg;
 static lv_obj_t     *msg_tiny;
 static lv_obj_t     *meter;
@@ -113,47 +110,6 @@ void mem_save(uint16_t id) {
 }
 
 /* * */
-
-static uint64_t freq_update() {
-    uint64_t    f;
-    uint32_t    color = freq_lock ? 0xBBBBBB : 0xFFFFFF;
-    uint16_t    mhz, khz, hz;
-
-    f = op_work->fft;
-
-    int32_t half = 50000 / op_mode->spectrum_factor;
-
-    split_freq(f - half, &mhz, &khz, &hz);
-    lv_label_set_text_fmt(freq[0], "#%03X %i.%03i", color, mhz, khz);
-
-    split_freq(f + half, &mhz, &khz, &hz);
-    lv_label_set_text_fmt(freq[2], "#%03X %i.%03i", color, mhz, khz);
-
-    f = op_work->rx;
-
-    split_freq(f, &mhz, &khz, &hz);
-
-    if (params.mag_freq.x) {
-        if (mhz < 100) {
-            msg_tiny_set_text_fmt("%i.%03i.%03i", mhz, khz, hz);
-        } else {
-            msg_tiny_set_text_fmt("%i.%03i", mhz, khz);
-        }
-    }
-
-    if (op_work->rx != op_work->tx) {
-        uint16_t    mhz2, khz2, hz2;
-        uint64_t    f2 = op_work->tx;
-
-        split_freq(f2, &mhz2, &khz2, &hz2);
-
-        lv_label_set_text_fmt(freq[1], "#%03X %i.%03i.%03i / %i.%03i.%03i", color, mhz, khz, hz, mhz2, khz2, hz2);
-    } else {
-        lv_label_set_text_fmt(freq[1], "#%03X %i.%03i.%03i", color, mhz, khz, hz);
-    }
-
-    return f;
-}
 
 static void next_freq_step(bool up) {
     switch (op_mode->freq_step) {
@@ -493,7 +449,6 @@ static void main_screen_hkey_cb(lv_event_t * e) {
         case HKEY_SPCH:
             if (hkey->state == HKEY_RELEASE) {
                 freq_lock = !freq_lock;
-                freq_update();
                 voice_say_text_fmt("Frequency %s", freq_lock ? "locked" : "unlocked");
             }
             break;
@@ -557,9 +512,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
 }
 
 static void main_screen_update_cb(lv_event_t * e) {
-    freq_update();
     info_params_set();
-
     dsp_auto_clear();
 }
 
@@ -654,7 +607,6 @@ static void freq_shift(int16_t diff) {
             break;
     }
 
-    freq_update();
     dialog_send(EVENT_FREQ_UPDATE, NULL);
     pannel_fade();
 }
@@ -758,7 +710,6 @@ static void main_screen_key_cb(lv_event_t * e) {
 
         case KEYBOARD_SCRL_LOCK:
             freq_lock = !freq_lock;
-            freq_update();
             break;
 
         case KEYBOARD_PGUP:
@@ -830,7 +781,6 @@ void main_screen_keys_enable(bool value) {
 
 void main_screen_lock_freq(bool lock) {
     freq_lock = lock;
-    freq_update();
 }
 
 void main_screen_lock_band(bool lock) {
@@ -850,8 +800,6 @@ void main_screen_set_freq(uint64_t freq) {
 }
 
 lv_obj_t * main_screen() {
-    uint16_t y = 0;
-
     obj = python_main_screen_get();
 
     lv_obj_add_event_cb(obj, main_screen_rotary_cb, EVENT_ROTARY, NULL);
@@ -867,30 +815,6 @@ lv_obj_t * main_screen() {
     lv_msg_subsribe(MSG_BAND_CHANGED, band_changed_cb, NULL);
 
     main_screen_keys_enable(true);
-
-    y += spectrum_height;
-
-    lv_obj_t *f;
-
-    f = lv_label_create(obj);
-    lv_obj_add_style(f, &freq_style, 0);
-    lv_obj_set_pos(f, 0, y);
-    lv_label_set_recolor(f, true);
-    freq[0] = f;
-
-    f = lv_label_create(obj);
-    lv_obj_add_style(f, &freq_main_style, 0);
-    lv_obj_set_pos(f, 800/2 - 500/2, y);
-    lv_label_set_recolor(f, true);
-    freq[1] = f;
-
-    f = lv_label_create(obj);
-    lv_obj_add_style(f, &freq_style, 0);
-    lv_obj_set_pos(f, 800 - 150, y);
-    lv_label_set_recolor(f, true);
-    freq[2] = f;
-
-    y += freq_height;
 
     buttons_init(obj);
     pannel_init(obj);
@@ -908,7 +832,6 @@ lv_obj_t * main_screen() {
     lv_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
     lv_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
 
-    freq_update();
     info_params_set();
     dsp_auto_clear();
 
@@ -919,8 +842,6 @@ lv_obj_t * main_screen() {
 }
 
 static void band_changed_cb(void *s, lv_msg_t *m) {
-    uint64_t freq = freq_update();
-
     info_params_set();
     dsp_auto_clear();
 
@@ -939,8 +860,6 @@ static void band_changed_cb(void *s, lv_msg_t *m) {
 void main_screen_update_range() {
     op_work->fft = op_work->rx;
     radio_set_freq_fft(op_work->fft);
-
-    freq_update();
 }
 
 void main_screen_update_finder() {

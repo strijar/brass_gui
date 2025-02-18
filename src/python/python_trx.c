@@ -16,6 +16,7 @@
 #include "src/widgets/lv_waterfall.h"
 #include "src/widgets/lv_finder.h"
 #include "src/main.h"
+#include "src/msgs.h"
 
 /* Spectrum */
 
@@ -255,6 +256,27 @@ static PyModuleDef trx_module = {
 
 PyMODINIT_FUNC PyInit_trx() {
     PyObject *m = PyModule_Create(&trx_module);
+
+    /* Messages */
+
+    PyModule_AddObjectRef(m, "MSG_MODE_CHANGED",        PyLong_FromLong(MSG_MODE_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_FILTER_CHANGED",      PyLong_FromLong(MSG_FILTER_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_BAND_CHANGED",        PyLong_FromLong(MSG_BAND_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_FREQ_RX_PRE_CHANGED", PyLong_FromLong(MSG_FREQ_RX_PRE_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_FREQ_RX_CHANGED",     PyLong_FromLong(MSG_FREQ_RX_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_FREQ_TX_PRE_CHANGED", PyLong_FromLong(MSG_FREQ_TX_PRE_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_FREQ_TX_CHANGED",     PyLong_FromLong(MSG_FREQ_TX_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_FREQ_FFT_CHANGED",    PyLong_FromLong(MSG_FREQ_FFT_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_FREQ_FFT_SHIFT",      PyLong_FromLong(MSG_FREQ_FFT_SHIFT));
+    PyModule_AddObjectRef(m, "MSG_RATE_FFT_CHANGED",    PyLong_FromLong(MSG_RATE_FFT_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_SPECTRUM_AUTO",       PyLong_FromLong(MSG_SPECTRUM_AUTO));
+    PyModule_AddObjectRef(m, "MSG_WATERFALL_AUTO",      PyLong_FromLong(MSG_WATERFALL_AUTO));
+    PyModule_AddObjectRef(m, "MSG_SPECTRUM_DATA",       PyLong_FromLong(MSG_SPECTRUM_DATA));
+    PyModule_AddObjectRef(m, "MSG_WATERFALL_DATA",      PyLong_FromLong(MSG_WATERFALL_DATA));
+    PyModule_AddObjectRef(m, "MSG_PTT",                 PyLong_FromLong(MSG_PTT));
+    PyModule_AddObjectRef(m, "MSG_TX",                  PyLong_FromLong(MSG_TX));
+    PyModule_AddObjectRef(m, "MSG_RX",                  PyLong_FromLong(MSG_RX));
+    PyModule_AddObjectRef(m, "MSG_FINDER_CURSOR",       PyLong_FromLong(MSG_FINDER_CURSOR));
 
     return m;
 }

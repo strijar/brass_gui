@@ -3,6 +3,7 @@ import lv
 
 from lv_const import *
 from main_spectrum import *
+from main_freqs import *
 from main_waterfall import *
 
 class MainScreen(lv.obj):
@@ -17,6 +18,8 @@ class MainScreen(lv.obj):
 
 		self.spectrum = MainSpectrum(self)
 		trx.connect_spectrum(self.spectrum)
+
+		self.freqs = MainFreqs(self)
 
 		self.waterfall = MainWaterfall(self)
 		trx.connect_waterfall(self.waterfall)
