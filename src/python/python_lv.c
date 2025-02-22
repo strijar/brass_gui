@@ -10,6 +10,7 @@
 #include "src/widgets/lv_spectrum.h"
 #include "src/widgets/lv_waterfall.h"
 #include "src/widgets/lv_finder.h"
+#include "src/widgets/lv_bandinfo.h"
 #include "src/styles.h"
 #include "src/msgs.h"
 #include "src/fonts/jura.h"
@@ -56,6 +57,42 @@ static PyObject * style_set_bg_opa(style_object_t *self, PyObject *args) {
 
     if (PyArg_ParseTuple(args, "b", &opa)) {
         lv_style_set_bg_opa(&self->style, opa);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_border_color(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_color_t color;
+
+    if (PyArg_ParseTuple(args, "I", &color)) {
+        lv_style_set_border_color(&self->style, color);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_border_opa(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_opa_t opa;
+
+    if (PyArg_ParseTuple(args, "b", &opa)) {
+        lv_style_set_border_opa(&self->style, opa);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_border_width(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_coord_t width;
+
+    if (PyArg_ParseTuple(args, "i", &width)) {
+        lv_style_set_border_width(&self->style, width);
     }
 
     Py_RETURN_NONE;
@@ -220,6 +257,9 @@ static PyObject * style_set_text_font(style_object_t *self, PyObject *args) {
 static PyMethodDef style_methods[] = {
     { "set_bg_color", (PyCFunction) style_set_bg_color, METH_VARARGS, "" },
     { "set_bg_opa", (PyCFunction) style_set_bg_opa, METH_VARARGS, "" },
+    { "set_border_color", (PyCFunction) style_set_border_color, METH_VARARGS, "" },
+    { "set_border_width", (PyCFunction) style_set_border_width, METH_VARARGS, "" },
+    { "set_border_opa", (PyCFunction) style_set_border_opa, METH_VARARGS, "" },
     { "set_radius", (PyCFunction) style_set_radius, METH_VARARGS, "" },
     { "set_x", (PyCFunction) style_set_x, METH_VARARGS, "" },
     { "set_y", (PyCFunction) style_set_y, METH_VARARGS, "" },
@@ -683,6 +723,65 @@ static PyTypeObject finder_type = {
     .tp_methods = finder_methods,
 };
 
+/* Band info */
+
+static int bandinfo_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+    lv_obj_t    *parent = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        parent = python_lv_get_obj(obj);
+    }
+
+    self->obj = lv_bandinfo_create(parent);
+
+    return 0;
+}
+
+static PyObject * bandinfo_set_span(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    int32_t span;
+
+    if (PyArg_ParseTuple(args, "i", &span)) {
+        lv_bandinfo_set_span(self->obj, span);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * bandinfo_set_center(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    uint64_t center;
+
+    if (PyArg_ParseTuple(args, "K", &center)) {
+        lv_bandinfo_set_center(self->obj, center);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef bandinfo_methods[] = {
+    { "set_span", (PyCFunction) bandinfo_set_span, METH_VARARGS, "" },
+    { "set_center", (PyCFunction) bandinfo_set_center, METH_VARARGS, "" },
+    { NULL }
+};
+
+static PyTypeObject bandinfo_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_base = &obj_type,
+    .tp_name = "lv.bandinfo",
+    .tp_doc = PyDoc_STR("LVGL band info"),
+    .tp_basicsize = sizeof(obj_object_t),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_init = (initproc) bandinfo_init,
+    .tp_methods = bandinfo_methods,
+};
+
 /* * */
 
 static PyModuleDef lv_module = {
@@ -699,6 +798,7 @@ PyMODINIT_FUNC PyInit_lv() {
     PyType_Ready(&spectrum_type);
     PyType_Ready(&waterfall_type);
     PyType_Ready(&finder_type);
+    PyType_Ready(&bandinfo_type);
 
     PyObject *m = PyModule_Create(&lv_module);
 
@@ -712,6 +812,7 @@ PyMODINIT_FUNC PyInit_lv() {
     PyModule_AddObjectRef(m, "spectrum", (PyObject *) &spectrum_type);
     PyModule_AddObjectRef(m, "waterfall", (PyObject *) &waterfall_type);
     PyModule_AddObjectRef(m, "finder", (PyObject *) &finder_type);
+    PyModule_AddObjectRef(m, "bandinfo", (PyObject *) &bandinfo_type);
 
     /* Fonts */
 

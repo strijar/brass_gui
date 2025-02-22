@@ -9,7 +9,6 @@
 #include "lvgl/lvgl.h"
 #include "src/radio.h"
 #include "src/msgs.h"
-#include "src/band_info.h"
 
 #include "op_work.h"
 #include "modes.h"

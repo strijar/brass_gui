@@ -22,7 +22,6 @@
 #include "clock.h"
 #include "info.h"
 #include "meter.h"
-#include "band_info.h"
 #include "tx_info.h"
 #include "mfk.h"
 #include "vol.h"

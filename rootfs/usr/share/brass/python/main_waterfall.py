@@ -4,9 +4,10 @@ import lv
 from lv_const import *
 from gui_const import *
 from rx_finder import *
+from bandinfo import *
 
 class MainWaterfall(lv.waterfall):
-	def __init__(self, parent = None):
+	def __init__(self, bandinfo = False, parent = None):
 		lv.waterfall.__init__(self, parent)
 
 		self.y = SPECTRUM_HEIGHT + FREQ_HEIGHT
@@ -21,6 +22,13 @@ class MainWaterfall(lv.waterfall):
 
 		self.rx_finder = RXFinder(0, self.h - BUTTONS_HEIGHT, self)
 		trx.connect_rx_finder(self.rx_finder)
+
+		if bandinfo:
+			self.bandinfo = BandInfo(self)
+			self.bandinfo.set_size(800, 24)
+			self.bandinfo.set_pos(0, 2)
+			self.bandinfo.makeBandStyle()
+			self.bandinfo.makeMarkerStyle(0xAAAAAA, LV_OPA_COVER)
 
 	def makeMainStyle(self):
 		style = lv.style()

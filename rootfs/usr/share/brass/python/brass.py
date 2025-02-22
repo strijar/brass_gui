@@ -16,12 +16,12 @@ class MainScreen(lv.obj):
 		self.add_style(style, LV_PART_MAIN)
 		self.clear_flag(LV_OBJ_FLAG_SCROLLABLE)
 
-		self.spectrum = MainSpectrum(self)
+		self.spectrum = MainSpectrum(False, self)
 		trx.connect_spectrum(self.spectrum)
 
 		self.freqs = MainFreqs(self)
 
-		self.waterfall = MainWaterfall(self)
+		self.waterfall = MainWaterfall(True, self)
 		trx.connect_waterfall(self.waterfall)
 
 def main():

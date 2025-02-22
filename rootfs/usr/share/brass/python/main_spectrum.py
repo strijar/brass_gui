@@ -5,9 +5,10 @@ from lv_const import *
 from gui_const import *
 from rx_finder import *
 from tx_finder import *
+from bandinfo import *
 
 class MainSpectrum(lv.spectrum):
-	def __init__(self, parent = None):
+	def __init__(self, bandinfo = True, parent = None):
 		lv.spectrum.__init__(self, parent)
 
 		self.makeMainStyle()
@@ -19,7 +20,8 @@ class MainSpectrum(lv.spectrum):
 		self.set_data_size(400)
 		self.clear_data()
 
-		half_height = int((SPECTRUM_HEIGHT - TOP_HEIGHT) / 2)
+		height = SPECTRUM_HEIGHT - TOP_HEIGHT
+		half_height = int(height / 2)
 
 		self.tx_finder = TXFinder(TOP_HEIGHT, half_height, self)
 		trx.connect_tx_finder(self.tx_finder)
@@ -27,9 +29,11 @@ class MainSpectrum(lv.spectrum):
 		self.rx_finder = RXFinder(TOP_HEIGHT + half_height, half_height, self)
 		trx.connect_rx_finder(self.rx_finder)
 
-#		self.set_peak(True)
-#		self.set_peak_hold(2000)
-#		self.set_peak_speed(0.5)
+		if bandinfo:
+			self.bandinfo = BandInfo(self)
+			self.bandinfo.set_size(800, height)
+			self.bandinfo.set_pos(0, SPECTRUM_HEIGHT - height)
+			self.bandinfo.makeMarkerStyle(0xAAAAAA, LV_OPA_50)
 
 	def makeMainStyle(self):
 		style = lv.style()

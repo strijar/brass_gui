@@ -8,7 +8,6 @@
 
 #include "memory.h"
 #include "radio.h"
-#include "band_info.h"
 #include "msg.h"
 
 const char * memory_load(const memory_t *memory, uint32_t index) {
