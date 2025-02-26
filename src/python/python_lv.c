@@ -347,6 +347,12 @@ static void obj_msg_cb(void *s, lv_msg_t *m) {
             arg = Py_BuildValue("Ib", msg, *zoom);
         } break;
 
+        case MSG_RECORDER: {
+            const bool *on = lv_msg_get_payload(m);
+
+            arg = Py_BuildValue("Ib", msg, *on);
+        } break;
+
         default:
             arg = Py_BuildValue("IO", msg, Py_None);
             break;
@@ -630,11 +636,6 @@ static int waterfall_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
 
     self->obj = lv_waterfall_create(parent);
 
-    lv_color_t palette[256];
-
-    styles_waterfall_palette(palette, 256);
-    lv_waterfall_set_palette(self->obj, palette, 256);
-
     return 0;
 }
 
@@ -650,6 +651,32 @@ static PyObject * waterfall_set_data_size(obj_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * waterfall_set_palette(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    int stops;
+
+    if (PyArg_ParseTuple(args, "i", &stops)) {
+        lv_waterfall_set_palette(self->obj, stops);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * waterfall_set_palette_color(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    uint8_t     index;
+    float       frac;
+    lv_color_t  color;
+
+    if (PyArg_ParseTuple(args, "bfI", &index, &frac, &color)) {
+        lv_waterfall_set_palette_color(self->obj, index, frac, color);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject * waterfall_clear_data(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
@@ -660,6 +687,8 @@ static PyObject * waterfall_clear_data(obj_object_t *self, PyObject *args) {
 
 static PyMethodDef waterfall_methods[] = {
     { "set_data_size", (PyCFunction) waterfall_set_data_size, METH_VARARGS, "" },
+    { "set_palette", (PyCFunction) waterfall_set_palette, METH_VARARGS, "" },
+    { "set_palette_color", (PyCFunction) waterfall_set_palette_color, METH_VARARGS, "" },
     { "clear_data", (PyCFunction) waterfall_clear_data, METH_NOARGS, "" },
     { NULL }
 };

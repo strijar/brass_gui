@@ -50,16 +50,31 @@ lv_obj_t * lv_waterfall_create(lv_obj_t * parent) {
  * Setter functions
  *====================*/
 
-void lv_waterfall_set_palette(lv_obj_t * obj, lv_color_t * palette, uint16_t cnt) {
+void lv_waterfall_set_palette(lv_obj_t * obj, uint16_t stops_count) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
-    LV_ASSERT_NULL(palette);
 
     lv_waterfall_t * waterfall = (lv_waterfall_t *)obj;
 
-    waterfall->palette = lv_mem_realloc(waterfall->palette, cnt * sizeof(waterfall->palette[0]));
-    waterfall->palette_cnt = cnt;
+    waterfall->palette = lv_mem_realloc(waterfall->palette, 256 * sizeof(waterfall->palette[0]));
+    waterfall->grad.dir = LV_GRAD_DIR_HOR;
+    waterfall->grad.stops_count = stops_count;
+}
 
-    memcpy(waterfall->palette, palette, cnt * sizeof(waterfall->palette[0]));
+void lv_waterfall_set_palette_color(lv_obj_t * obj, uint16_t index, float frac, lv_color_t color) {
+    LV_ASSERT_OBJ(obj, MY_CLASS);
+
+    lv_waterfall_t * waterfall = (lv_waterfall_t *)obj;
+
+    if (index < waterfall->grad.stops_count && frac >= 0.0f && frac <= 1.0f) {
+        waterfall->grad.stops[index].frac = frac * 255;
+        waterfall->grad.stops[index].color = color;
+
+        if (index == waterfall->grad.stops_count - 1) {
+            for (int i = 0; i < 256; i++) {
+                waterfall->palette[i] = lv_gradient_calculate(&waterfall->grad, 256, i);
+            }
+        }
+    }
 }
 
 void lv_waterfall_set_data_size(lv_obj_t * obj, uint16_t size) {
@@ -220,7 +235,6 @@ static void lv_waterfall_constructor(const lv_obj_class_t * class_p, lv_obj_t * 
 
     waterfall->img = NULL;
     waterfall->palette = NULL;
-    waterfall->palette_cnt = 0;
     waterfall->line_len = 0;
     waterfall->line_buf = NULL;
     waterfall->min = -40;

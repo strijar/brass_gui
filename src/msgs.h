@@ -45,4 +45,5 @@ typedef enum {
     MSG_TX,
     MSG_RX,
     MSG_FINDER_CURSOR,
+    MSG_RECORDER,               /* bool */
 } msgs_t;

@@ -44,3 +44,11 @@ class MainWaterfall(lv.waterfall):
 		style.set_pad_ver(0)
 
 		self.add_style(style, LV_PART_MAIN)
+
+	def makePalette(self):
+		self.set_palette(5)
+		self.set_palette_color(0, 0.00, 0x000000)
+		self.set_palette_color(1, 0.25, 0x0000FF)
+		self.set_palette_color(2, 0.50, 0xFF0000)
+		self.set_palette_color(3, 0.75, 0xFFFF00)
+		self.set_palette_color(4, 1.00, 0xFFFFFF)

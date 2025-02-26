@@ -22,6 +22,7 @@ class MainScreen(lv.obj):
 		self.freqs = MainFreqs(self)
 
 		self.waterfall = MainWaterfall(True, self)
+		self.waterfall.makePalette()
 		trx.connect_waterfall(self.waterfall)
 
 def main():

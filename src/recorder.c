@@ -14,6 +14,7 @@
 #include "dialog_recorder.h"
 #include "recorder.h"
 #include "msg.h"
+#include "msgs.h"
 #include "settings/options.h"
 #include "fpga/adc.h"
 
@@ -94,6 +95,7 @@ void recorder_set_on(bool x) {
         sf_close(file);
     }
 
+    lv_msg_send(MSG_RECORDER, &on);
     dialog_recorder_set_on(on);
 }
 

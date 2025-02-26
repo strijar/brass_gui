@@ -30,8 +30,8 @@ typedef struct {
     uint32_t        line_len;
     uint8_t         *line_buf;
 
+    lv_grad_dsc_t   grad;
     lv_color_t      *palette;
-    uint16_t        palette_cnt;
 
     int16_t         min;
     int16_t         max;
@@ -52,7 +52,9 @@ lv_obj_t * lv_waterfall_create(lv_obj_t * parent);
  * Setter functions
  *====================*/
 
-void lv_waterfall_set_palette(lv_obj_t * obj, lv_color_t * palette, uint16_t cnt);
+void lv_waterfall_set_palette(lv_obj_t * obj, uint16_t stops_count);
+void lv_waterfall_set_palette_color(lv_obj_t * obj, uint16_t index, float frac, lv_color_t color);
+
 void lv_waterfall_set_data_size(lv_obj_t * obj, uint16_t size);
 void lv_waterfall_set_max(lv_obj_t * obj, int16_t db);
 void lv_waterfall_set_min(lv_obj_t * obj, int16_t db);

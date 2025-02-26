@@ -48,4 +48,3 @@ extern lv_font_t    *font_textarea;
 extern lv_font_t    *font_tx_info;
 
 void styles_init();
-void styles_waterfall_palette(lv_color_t *palette, uint16_t size);

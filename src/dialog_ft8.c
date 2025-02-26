@@ -1125,11 +1125,15 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_style(waterfall, &waterfall_style, 0);
     lv_obj_clear_flag(waterfall, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_color_t palette[256];
-
     lv_obj_set_size(waterfall, WIDTH, 325);
-    styles_waterfall_palette(palette, 256);
-    lv_waterfall_set_palette(waterfall, palette, 256);
+
+    lv_waterfall_set_palette(waterfall, 5);
+    lv_waterfall_set_palette_color(waterfall, 0, 0.00f, lv_color_hex(0x000000));
+    lv_waterfall_set_palette_color(waterfall, 1, 0.25f, lv_color_hex(0x0000FF));
+    lv_waterfall_set_palette_color(waterfall, 2, 0.50f, lv_color_hex(0xFF0000));
+    lv_waterfall_set_palette_color(waterfall, 3, 0.75f, lv_color_hex(0xFFFF00));
+    lv_waterfall_set_palette_color(waterfall, 4, 1.00f, lv_color_hex(0xFFFFFF));
+
     lv_waterfall_set_data_size(waterfall, WIDTH);
 
     lv_obj_set_pos(waterfall, 13, 13);
