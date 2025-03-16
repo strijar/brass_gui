@@ -34,6 +34,8 @@ uint8_t dsp_change_rx_agc(int16_t df);
 float complex dsp_modulate(float x, radio_mode_t mode);
 float dsp_demodulate(float complex in, radio_mode_t mode);
 
+void dsp_update_equalizer();
+
 /* From thread */
 
 void dsp_fft(float *data);

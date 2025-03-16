@@ -32,6 +32,7 @@
 #include "keyboard.h"
 #include "dialog.h"
 #include "dialog_settings.h"
+#include "dialog_audio_settings.h"
 #include "dialog_freq.h"
 #include "dialog_msg_cw.h"
 #include "dialog_msg_voice.h"
@@ -179,6 +180,11 @@ void main_screen_app(app_t app) {
         case APP_MSG_VOICE:
             dialog_construct(dialog_msg_voice, obj);
             voice_say_text_fmt("Voice messages window");
+            break;
+
+        case APP_AUDIO_SETTINGS:
+            dialog_construct(dialog_audio_settings, obj);
+            voice_say_text_fmt("Audio settings window");
             break;
 
         default:

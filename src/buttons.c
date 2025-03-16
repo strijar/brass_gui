@@ -74,6 +74,13 @@ static button_item_t    buttons[] = {
     { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
     { .label = "Msg",               .press = button_app_page_cb,    .data = APP_MSG_VOICE },
 
+    { .label = "Audio\nSettings",   .press = button_app_page_cb,    .data = APP_AUDIO_SETTINGS },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+    { .label = "",                  .press = NULL },
+
     /* CW, CWR */
 
     { .label = "Filter\nLow",       .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_FILTER_LOW },
@@ -335,6 +342,16 @@ void buttons_vol() {
 
 void buttons_mfk() {
     switch (buttons_page) {
+        case PAGE_VOICE_1:
+            buttons_unload_page();
+            buttons_load_page(PAGE_VOICE_2);
+            break;
+
+        case PAGE_VOICE_2:
+            buttons_unload_page();
+            buttons_load_page(PAGE_VOICE_1);
+            break;
+
         case PAGE_CW_1:
             buttons_unload_page();
             buttons_load_page(PAGE_CW_2);

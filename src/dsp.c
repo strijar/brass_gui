@@ -35,6 +35,7 @@
 #include "settings/modes.h"
 #include "settings/options.h"
 #include "olivia/olivia.h"
+#include "dsp/biquad.h"
 
 const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
 
@@ -87,6 +88,9 @@ static int16_t          adc_buf[ADC_SAMPLES];
 static float            adc_vol = 0;
 static bool             adc_mute = false;
 
+static bool             adc_equalizer_update = true;
+static biquad_t         adc_equalizer[EQUALIZER_NUM];
+
 static float            rec_buf[ADC_SAMPLES];
 
 static void calc_auto();
@@ -104,7 +108,6 @@ static float dB(float x) {
         return S_MIN;
     }
 }
-
 
 /* * */
 
@@ -156,7 +159,7 @@ void dsp_init() {
 
     delay = 4;
 
-    dsp_set_vol(options->audio.vol);
+    dsp_set_vol(options->audio.speaker.vol);
     ready = true;
 
     spectrum_timer = lv_timer_create(spectrum_timer_cb, 1000 / 20, NULL);
@@ -384,6 +387,10 @@ static void meter_timer_cb(lv_timer_t *t) {
     pthread_mutex_unlock(&meter_mux);
 }
 
+void dsp_update_equalizer() {
+    adc_equalizer_update = true;
+}
+
 void dsp_adc(float complex *data, uint16_t samples) {
     radio_state_t   state = radio_get_state();
 
@@ -403,10 +410,25 @@ void dsp_adc(float complex *data, uint16_t samples) {
         filter_need_update = false;
     }
 
+    if (adc_equalizer_update) {
+        for (int i = 0; i < EQUALIZER_NUM; i++) {
+            const equalizer_item_t *item = &options->audio.speaker.eq[i];
+
+            biquad_peak_eq(&adc_equalizer[i], item->freq, item->q * 0.5f, item->gain, ADC_RATE);
+        }
+
+        adc_equalizer_update = false;
+    }
+
     for (int i = 0; i < samples; i++) {
         float x, y;
 
         x = dsp_demodulate(data[i], mode);
+
+        for (int n = 0; n < EQUALIZER_NUM; n++) {
+            x = biqiad_apply(&adc_equalizer[n], x);
+        }
+
         firfilt_rrrf_execute_one(filter, x, &y);
 
         if (fabs(y) > peak) {
@@ -536,12 +558,12 @@ static void calc_auto() {
 
 void dsp_change_mute() {
     adc_mute = !adc_mute;
-    dsp_set_vol(adc_mute ? 0 : options->audio.vol);
+    dsp_set_vol(adc_mute ? 0 : options->audio.speaker.vol);
 }
 
 void dsp_set_mute(bool on) {
     adc_mute = on;
-    dsp_set_vol(on ? 0 : options->audio.vol);
+    dsp_set_vol(on ? 0 : options->audio.speaker.vol);
 }
 
 void dsp_set_vol(uint8_t x) {
@@ -550,15 +572,15 @@ void dsp_set_vol(uint8_t x) {
 
 uint16_t dsp_change_vol(int16_t df) {
     if (df == 0) {
-        return options->audio.vol;
+        return options->audio.speaker.vol;
     }
 
     adc_mute = false;
 
-    options->audio.vol = limit(options->audio.vol + df, 0, 100);
-    dsp_set_vol(options->audio.vol);
+    options->audio.speaker.vol = limit(options->audio.speaker.vol + df, 0, 100);
+    dsp_set_vol(options->audio.speaker.vol);
 
-    return options->audio.vol;
+    return options->audio.speaker.vol;
 }
 
 size_t dsp_dac(float complex *data, size_t max_size) {

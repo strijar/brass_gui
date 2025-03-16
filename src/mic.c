@@ -16,6 +16,7 @@
 #include "fpga/dac.h"
 #include "dsp/firdes.h"
 #include "dsp/agc.h"
+#include "dsp/biquad.h"
 #include "dialog_msg_voice.h"
 #include "settings/options.h"
 
@@ -33,6 +34,9 @@ static size_t           filter_len = 0;
 static float            *filter_taps = NULL;
 static bool             filter_need_update = false;
 static firfilt_rrrf     filter = NULL;
+
+static bool             mic_equalizer_update = true;
+static biquad_t         mic_equalizer[EQUALIZER_NUM];
 
 void mic_init() {
     dc_block = firfilt_rrrf_create_dc_blocker(25, 30.0f);
@@ -76,6 +80,10 @@ void mic_update_filter() {
     filter_need_update = true;
 }
 
+void mic_update_equalizer() {
+    mic_equalizer_update = true;
+}
+
 size_t mic_modulate(float complex *data, size_t max_size, radio_mode_t mode) {
     size_t size = 0;
 
@@ -112,6 +120,16 @@ void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
         filter_need_update = false;
     }
 
+    if (mic_equalizer_update) {
+        for (int i = 0; i < EQUALIZER_NUM; i++) {
+            const equalizer_item_t *item = &options->audio.mic.eq[i];
+
+            biquad_peak_eq(&mic_equalizer[i], item->freq, item->q * 0.5f, item->gain, 44100);
+        }
+
+        mic_equalizer_update = false;
+    }
+
     float   a, b;
     bool    rec_msg = (dialog_msg_voice_get_state() == MSG_VOICE_RECORD);
 
@@ -120,6 +138,10 @@ void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
         firfilt_rrrf_execute(dc_block, &a);
 
         if (on_air || rec_msg) {
+            for (int n = 0; n < EQUALIZER_NUM; n++) {
+                a = biqiad_apply(&mic_equalizer[n], a);
+            }
+
             firfilt_rrrf_execute_one(filter, a, &b);
             b = agc_apply(agc, b);
 

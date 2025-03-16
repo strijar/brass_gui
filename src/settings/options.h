@@ -11,26 +11,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "filter.h"
+#include "audio.h"
 
 typedef struct {
     char                qth[16];
     char                callsign[16];
 } options_operator_t;
-
-typedef struct {
-    filter_t            filter;
-} options_mic_t;
-
-typedef enum {
-    REC_FORMAT_WAV = 0,
-    REC_FORMAT_MP3
-} rec_format_t;
-
-typedef struct {
-    uint8_t             vol;
-    options_mic_t       mic;
-    rec_format_t        rec_format;
-} options_audio_t;
 
 typedef struct {
     float               beta;
