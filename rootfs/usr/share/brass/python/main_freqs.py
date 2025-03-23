@@ -15,11 +15,12 @@ class MainFreqs():
 		self.makeRange(parent)
 
 	def makeFreq(self, parent):
+		font = lv.load_font("/usr/share/brass/font/Jura-Bold.ttf", 32)
 		style = lv.style()
 
 		style.set_text_color(0xffffff)
-		style.set_text_font(lv.JURA_BOLD_34)
-		style.set_pad_ver(6)
+		style.set_text_font(font)
+		style.set_pad_ver(0)
 		style.set_width(500)
 		style.set_height(FREQ_HEIGHT)
 		style.set_text_align(LV_TEXT_ALIGN_CENTER)
@@ -34,11 +35,12 @@ class MainFreqs():
 		self.freq = freq
 
 	def makeRange(self, parent):
+		font = lv.load_font("/usr/share/brass/font/Jura.ttf", 28)
 		style = lv.style()
 
 		style.set_text_color(0xffffff)
-		style.set_text_font(lv.JURA_28)
-		style.set_pad_ver(10)
+		style.set_text_font(font)
+		style.set_pad_ver(2)
 		style.set_width(150)
 		style.set_height(FREQ_HEIGHT)
 

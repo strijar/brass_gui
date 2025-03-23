@@ -813,11 +813,40 @@ static PyTypeObject bandinfo_type = {
 
 /* * */
 
+static PyObject * lv_load_font(PyObject *self, PyObject *args) {
+    const char      *path;
+    lv_coord_t      font_size;
+    lv_ft_info_t    info;
+    PyObject        *res;
+
+    if (PyArg_ParseTuple(args, "si", &path, &font_size)) {
+        info.name = path;
+        info.weight = font_size;
+        info.style = FT_FONT_STYLE_NORMAL;
+        info.mem = NULL;
+
+        if (!lv_ft_font_init(&info)) {
+            LV_LOG_ERROR("create failed.");
+        }
+    }
+
+    res = PyLong_FromVoidPtr((void *) info.font);
+    Py_XINCREF(res);
+
+    return res;
+};
+
+static PyMethodDef lv_methods[] = {
+    { "load_font", (PyCFunction) lv_load_font, METH_VARARGS, "" },
+    { NULL }
+};
+
 static PyModuleDef lv_module = {
     .m_base = PyModuleDef_HEAD_INIT,
     .m_name = "lv",
     .m_doc = "",
     .m_size = -1,
+    .m_methods = lv_methods
 };
 
 PyMODINIT_FUNC PyInit_lv() {
@@ -842,50 +871,6 @@ PyMODINIT_FUNC PyInit_lv() {
     PyModule_AddObjectRef(m, "waterfall", (PyObject *) &waterfall_type);
     PyModule_AddObjectRef(m, "finder", (PyObject *) &finder_type);
     PyModule_AddObjectRef(m, "bandinfo", (PyObject *) &bandinfo_type);
-
-    /* Fonts */
-
-    PyModule_AddObjectRef(m, "JURA_8", PyLong_FromVoidPtr((void *) &jura_8));
-    PyModule_AddObjectRef(m, "JURA_10", PyLong_FromVoidPtr((void *) &jura_10));
-    PyModule_AddObjectRef(m, "JURA_12", PyLong_FromVoidPtr((void *) &jura_12));
-    PyModule_AddObjectRef(m, "JURA_14", PyLong_FromVoidPtr((void *) &jura_14));
-    PyModule_AddObjectRef(m, "JURA_16", PyLong_FromVoidPtr((void *) &jura_16));
-    PyModule_AddObjectRef(m, "JURA_18", PyLong_FromVoidPtr((void *) &jura_18));
-    PyModule_AddObjectRef(m, "JURA_20", PyLong_FromVoidPtr((void *) &jura_20));
-    PyModule_AddObjectRef(m, "JURA_22", PyLong_FromVoidPtr((void *) &jura_22));
-    PyModule_AddObjectRef(m, "JURA_24", PyLong_FromVoidPtr((void *) &jura_24));
-    PyModule_AddObjectRef(m, "JURA_26", PyLong_FromVoidPtr((void *) &jura_26));
-    PyModule_AddObjectRef(m, "JURA_28", PyLong_FromVoidPtr((void *) &jura_28));
-    PyModule_AddObjectRef(m, "JURA_30", PyLong_FromVoidPtr((void *) &jura_30));
-    PyModule_AddObjectRef(m, "JURA_32", PyLong_FromVoidPtr((void *) &jura_32));
-    PyModule_AddObjectRef(m, "JURA_34", PyLong_FromVoidPtr((void *) &jura_34));
-    PyModule_AddObjectRef(m, "JURA_36", PyLong_FromVoidPtr((void *) &jura_36));
-    PyModule_AddObjectRef(m, "JURA_38", PyLong_FromVoidPtr((void *) &jura_38));
-    PyModule_AddObjectRef(m, "JURA_40", PyLong_FromVoidPtr((void *) &jura_40));
-    PyModule_AddObjectRef(m, "JURA_42", PyLong_FromVoidPtr((void *) &jura_42));
-    PyModule_AddObjectRef(m, "JURA_44", PyLong_FromVoidPtr((void *) &jura_44));
-    PyModule_AddObjectRef(m, "JURA_60", PyLong_FromVoidPtr((void *) &jura_60));
-
-    PyModule_AddObjectRef(m, "JURA_BOLD_8", PyLong_FromVoidPtr((void *) &jura_bold_8));
-    PyModule_AddObjectRef(m, "JURA_BOLD_10", PyLong_FromVoidPtr((void *) &jura_bold_10));
-    PyModule_AddObjectRef(m, "JURA_BOLD_12", PyLong_FromVoidPtr((void *) &jura_bold_12));
-    PyModule_AddObjectRef(m, "JURA_BOLD_14", PyLong_FromVoidPtr((void *) &jura_bold_14));
-    PyModule_AddObjectRef(m, "JURA_BOLD_16", PyLong_FromVoidPtr((void *) &jura_bold_16));
-    PyModule_AddObjectRef(m, "JURA_BOLD_18", PyLong_FromVoidPtr((void *) &jura_bold_18));
-    PyModule_AddObjectRef(m, "JURA_BOLD_20", PyLong_FromVoidPtr((void *) &jura_bold_20));
-    PyModule_AddObjectRef(m, "JURA_BOLD_22", PyLong_FromVoidPtr((void *) &jura_bold_22));
-    PyModule_AddObjectRef(m, "JURA_BOLD_24", PyLong_FromVoidPtr((void *) &jura_bold_24));
-    PyModule_AddObjectRef(m, "JURA_BOLD_26", PyLong_FromVoidPtr((void *) &jura_bold_26));
-    PyModule_AddObjectRef(m, "JURA_BOLD_28", PyLong_FromVoidPtr((void *) &jura_bold_28));
-    PyModule_AddObjectRef(m, "JURA_BOLD_30", PyLong_FromVoidPtr((void *) &jura_bold_30));
-    PyModule_AddObjectRef(m, "JURA_BOLD_32", PyLong_FromVoidPtr((void *) &jura_bold_32));
-    PyModule_AddObjectRef(m, "JURA_BOLD_34", PyLong_FromVoidPtr((void *) &jura_bold_34));
-    PyModule_AddObjectRef(m, "JURA_BOLD_36", PyLong_FromVoidPtr((void *) &jura_bold_36));
-    PyModule_AddObjectRef(m, "JURA_BOLD_38", PyLong_FromVoidPtr((void *) &jura_bold_38));
-    PyModule_AddObjectRef(m, "JURA_BOLD_40", PyLong_FromVoidPtr((void *) &jura_bold_40));
-    PyModule_AddObjectRef(m, "JURA_BOLD_42", PyLong_FromVoidPtr((void *) &jura_bold_42));
-    PyModule_AddObjectRef(m, "JURA_BOLD_44", PyLong_FromVoidPtr((void *) &jura_bold_44));
-    PyModule_AddObjectRef(m, "JURA_BOLD_60", PyLong_FromVoidPtr((void *) &jura_bold_60));
 
     return m;
 }

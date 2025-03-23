@@ -28,6 +28,7 @@ class BandInfo(lv.bandinfo):
 		pass
 
 	def makeBandStyle(self):
+		font = lv.load_font("/usr/share/brass/font/Jura.ttf", 22)
 		style = lv.style()
 
 		style.set_bg_color(0x002550)
@@ -36,16 +37,17 @@ class BandInfo(lv.bandinfo):
 		style.set_border_color(0xFFFFFF)
 		style.set_border_opa(LV_OPA_50)
 		style.set_text_color(0xFFFFFF)
-		style.set_text_font(lv.JURA_22)
+		style.set_text_font(font)
 
 		self.add_style(style, LV_PART_INDICATOR)
 
 	def makeMarkerStyle(self, color, opa):
+		font = lv.load_font("/usr/share/brass/font/Jura-Bold.ttf", 22)
 		style = lv.style()
 
 		style.set_bg_color(color)
 		style.set_bg_opa(opa)
 		style.set_text_color(0x000000)
-		style.set_text_font(lv.JURA_BOLD_22)
+		style.set_text_font(font)
 
 		self.add_style(style, LV_PART_TICKS)
