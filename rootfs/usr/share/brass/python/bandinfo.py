@@ -8,6 +8,7 @@ class BandInfo(lv.bandinfo):
 		lv.bandinfo.__init__(self, parent)
 
 		self.clear_flag(LV_OBJ_FLAG_SCROLLABLE)
+		self.set_timeout(1000)
 
 		style = lv.style()
 
@@ -19,13 +20,17 @@ class BandInfo(lv.bandinfo):
 
 		self.msg_subscribe(trx.MSG_FREQ_FFT_CHANGED, self.msg_fft_changed)
 		self.msg_subscribe(trx.MSG_RATE_FFT_CHANGED, self.msg_rate_fft)
+		self.msg_subscribe(trx.MSG_FREQ_RX_CHANGED, self.msg_freq)
+		self.msg_subscribe(trx.MSG_FREQ_TX_CHANGED, self.msg_freq)
 
 	def msg_fft_changed(self, msg, payload = None):
 		self.set_center(payload)
 
 	def msg_rate_fft(self, msg, payload = None):
 		self.set_span(int(100000 / payload))
-		pass
+
+	def msg_freq(self, msg, payload = None):
+		self.touch()
 
 	def makeBandStyle(self):
 		font = lv.load_font("/usr/share/brass/font/Jura.ttf", 22)

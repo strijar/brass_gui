@@ -4,8 +4,8 @@
  *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
-#ifndef LV_BANDINFO_H
-#define LV_BANDINFO_H
+#ifndef LV_HIDING_H
+#define LV_HIDING_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,33 +16,33 @@ extern "C" {
  *********************/
 
 #include "lvgl/lvgl.h"
-#include "lv_hiding.h"
 
 /**********************
  *      TYPEDEFS
  **********************/
 
 typedef struct {
-    lv_hiding_t         obj;
+    lv_obj_t            obj;
+    lv_timer_t          *timer;
+    lv_anim_t           fade;
+    bool                fade_run;
+    uint16_t            timeout;
+} lv_hiding_t;
 
-    uint64_t            center;
-    int32_t             span;
-} lv_bandinfo_t;
-
-extern const lv_obj_class_t lv_bandinfo_class;
+extern const lv_obj_class_t lv_hiding_class;
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
 
-lv_obj_t * lv_bandinfo_create(lv_obj_t * parent);
+lv_obj_t * lv_hiding_create(lv_obj_t * parent);
 
 /*=====================
  * Setter functions
  *====================*/
 
-void lv_bandinfo_set_span(lv_obj_t * obj, int32_t hz);
-void lv_bandinfo_set_center(lv_obj_t * obj, uint64_t hz);
+void lv_hiding_set_timeout(lv_obj_t * obj, uint16_t timeout);
+void lv_hiding_touch(lv_obj_t * obj);
 
 #ifdef __cplusplus
 } /*extern "C"*/

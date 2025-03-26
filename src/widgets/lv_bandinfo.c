@@ -31,7 +31,7 @@ static void lv_bandinfo_event(const lv_obj_class_t * class_p, lv_event_t * e);
 
 const lv_obj_class_t lv_bandinfo_class  = {
     .constructor_cb = lv_bandinfo_constructor,
-    .base_class = &lv_obj_class,
+    .base_class = &lv_hiding_class,
     .event_cb = lv_bandinfo_event,
     .instance_size = sizeof(lv_bandinfo_t),
 };
@@ -58,6 +58,7 @@ void lv_bandinfo_set_span(lv_obj_t * obj, int32_t hz) {
     lv_bandinfo_t * bandinfo = (lv_bandinfo_t *)obj;
 
     bandinfo->span = hz;
+    lv_hiding_touch(obj);
 }
 
 void lv_bandinfo_set_center(lv_obj_t * obj, uint64_t hz) {
@@ -66,6 +67,7 @@ void lv_bandinfo_set_center(lv_obj_t * obj, uint64_t hz) {
     lv_bandinfo_t * bandinfo = (lv_bandinfo_t *)obj;
 
     bandinfo->center = hz;
+    lv_hiding_touch(obj);
 }
 
 /**********************

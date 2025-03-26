@@ -484,6 +484,57 @@ static PyTypeObject obj_type = {
     .tp_methods = obj_methods,
 };
 
+/* Hiding */
+
+static int hiding_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+    lv_obj_t    *parent = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        parent = python_lv_get_obj(obj);
+    }
+
+    self->obj = lv_hiding_create(parent);
+
+    return 0;
+}
+
+static PyObject * hiding_set_timeout(obj_object_t *self, PyObject *args) {
+    uint16_t timeout;
+
+    if (PyArg_ParseTuple(args, "H", &timeout)) {
+        lv_hiding_set_timeout(self->obj, timeout);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * hiding_touch(obj_object_t *self, PyObject *args) {
+    lv_hiding_touch(self->obj);
+
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef hiding_methods[] = {
+    { "set_timeout", (PyCFunction) hiding_set_timeout, METH_VARARGS, "" },
+    { "touch", (PyCFunction) hiding_touch, METH_NOARGS, "" },
+    { NULL }
+};
+
+static PyTypeObject hiding_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_base = &obj_type,
+    .tp_name = "lv.hiding",
+    .tp_doc = PyDoc_STR("LVGL hiding object"),
+    .tp_basicsize = sizeof(obj_object_t),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_init = (initproc) hiding_init,
+    .tp_methods = hiding_methods,
+};
+
 /* Label */
 
 static int label_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
@@ -793,6 +844,7 @@ static PyObject * bandinfo_set_center(obj_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+
 static PyMethodDef bandinfo_methods[] = {
     { "set_span", (PyCFunction) bandinfo_set_span, METH_VARARGS, "" },
     { "set_center", (PyCFunction) bandinfo_set_center, METH_VARARGS, "" },
@@ -801,7 +853,7 @@ static PyMethodDef bandinfo_methods[] = {
 
 static PyTypeObject bandinfo_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_base = &obj_type,
+    .tp_base = &hiding_type,
     .tp_name = "lv.bandinfo",
     .tp_doc = PyDoc_STR("LVGL band info"),
     .tp_basicsize = sizeof(obj_object_t),
@@ -852,6 +904,7 @@ static PyModuleDef lv_module = {
 PyMODINIT_FUNC PyInit_lv() {
     PyType_Ready(&style_type);
     PyType_Ready(&obj_type);
+    PyType_Ready(&hiding_type);
     PyType_Ready(&label_type);
     PyType_Ready(&spectrum_type);
     PyType_Ready(&waterfall_type);
@@ -866,6 +919,7 @@ PyMODINIT_FUNC PyInit_lv() {
 
     PyModule_AddObjectRef(m, "style", (PyObject *) &style_type);
     PyModule_AddObjectRef(m, "obj", (PyObject *) &obj_type);
+    PyModule_AddObjectRef(m, "hiding", (PyObject *) &hiding_type);
     PyModule_AddObjectRef(m, "label", (PyObject *) &label_type);
     PyModule_AddObjectRef(m, "spectrum", (PyObject *) &spectrum_type);
     PyModule_AddObjectRef(m, "waterfall", (PyObject *) &waterfall_type);
