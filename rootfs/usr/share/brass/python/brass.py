@@ -5,6 +5,8 @@ from lv_const import *
 from main_spectrum import *
 from main_freqs import *
 from main_waterfall import *
+from msg import *
+from msg_tiny import *
 
 class MainScreen(lv.obj):
 	def __init__(self, parent = None):
@@ -24,6 +26,9 @@ class MainScreen(lv.obj):
 		self.waterfall = MainWaterfall(True, self)
 		self.waterfall.makePalette()
 		trx.connect_waterfall(self.waterfall)
+
+		self.msg = Msg(self)
+		self.msg_tiny = MsgTiny(self)
 
 def main():
 	return MainScreen()

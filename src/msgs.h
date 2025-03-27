@@ -46,4 +46,6 @@ typedef enum {
     MSG_RX,
     MSG_FINDER_CURSOR,
     MSG_RECORDER,               /* bool */
+    MSG_MSG,                    /* char */
+    MSG_MSG_TINY,               /* char */
 } msgs_t;

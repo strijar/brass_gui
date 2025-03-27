@@ -62,6 +62,30 @@ static PyObject * style_set_bg_opa(style_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * style_set_bg_img_opa(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_opa_t opa;
+
+    if (PyArg_ParseTuple(args, "b", &opa)) {
+        lv_style_set_bg_img_opa(&self->style, opa);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_bg_img_src(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    const char *path;
+
+    if (PyArg_ParseTuple(args, "s", &path)) {
+        lv_style_set_bg_img_src(&self->style, path);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject * style_set_border_color(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
@@ -257,6 +281,8 @@ static PyObject * style_set_text_font(style_object_t *self, PyObject *args) {
 static PyMethodDef style_methods[] = {
     { "set_bg_color", (PyCFunction) style_set_bg_color, METH_VARARGS, "" },
     { "set_bg_opa", (PyCFunction) style_set_bg_opa, METH_VARARGS, "" },
+    { "set_bg_img_src", (PyCFunction) style_set_bg_img_src, METH_VARARGS, "" },
+    { "set_bg_img_opa", (PyCFunction) style_set_bg_img_opa, METH_VARARGS, "" },
     { "set_border_color", (PyCFunction) style_set_border_color, METH_VARARGS, "" },
     { "set_border_width", (PyCFunction) style_set_border_width, METH_VARARGS, "" },
     { "set_border_opa", (PyCFunction) style_set_border_opa, METH_VARARGS, "" },
@@ -351,6 +377,13 @@ static void obj_msg_cb(void *s, lv_msg_t *m) {
             const bool *on = lv_msg_get_payload(m);
 
             arg = Py_BuildValue("Ib", msg, *on);
+        } break;
+
+        case MSG_MSG:
+        case MSG_MSG_TINY: {
+            const char *text = lv_msg_get_payload(m);
+
+            arg = Py_BuildValue("Is", msg, text);
         } break;
 
         default:
@@ -459,6 +492,25 @@ static PyObject * obj_set_style_line_color(obj_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * obj_set_style_opa(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_opa_t            opa;
+    lv_style_selector_t selector;
+
+    if (PyArg_ParseTuple(args, "bl", &opa, &selector)) {
+        lv_obj_set_style_opa(self->obj, opa, selector);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * obj_move_foreground(obj_object_t *self, PyObject *args) {
+    lv_obj_move_foreground(self->obj);
+
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef obj_methods[] = {
     { "msg_subscribe", (PyCFunction) obj_msg_subscribe, METH_VARARGS, "" },
     { "add_style", (PyCFunction) obj_add_style, METH_VARARGS, "" },
@@ -467,6 +519,8 @@ static PyMethodDef obj_methods[] = {
     { "set_size", (PyCFunction) obj_set_size, METH_VARARGS, "" },
     { "set_style_line_width", (PyCFunction) obj_set_style_line_width, METH_VARARGS, "" },
     { "set_style_line_color", (PyCFunction) obj_set_style_line_color, METH_VARARGS, "" },
+    { "set_style_opa", (PyCFunction) obj_set_style_opa, METH_VARARGS, "" },
+    { "move_foreground", (PyCFunction) obj_move_foreground, METH_NOARGS, "" },
     { NULL }
 };
 
@@ -548,6 +602,8 @@ static int label_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
     }
 
     self->obj = lv_label_create(parent);
+
+    lv_label_set_recolor(self->obj, true);
 
     return 0;
 }

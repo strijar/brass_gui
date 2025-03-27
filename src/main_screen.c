@@ -57,8 +57,6 @@ static bool         freq_lock = false;
 static bool         mode_lock = false;
 static bool         band_lock = false;
 
-static lv_obj_t     *msg;
-static lv_obj_t     *msg_tiny;
 static lv_obj_t     *meter;
 static lv_obj_t     *tx_info;
 
@@ -612,6 +610,18 @@ static void freq_shift(int16_t diff) {
             break;
     }
 
+    if (params.mag_freq.x) {
+        uint16_t    mhz, khz, hz;
+
+        split_freq(freq_rx, &mhz, &khz, &hz);
+
+        if (mhz < 100) {
+            msg_tiny_set_text_fmt("%i.%03i.%03i", mhz, khz, hz);
+        } else {
+            msg_tiny_set_text_fmt("%i.%03i", mhz, khz);
+        }
+    }
+
     dialog_send(EVENT_FREQ_UPDATE, NULL);
     pannel_fade();
 }
@@ -823,8 +833,6 @@ lv_obj_t * main_screen() {
 
     buttons_init(obj);
     pannel_init(obj);
-    msg = msg_init(obj);
-    msg_tiny = msg_tiny_init(obj);
 
     clock_init(obj);
     info_init(obj);
@@ -841,7 +849,6 @@ lv_obj_t * main_screen() {
     dsp_auto_clear();
 
     msg_set_text_fmt("TRX Brass de R1CBU " VERSION);
-    msg_set_timeout(2000);
 
     return obj;
 }

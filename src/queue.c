@@ -7,8 +7,11 @@
  */
 
 #include <pthread.h>
+#include <stdlib.h>
 #include "backlight.h"
 #include "queue.h"
+#include "events.h"
+#include "msgs.h"
 
 typedef struct item_t {
     lv_obj_t        *obj;
@@ -37,6 +40,12 @@ void queue_work() {
             if (backlight_is_on()) {
                 lv_obj_invalidate(item->obj);
             }
+        } else if (item->event_code == EVENT_MSG_UPDATE) {
+            lv_msg_send(MSG_MSG, item->param);
+            item->param = NULL;
+        } else if (item->event_code == EVENT_MSG_TINY_UPDATE) {
+            lv_msg_send(MSG_MSG_TINY, item->param);
+            item->param = NULL;
         } else {
             lv_event_send(item->obj, item->event_code, item->param);
         }
