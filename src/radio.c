@@ -617,30 +617,6 @@ uint8_t radio_change_nb_width(int16_t d) {
     return params.nb_width;
 }
 
-bool radio_change_nr(int16_t d) {
-    if (d == 0) {
-        return params.nr;
-    }
-
-    params_lock();
-    params.nr = !params.nr;
-    params_unlock(&params.durty.nr);
-
-    return params.nr;
-}
-
-uint8_t radio_change_nr_level(int16_t d) {
-    if (d == 0) {
-        return params.nr_level;
-    }
-
-    params_lock();
-    params.nr_level = limit(params.nr_level + d * 5, 0, 60);
-    params_unlock(&params.durty.nr_level);
-
-    return params.nr_level;
-}
-
 void radio_set_ptt(bool on) {
     if (on) {
         gpio_set_preamp(false);

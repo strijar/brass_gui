@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <math.h>
+#include <specbleach_adenoiser.h>
 
 #include "dsp.h"
 #include "util.h"
@@ -37,61 +38,64 @@
 #include "olivia/olivia.h"
 #include "dsp/biquad.h"
 
-const uint16_t          fft_over = (FFT_SAMPLES - 800) / 2;
+const uint16_t                  fft_over = (FFT_SAMPLES - 800) / 2;
 
-static float            fft_correct_db = 85.0f;
-static float            meter_correct_db = 50.0f;
+static float                    fft_correct_db = 85.0f;
+static float                    meter_correct_db = 50.0f;
 
-static float            *spectrum_psd;
-static uint16_t         spectrum_psd_count = 0;
-static msgs_auto_t      spectrum_auto_msg;
-static msgs_floats_t    spectrum_data_msg;
-static lv_timer_t       *spectrum_timer = NULL;
-static pthread_mutex_t  spectrum_mux;
+static float                    *spectrum_psd;
+static uint16_t                 spectrum_psd_count = 0;
+static msgs_auto_t              spectrum_auto_msg;
+static msgs_floats_t            spectrum_data_msg;
+static lv_timer_t               *spectrum_timer = NULL;
+static pthread_mutex_t          spectrum_mux;
 
-static float            *waterfall_psd;
-static uint16_t         waterfall_psd_count = 0;
-static lv_timer_t       *waterfall_timer = NULL;
-static msgs_auto_t      waterfall_auto_msg;
-static pthread_mutex_t  waterfall_mux;
-static msgs_floats_t    waterfall_data_msg;
+static float                    *waterfall_psd;
+static uint16_t                 waterfall_psd_count = 0;
+static lv_timer_t               *waterfall_timer = NULL;
+static msgs_auto_t              waterfall_auto_msg;
+static pthread_mutex_t          waterfall_mux;
+static msgs_floats_t            waterfall_data_msg;
 
-static firhilbf         demod_ssb;
-static firfilt_rrrf     demod_dc_block;
-static agc_t            *rx_agc;
+static firhilbf                 demod_ssb;
+static firfilt_rrrf             demod_dc_block;
+static agc_t                    *rx_agc;
 
-static firhilbf         mod_ssb;
+static firhilbf                 mod_ssb;
 
-static size_t           filter_len = 0;
-static float            *filter_taps = NULL;
-static bool             filter_need_update = false;
-static firfilt_rrrf     filter = NULL;
+static size_t                   filter_len = 0;
+static float                    *filter_taps = NULL;
+static bool                     filter_need_update = false;
+static firfilt_rrrf             filter = NULL;
 
-static float            *auto_psd;
-static uint16_t         auto_psd_count = 0;
-static lv_timer_t       *auto_timer = NULL;
-static pthread_mutex_t  auto_mux;
+static float                    *auto_psd;
+static uint16_t                 auto_psd_count = 0;
+static lv_timer_t               *auto_timer = NULL;
+static pthread_mutex_t          auto_mux;
 
-static uint8_t          meter_count = 0;
-static float            meter_db = 0.0f;
-static lv_timer_t       *meter_timer = NULL;
-static pthread_mutex_t  meter_mux;
+static uint8_t                  meter_count = 0;
+static float                    meter_db = 0.0f;
+static lv_timer_t               *meter_timer = NULL;
+static pthread_mutex_t          meter_mux;
 
-static uint8_t          delay;
+static uint8_t                  delay;
 
-static bool             ready = false;
-static bool             auto_clear = true;
+static bool                     ready = false;
+static bool                     auto_clear = true;
 
-static float            fft_buf[FFT_SAMPLES];
+static float                    fft_buf[FFT_SAMPLES];
 
-static int16_t          adc_buf[ADC_SAMPLES];
-static float            adc_vol = 0;
-static bool             adc_mute = false;
+static int16_t                  adc_buf[ADC_SAMPLES];
+static float                    adc_vol = 0;
+static bool                     adc_mute = false;
 
-static bool             adc_equalizer_update = true;
-static biquad_t         adc_equalizer[EQUALIZER_NUM];
+static bool                     adc_equalizer_update = true;
+static biquad_t                 adc_equalizer[EQUALIZER_NUM];
 
-static float            rec_buf[ADC_SAMPLES];
+static float                    audio_buf[ADC_SAMPLES];
+static float                    denoised_buf[ADC_SAMPLES];
+static SpectralBleachHandle     denoise;
+static bool                     denoise_need_update = true;
 
 static void calc_auto();
 static void spectrum_timer_cb(lv_timer_t *t);
@@ -166,6 +170,8 @@ void dsp_init() {
     waterfall_timer = lv_timer_create(waterfall_timer_cb, 1000 / 10, NULL);
     auto_timer = lv_timer_create(auto_timer_cb, 1000 / 10, NULL);
     meter_timer = lv_timer_create(meter_timer_cb, 1000 / 10, NULL);
+
+    denoise = specbleach_adaptive_initialize(ADC_RATE, options->audio.denoise.frame_size);
 }
 
 void dsp_reset() {
@@ -188,6 +194,20 @@ void dsp_set_filter(filter_t *filter) {
 
 void dsp_set_rx_agc(uint8_t mode) {
     agc_set_mode(rx_agc, mode);
+}
+
+bool dsp_change_denoise(int16_t d) {
+    if (d == 0) {
+        return options->audio.denoise.enable;
+    }
+
+    options->audio.denoise.enable = !options->audio.denoise.enable;
+
+    return options->audio.denoise.enable;
+}
+
+void dsp_update_denoise() {
+    denoise_need_update = true;
 }
 
 uint8_t dsp_change_rx_agc(int16_t df) {
@@ -420,9 +440,9 @@ void dsp_adc(float complex *data, uint16_t samples) {
         adc_equalizer_update = false;
     }
 
-    for (int i = 0; i < samples; i++) {
-        float x, y;
+    float x, y;
 
+    for (int i = 0; i < samples; i++) {
         x = dsp_demodulate(data[i], mode);
 
         for (int n = 0; n < EQUALIZER_NUM; n++) {
@@ -435,11 +455,45 @@ void dsp_adc(float complex *data, uint16_t samples) {
             peak = fabs(y);
         }
 
-        y = agc_apply(rx_agc, y);
+        if (!options->audio.denoise.before_agc) {
+            y = agc_apply(rx_agc, y);
+        }
 
-        rec_buf[i] = y;
+        audio_buf[i] = y;
+    }
 
-        y *= 16384.0f;
+    if (denoise_need_update) {
+        SpectralBleachParameters parameters;
+
+        parameters.residual_listen = false;
+        parameters.reduction_amount = options->audio.denoise.reduction_amount;
+        parameters.smoothing_factor = options->audio.denoise.smoothing_factor;
+        parameters.whitening_factor = options->audio.denoise.whitening_factor;
+        parameters.noise_scaling_type = options->audio.denoise.noise_scaling_type;
+        parameters.noise_rescale = options->audio.denoise.noise_rescale;
+        parameters.post_filter_threshold = options->audio.denoise.post_filter_threshold;
+
+        specbleach_adaptive_load_parameters(denoise, parameters);
+        denoise_need_update = false;
+    }
+
+    float *out_buf;
+
+    if (options->audio.denoise.enable) {
+        specbleach_adaptive_process(denoise, samples, audio_buf, denoised_buf);
+        out_buf = denoised_buf;
+    } else {
+        out_buf = audio_buf;
+    }
+
+    for (int i = 0; i < samples; i++) {
+        x = out_buf[i];
+
+        if (options->audio.denoise.before_agc) {
+            x = agc_apply(rx_agc, x);
+        }
+
+        y = x * 16384.0f;
 
         if (y > 16384.0f) {
             y = 16384.0f;
@@ -461,7 +515,7 @@ void dsp_adc(float complex *data, uint16_t samples) {
     audio_adc_play(adc_buf, samples);
 
     if (recorder_is_on()) {
-        recorder_put_audio_samples(rec_buf, samples);
+        recorder_put_audio_samples(out_buf, samples);
     }
 
     pthread_mutex_lock(&meter_mux);

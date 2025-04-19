@@ -414,25 +414,14 @@ void mfk_update(int16_t diff, bool voice) {
             }
             break;
 
-        case MFK_NR:
-            b = radio_change_nr(diff);
-            msg_set_text_fmt("#%3X NR: %s", color, b ? "On" : "Off");
+        case MFK_DENOISE_ENABLE:
+            b = dsp_change_denoise(diff);
+            msg_set_text_fmt("#%3X Denoise: %s", color, b ? "On" : "Off");
 
             if (diff) {
                 voice_say_bool("NR", b);
             } else if (voice) {
                 voice_say_text_fmt("NR switcher");
-            }
-            break;
-
-        case MFK_NR_LEVEL:
-            i = radio_change_nr_level(diff);
-            msg_set_text_fmt("#%3X NR level: %i", color, i);
-
-            if (diff) {
-                voice_say_int("NR level", i);
-            } else if (voice) {
-                voice_say_text_fmt("NR level");
             }
             break;
 

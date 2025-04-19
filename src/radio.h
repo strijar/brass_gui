@@ -95,7 +95,6 @@ bool radio_change_nb(int16_t d);
 uint8_t radio_change_nb_level(int16_t d);
 uint8_t radio_change_nb_width(int16_t d);
 bool radio_change_nr(int16_t d);
-uint8_t radio_change_nr_level(int16_t d);
 
 void radio_start_atu();
 void radio_load_atu();

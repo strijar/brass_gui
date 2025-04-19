@@ -53,6 +53,7 @@ static const cyaml_strval_t mfk_flags_strings[] = {
     { "peak_speed",         (1 << MFK_PEAK_SPEED )},
     { "spectrum_fill",      (1 << MFK_SPECTRUM_FILL )},
     { "spectrum_peak",      (1 << MFK_SPECTRUM_PEAK )},
+    { "denoise_enable",     (1 << MFK_DENOISE_ENABLE )},
 };
 
 static const cyaml_strval_t action_strings[] = {

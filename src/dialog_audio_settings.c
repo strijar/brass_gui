@@ -225,6 +225,90 @@ static uint8_t make_mic_filter(uint8_t row) {
     return row + 1;
 }
 
+/* Denoise */
+
+static void denoise_update_cb(lv_event_t * e) {
+    lv_obj_t        *obj = lv_event_get_target(e);
+    uint16_t        *x = lv_event_get_user_data(e);
+
+    *x = lv_spinbox_get_value(obj);
+    dsp_update_denoise();
+}
+
+static uint8_t denoise_item(uint8_t row, const char *label, int16_t *data, int16_t min, int16_t max) {
+    lv_obj_t    *obj;
+
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, label);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_spinbox_create(grid);
+
+    dialog_item(&dialog, obj);
+    lv_spinbox_set_value(obj, *data);
+    lv_spinbox_set_range(obj, min, max);
+    lv_obj_add_event_cb(obj, denoise_update_cb, LV_EVENT_VALUE_CHANGED, data);
+
+    lv_spinbox_set_digit_format(obj, 2, 0);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+
+    return row + 1;
+}
+
+static void denoise_scaling_type_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    options->audio.denoise.noise_scaling_type = lv_dropdown_get_selected(obj);
+
+    dsp_update_denoise();
+}
+
+static uint8_t make_denoise(uint8_t row) {
+    lv_obj_t    *obj;
+
+    row = denoise_item(row, "Denoise reduction amount", &options->audio.denoise.reduction_amount, 0, 20);
+    row = denoise_item(row, "Denoise smoothing factor", &options->audio.denoise.smoothing_factor, 0, 100);
+    row = denoise_item(row, "Denoise whitening factor", &options->audio.denoise.whitening_factor, 0, 100);
+
+    /* * */
+
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "Denoise noise scale type");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    obj = lv_dropdown_create(grid);
+
+    dialog_item(&dialog, obj);
+
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_center(obj);
+
+    lv_obj_t *list = lv_dropdown_get_list(obj);
+    lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
+
+    lv_dropdown_set_options(obj, " Complite spectrum \n Critical bands \n Masking thresholds ");
+    lv_dropdown_set_symbol(obj, NULL);
+    lv_dropdown_set_selected(obj, options->audio.denoise.noise_scaling_type);
+    lv_obj_add_event_cb(obj, denoise_scaling_type_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    row++;
+
+    /* * */
+
+    row = denoise_item(row, "Denoise noise rescale", &options->audio.denoise.noise_rescale, 0, 12);
+    row = denoise_item(row, "Denoise filter threshold", &options->audio.denoise.post_filter_threshold, -10, 10);
+
+    return row;
+}
+
 /* * */
 
 static uint8_t make_delimiter(uint8_t row) {
@@ -265,6 +349,9 @@ static void construct_cb(lv_obj_t *parent) {
 
     row = make_delimiter(row);
     row = make_mic_filter(row);
+
+    row = make_delimiter(row);
+    row = make_denoise(row);
 
     row_dsc[row] = LV_GRID_TEMPLATE_LAST;
     lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);

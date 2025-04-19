@@ -9,6 +9,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <cyaml/cyaml.h>
 
 #include "filter.h"
@@ -37,9 +38,22 @@ typedef enum {
 } rec_format_t;
 
 typedef struct {
+    bool                enable;
+    bool                before_agc;
+    uint16_t            frame_size;
+    int16_t             reduction_amount;
+    int16_t             smoothing_factor;
+    int16_t             whitening_factor;
+    int16_t             noise_scaling_type;
+    int16_t             noise_rescale;
+    int16_t             post_filter_threshold;
+} denoise_t;
+
+typedef struct {
     options_speaker_t   speaker;
     options_mic_t       mic;
     rec_format_t        rec_format;
+    denoise_t           denoise;
 } options_audio_t;
 
 extern const cyaml_schema_field_t audio_fields_schema[];

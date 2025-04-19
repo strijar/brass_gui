@@ -16,6 +16,16 @@ audio:
     - {freq: 2000, q: 1, gain: 0}
     filter: {low: 100, high: 3000, transition: 100}
   rec_format: mp3
+  denoise:
+    enable: false
+    before_agc: true
+    frame_size: 100
+    reduction_amount: 10
+    smoothing_factor: 50
+    whitening_factor: 0
+    noise_scaling_type: 0
+    noise_rescale: 2
+    post_filter_threshold: -10
 
 spectrum:
   beta: 0.7
