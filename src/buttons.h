@@ -45,6 +45,7 @@ void buttons_load(uint8_t n, button_item_t *item);
 void buttons_load_page(button_page_t page);
 void buttons_unload_page();
 void buttons_press(uint8_t n, bool hold);
+void buttons_visible(bool on);
 
 void buttons_vol();
 void buttons_mfk();

@@ -3,7 +3,7 @@
  *
  *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include <stdlib.h>
@@ -212,6 +212,7 @@ static dialog_t             dialog = {
     .destruct_cb = destruct_cb,
     .audio_cb = audio_cb,
     .rotary_cb = rotary_cb,
+    .buttons = true,
     .key_cb = key_cb
 };
 
@@ -1111,7 +1112,7 @@ static void construct_cb(lv_obj_t *parent) {
 
     /* * */
 
-    dialog.obj = dialog_init(parent);
+    dialog_init(parent, &dialog);
 
     lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_UP, NULL);
     lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_DOWN, NULL);

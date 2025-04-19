@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #pragma once
@@ -31,6 +31,7 @@ typedef struct {
     dialog_modulate_state_cb_t  modulate_state_cb;
     dialog_modulate_cb_t        modulate_cb;
     lv_event_cb_t               key_cb;
+    bool                        buttons;
     bool                        run;
 } dialog_t;
 
@@ -40,7 +41,7 @@ void dialog_destruct();
 void dialog_send(lv_event_code_t event_code, void *param);
 bool dialog_is_run();
 
-lv_obj_t * dialog_init(lv_obj_t *parent);
+void dialog_init(lv_obj_t *parent, dialog_t *dialog);
 void dialog_item(dialog_t *dialog, lv_obj_t *obj);
 void dialog_rotary(int32_t diff);
 bool dialog_keypad(event_keypad_t *keypad);

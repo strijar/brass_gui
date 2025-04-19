@@ -411,3 +411,15 @@ void buttons_app() {
             break;
     }
 }
+
+void buttons_visible(bool on) {
+    for (uint8_t i = 0; i < BUTTONS; i++) {
+        lv_obj_t *obj = btn[i].obj;
+
+        if (on) {
+            lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+}

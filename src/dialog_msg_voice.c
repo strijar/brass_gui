@@ -111,6 +111,7 @@ static dialog_t             dialog = {
     .modulate_state_cb = modulate_state_cb,
     .modulate_cb = modulate_cb,
     .audio_cb = NULL,
+    .buttons = true,
     .key_cb = NULL
 };
 
@@ -412,7 +413,7 @@ static void msg_cb(lv_event_t * e) {
 }
 
 static void construct_cb(lv_obj_t *parent) {
-    dialog.obj = dialog_init(parent);
+    dialog_init(parent, &dialog);
 
     table = lv_table_create(dialog.obj);
 

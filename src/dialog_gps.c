@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include <stdlib.h>
@@ -46,6 +46,7 @@ static dialog_t             dialog = {
     .construct_cb = construct_cb,
     .destruct_cb = destruct_cb,
     .audio_cb = NULL,
+    .buttons = true,
     .key_cb = key_cb
 };
 
@@ -188,7 +189,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_t    *label;
     lv_coord_t  y = 32;
 
-    dialog.obj = dialog_init(parent);
+    dialog_init(parent, &dialog);
 
     lv_group_add_obj(keyboard_group, dialog.obj);
     lv_obj_add_event_cb(dialog.obj, key_cb, LV_EVENT_KEY, NULL);

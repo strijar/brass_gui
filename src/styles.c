@@ -29,6 +29,7 @@ lv_style_t  panel_bottom_style;
 lv_style_t  pannel_style;
 
 lv_style_t  dialog_style;
+lv_style_t  dialog_no_buttons_style;
 lv_style_t  dialog_item_style;
 lv_style_t  dialog_item_focus_style;
 lv_style_t  dialog_item_edited_style;
@@ -135,6 +136,10 @@ void styles_init() {
     lv_style_set_bg_img_opa(&dialog_style, LV_OPA_COVER);
     lv_style_set_pad_ver(&dialog_style, 0);
     lv_style_set_pad_hor(&dialog_style, 0);
+
+    lv_style_init(&dialog_no_buttons_style);
+    lv_style_set_height(&dialog_no_buttons_style, 348 + 68);
+    lv_style_set_bg_img_src(&dialog_no_buttons_style, PATH "images/dialog_no_buttons.bin");
 
     lv_style_init(&dialog_item_style);
     lv_style_set_bg_opa(&dialog_item_style, LV_OPA_TRANSP);

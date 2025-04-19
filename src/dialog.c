@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include "lvgl/lvgl.h"
@@ -13,6 +13,7 @@
 #include "keyboard.h"
 #include "events.h"
 #include "main.h"
+#include "buttons.h"
 
 static lv_obj_t     *obj;
 static dialog_t     *current_dialog = NULL;
@@ -21,6 +22,10 @@ void dialog_construct(dialog_t *dialog, lv_obj_t *parent) {
     if (dialog && !dialog->run) {
         main_screen_keys_enable(false);
         dialog->construct_cb(parent);
+
+        if (!dialog->buttons) {
+            buttons_visible(false);
+        }
 
         dialog->run = true;
     }
@@ -42,6 +47,10 @@ void dialog_destruct() {
         if (current_dialog->obj) {
             lv_obj_del(current_dialog->obj);
             current_dialog->obj = NULL;
+        }
+
+        if (!current_dialog->buttons) {
+            buttons_visible(true);
         }
 
         current_dialog = NULL;
@@ -82,15 +91,19 @@ bool dialog_is_run() {
     return (current_dialog != NULL) && current_dialog->run;
 }
 
-lv_obj_t * dialog_init(lv_obj_t *parent) {
+void dialog_init(lv_obj_t *parent, dialog_t *dialog) {
     obj = lv_obj_create(parent);
 
     lv_obj_remove_style_all(obj);
     lv_obj_add_style(obj, &dialog_style, 0);
 
+    if (!dialog->buttons) {
+        lv_obj_add_style(obj, &dialog_no_buttons_style, 0);
+    }
+
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
-    return obj;
+    dialog->obj = obj;
 }
 
 void dialog_item(dialog_t *dialog, lv_obj_t *obj) {

@@ -3,7 +3,7 @@
  *
  *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include <stdlib.h>
@@ -54,6 +54,7 @@ static dialog_t     dialog = {
     .construct_cb = construct_cb,
     .destruct_cb = NULL,
     .audio_cb = NULL,
+    .buttons = false,
     .key_cb = key_cb
 };
 
@@ -318,13 +319,13 @@ static uint8_t make_delimiter(uint8_t row) {
 }
 
 static void construct_cb(lv_obj_t *parent) {
-    dialog.obj = dialog_init(parent);
+    dialog_init(parent, &dialog);
 
     grid = lv_obj_create(dialog.obj);
 
     lv_obj_set_layout(grid, LV_LAYOUT_GRID);
 
-    lv_obj_set_size(grid, 780, 330);
+    lv_obj_set_size(grid, 780, 330 + 68);
     lv_obj_set_style_text_color(grid, lv_color_white(), 0);
     lv_obj_set_style_bg_opa(grid, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(grid, 0, LV_PART_MAIN);
