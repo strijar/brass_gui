@@ -12,6 +12,9 @@
 #include <stdbool.h>
 #include "filter.h"
 #include "audio.h"
+#include "rf_filter.h"
+
+#define BPF_NUM 8
 
 typedef struct {
     char                qth[16];
@@ -94,6 +97,7 @@ typedef struct {
     options_cw_t        cw;
     options_olivia_t    olivia;
     options_msg_t       msg;
+    rf_filter_t         *bpf;
 } options_t;
 
 extern options_t   *options;

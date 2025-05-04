@@ -75,3 +75,13 @@ olivia:
 
 msg:
   voice_period: 10
+
+bpf:
+- {start: 0, stop: 1500000}
+- {start: 1500000, stop: 2300000}
+- {start: 2300000, stop: 4200000}
+- {start: 4200000, stop: 8500000}
+- {start: 8500000, stop: 15500000}
+- {start: 15500000, stop: 22000000}
+- {start: 22000000, stop: 32000000}
+- {start: 32000000, stop: 62000000}

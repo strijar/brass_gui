@@ -131,6 +131,31 @@ bool radio_tick() {
     return false;
 }
 
+void radio_load_bpf() {
+    uint64_t freq = op_work->rx;
+
+    for (uint8_t i = 0; i < BPF_NUM; i++) {
+        rf_filter_t *item = &options->bpf[i];
+
+        if (freq >= item->start && freq < item->stop) {
+            gpio_set_rf_bpf(i);
+            return;
+        }
+    }
+}
+
+void radio_rf_route() {
+    uint64_t freq = op_work->rx;
+
+    if (freq < 62000000) {
+        gpio_set_rf_route(RF_ROUTE_HF);
+    } else if (freq < 150000000) {
+        gpio_set_rf_route(RF_ROUTE_VHF);
+    } else {
+        gpio_set_rf_route(RF_ROUTE_UHF);
+    }
+}
+
 void radio_freq_update() {
     uint64_t shift;
     uint64_t freq = op_work->rx;
@@ -139,6 +164,9 @@ void radio_freq_update() {
     control_set_rx_freq(freq - shift);
     control_set_tx_freq(op_work->tx - shift);
     control_set_fft_freq(op_work->fft - shift);
+
+    radio_load_bpf();
+    radio_rf_route();
 }
 
 static void radio_msg_cb(void *s, lv_msg_t *m) {
@@ -191,6 +219,9 @@ void radio_set_freq_rx(uint64_t freq) {
     op_work->shift = (shift != 0);
 
     control_set_rx_freq(freq - shift);
+
+    radio_rf_route();
+    radio_load_bpf();
     radio_load_atu();
 
     lv_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);
@@ -256,13 +287,13 @@ void radio_set_freq_fft(uint64_t freq) {
 }
 
 bool radio_check_freq(uint64_t freq, uint64_t *shift) {
-    if (freq >= 1000000 && freq <= 55000000) {
+    if (freq >= 500000 && freq <= 62000000) {
         if (shift != NULL) {
             *shift = 0;
         }
         return true;
     }
-    
+
     for (uint8_t i = 0; i < TRANSVERTER_NUM; i++)
         if (freq >= params_transverter[i].from && freq <= params_transverter[i].to) {
             if (shift != NULL) {

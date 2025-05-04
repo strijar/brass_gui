@@ -132,6 +132,7 @@ const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("cw",           CYAML_FLAG_OPTIONAL, options_t, cw, cw_fields_schema),
     CYAML_FIELD_MAPPING("olivia",       CYAML_FLAG_OPTIONAL, options_t, olivia, olivia_fields_schema),
     CYAML_FIELD_MAPPING("msg",          CYAML_FLAG_OPTIONAL, options_t, msg, msg_fields_schema),
+    CYAML_FIELD_SEQUENCE_FIXED("bpf",   CYAML_FLAG_POINTER,  options_t, bpf, &rf_filter_schema, BPF_NUM),
     CYAML_FIELD_END
 };
 
