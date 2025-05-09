@@ -246,6 +246,11 @@ void main_screen_action(options_action_t action) {
             dialog_construct(dialog_callsign, obj);
             voice_say_text_fmt("Callsign window");
             break;
+
+        case ACTION_APP_FREQ:
+            dialog_construct(dialog_freq, obj);
+            voice_say_text_fmt("Enter frequency");
+            break;
     }
 }
 
@@ -747,13 +752,6 @@ static void main_screen_key_cb(lv_event_t * e) {
             main_exit();
             break;
 
-        case HKEY_FINP:
-            if (!freq_lock) {
-                voice_say_text_fmt("Enter frequency");
-                dialog_construct(dialog_freq, obj);
-            }
-            break;
-
         default:
             break;
     }
@@ -808,8 +806,7 @@ void main_screen_lock_mode(bool lock) {
 }
 
 void main_screen_set_freq(uint64_t freq) {
-    radio_set_freq_rx(freq);
-    radio_set_freq_tx(freq);
+    radio_set_freqs(freq, freq);
     radio_set_freq_fft(freq);
     lv_event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
 }

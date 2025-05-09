@@ -13,6 +13,7 @@
 #include "filter.h"
 #include "audio.h"
 #include "rf_filter.h"
+#include "xvrt.h"
 
 #define BPF_NUM 8
 
@@ -45,7 +46,8 @@ typedef enum {
     ACTION_APP_SETTINGS,
     ACTION_APP_RECORDER,
     ACTION_APP_QTH,
-    ACTION_APP_CALLSIGN
+    ACTION_APP_CALLSIGN,
+    ACTION_APP_FREQ
 } options_action_t;
 
 typedef struct {
@@ -98,6 +100,8 @@ typedef struct {
     options_olivia_t    olivia;
     options_msg_t       msg;
     rf_filter_t         *bpf;
+    xvrt_item_t         *xvrt;
+    uint64_t            xvrt_count;
 } options_t;
 
 extern options_t   *options;

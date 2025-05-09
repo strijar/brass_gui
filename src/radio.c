@@ -31,12 +31,15 @@
 #include "msgs.h"
 #include "settings/modes.h"
 #include "gpio.h"
+#include "xvrt.h"
 
 #define FLOW_RESTART_TIMOUT     300
 
 static lv_obj_t                 *main_obj;
 
 static radio_state_t            state = RADIO_RX;
+
+bool check_freq(uint64_t freq, uint32_t *shift, int32_t *corr);
 
 bool radio_tick() {
 /*
@@ -132,7 +135,7 @@ bool radio_tick() {
 }
 
 void radio_load_bpf() {
-    uint64_t freq = op_work->rx;
+    uint64_t freq = op_work->rx - op_work->shift;
 
     for (uint8_t i = 0; i < BPF_NUM; i++) {
         rf_filter_t *item = &options->bpf[i];
@@ -142,6 +145,7 @@ void radio_load_bpf() {
             return;
         }
     }
+    LV_LOG_WARN("BPF now found for %llu", freq);
 }
 
 void radio_rf_route() {
@@ -157,13 +161,17 @@ void radio_rf_route() {
 }
 
 void radio_freq_update() {
-    uint64_t shift;
-    uint64_t freq = op_work->rx;
+    uint32_t    shift;
+    int32_t     corr;
+    uint64_t    freq = op_work->rx;
 
-    radio_check_freq(freq, &shift);
-    control_set_rx_freq(freq - shift);
-    control_set_tx_freq(op_work->tx - shift);
-    control_set_fft_freq(op_work->fft - shift);
+    check_freq(freq, &shift, &corr);
+    xvrt_update(shift);
+    op_work->shift = shift;
+
+    control_set_rx_freq(freq - shift - corr);
+    control_set_tx_freq(op_work->tx - shift - corr);
+    control_set_fft_freq(op_work->fft - shift - corr);
 
     radio_load_bpf();
     radio_rf_route();
@@ -208,17 +216,21 @@ radio_state_t radio_get_state() {
 }
 
 void radio_set_freq_rx(uint64_t freq) {
-    uint64_t shift = 0;
+    uint32_t    shift = 0;
+    int32_t     corr = 0;
 
-    if (!radio_check_freq(freq, &shift)) {
+    if (!check_freq(freq, &shift, &corr)) {
         LV_LOG_ERROR("Freq %llu incorrect", freq);
         return;
     }
 
-    op_work->rx = freq;
-    op_work->shift = (shift != 0);
+    xvrt_update(shift);
 
-    control_set_rx_freq(freq - shift);
+    op_work->shift = shift;
+    op_work->corr = corr;
+    op_work->rx = freq;
+
+    control_set_rx_freq(freq - shift - corr);
 
     radio_rf_route();
     radio_load_bpf();
@@ -228,17 +240,21 @@ void radio_set_freq_rx(uint64_t freq) {
 }
 
 void radio_set_freq_tx(uint64_t freq) {
-    uint64_t shift = 0;
+    uint32_t    shift = 0;
+    int32_t     corr = 0;
 
-    if (!radio_check_freq(freq, &shift)) {
+    if (!check_freq(freq, &shift, &corr)) {
         LV_LOG_ERROR("Freq %llu incorrect", freq);
         return;
     }
 
-    op_work->tx = freq;
-    op_work->shift = (shift != 0);
+    xvrt_update(shift);
 
-    control_set_tx_freq(freq - shift);
+    op_work->shift = shift;
+    op_work->corr = corr;
+    op_work->tx = freq;
+
+    control_set_tx_freq(freq - shift - corr);
     radio_load_atu();
 
     lv_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
@@ -273,34 +289,30 @@ uint64_t radio_set_freqs(uint64_t rx, uint64_t tx) {
 }
 
 void radio_set_freq_fft(uint64_t freq) {
-    uint64_t shift = 0;
-
-    if (!radio_check_freq(freq, &shift)) {
-        LV_LOG_ERROR("Freq %llu incorrect", freq);
-        return;
-    }
-
     op_work->fft = freq;
 
-    control_set_fft_freq(freq - shift);
+    control_set_fft_freq(freq - op_work->shift - op_work->corr);
     lv_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
 }
 
-bool radio_check_freq(uint64_t freq, uint64_t *shift) {
-    if (freq >= 500000 && freq <= 62000000) {
-        if (shift != NULL) {
-            *shift = 0;
-        }
+bool check_freq(uint64_t freq, uint32_t *shift, int32_t *corr) {
+    if (freq <= 62000000) {
+        *shift = 0;
+        *corr = 0;
+
         return true;
     }
 
-    for (uint8_t i = 0; i < TRANSVERTER_NUM; i++)
-        if (freq >= params_transverter[i].from && freq <= params_transverter[i].to) {
-            if (shift != NULL) {
-                *shift = params_transverter[i].shift;
-            }
+    for (uint8_t i = 0; i < options->xvrt_count; i++) {
+        xvrt_item_t *item = &options->xvrt[i];
+
+        if (freq >= item->start && freq <= item->stop) {
+            *shift = item->shift;
+            *corr = item->corr;
+
             return true;
         }
+    }
 
     return false;
 }
@@ -319,7 +331,7 @@ uint16_t radio_change_moni(int16_t df) {
     if (df == 0) {
         return params.moni;
     }
-    
+
     params_lock();
     params.moni = limit(params.moni + df, 0, 100);
     params_unlock(&params.durty.moni);

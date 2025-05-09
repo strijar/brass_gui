@@ -1,7 +1,7 @@
 initial: {rx: 14100000, tx: 14100000, fft: 14100000, mode: usb, split: None}
 
 bands:
-# HamRadio
+# HamRadio HF
 
 - settings: {label: 160m, start: 1810000, stop: 2000000, tx: true, jump: true}
   work: {mode: lsb, split: None}
@@ -39,6 +39,46 @@ bands:
 - settings: {label: 6m, start: 50000000, stop: 53900000, tx: true, jump: true}
   work: {mode: usb, split: None}
 
+# HamRadio VHF
+
+- settings: {label: 2m 144-145, start: 144000000, stop: 145000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 2m 145-146, start: 145000000, stop: 146000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+# HamRadio UHF
+
+- settings: {label: 70cm 430-431, start: 430000000, stop: 431000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 70cm 431-432, start: 431000000, stop: 432000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 70cm 432-433, start: 432000000, stop: 433000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 70cm 433-434, start: 433000000, stop: 434000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 70cm 434-435, start: 434000000, stop: 435000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 70cm 435-436, start: 435000000, stop: 436000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 70cm 436-437, start: 436000000, stop: 437000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 70cm 437-438, start: 437000000, stop: 438000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 70cm 438-439, start: 438000000, stop: 439000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
+- settings: {label: 70cm 439-440, start: 439000000, stop: 440000000, tx: true, jump: true}
+  work: {mode: nfm, split: None}
+
 # Markers
 
 - settings: {label: FT8, start: 14074000, stop: 14077000, tx: true, jump: false}
@@ -46,6 +86,12 @@ bands:
 
 - settings: {label: SSTV, start: 14230000, stop: 14233000, tx: true, jump: false}
   work: {mode: usb, split: None}
+
+- settings: {label: CQ, start: 145497500, stop: 145502500, tx: true, jump: false}
+  work: {mode: nfm, split: None}
+
+- settings: {label: CQ, start: 433497500, stop: 433502500, tx: true, jump: false}
+  work: {mode: nfm, split: None}
 
 # Broadcast
 

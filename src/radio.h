@@ -71,7 +71,6 @@ void radio_set_freq_rx(uint64_t freq);
 void radio_set_freq_tx(uint64_t freq);
 uint64_t radio_set_freqs(uint64_t rx, uint64_t tx);
 void radio_set_freq_fft(uint64_t freq);
-bool radio_check_freq(uint64_t freq, uint64_t *shift);
 split_mode_t radio_change_split(int16_t d);
 
 void radio_change_mode(radio_change_mode_t select);

@@ -22,7 +22,8 @@ typedef struct {
     split_mode_t    split;
     radio_pre_t     pre;    // DOLATER
     radio_att_t     att;    // DOLATER
-    bool            shift;
+    uint32_t        shift;
+    int32_t         corr;
 } op_work_t;
 
 extern op_work_t                    *op_work;

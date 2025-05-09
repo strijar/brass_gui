@@ -72,7 +72,8 @@ static const cyaml_strval_t action_strings[] = {
     { "app_settings",       ACTION_APP_SETTINGS },
     { "app_recorder",       ACTION_APP_RECORDER },
     { "app_qth",            ACTION_APP_QTH },
-    { "app_callsign",       ACTION_APP_CALLSIGN }
+    { "app_callsign",       ACTION_APP_CALLSIGN },
+    { "app_freq",           ACTION_APP_FREQ }
 };
 
 
@@ -133,6 +134,7 @@ const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("olivia",       CYAML_FLAG_OPTIONAL, options_t, olivia, olivia_fields_schema),
     CYAML_FIELD_MAPPING("msg",          CYAML_FLAG_OPTIONAL, options_t, msg, msg_fields_schema),
     CYAML_FIELD_SEQUENCE_FIXED("bpf",   CYAML_FLAG_POINTER,  options_t, bpf, &rf_filter_schema, BPF_NUM),
+    CYAML_FIELD_SEQUENCE("xvrt",        CYAML_FLAG_POINTER,  options_t, xvrt, &xvrt_schema, 0, CYAML_UNLIMITED),
     CYAML_FIELD_END
 };
 

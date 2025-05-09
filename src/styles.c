@@ -48,10 +48,22 @@ lv_font_t   *font_tx_info = &jura_22;
 
 lv_font_t   *font_btn = &jura_bold_18;
 lv_font_t   *font_msg = &jura_38;
-lv_font_t   *font_msg_tiny = &jura_60;
 lv_font_t   *font_dialog = &jura_bold_26;
 lv_font_t   *font_dialog_list = &jura_bold_26;
 lv_font_t   *font_info_item = &jura_bold_18;
+
+static lv_font_t * load_font(const char *path, lv_coord_t font_size) {
+    lv_ft_info_t    info;
+
+    info.name = path;
+    info.weight = font_size;
+    info.style = FT_FONT_STYLE_NORMAL;
+    info.mem = NULL;
+
+    lv_ft_font_init(&info);
+
+    return info.font;
+}
 
 void styles_init() {
     bg_color = lv_color_hex(0x002550);
@@ -102,14 +114,13 @@ void styles_init() {
 
     lv_style_init(&msg_tiny_style);
     lv_style_set_text_color(&msg_tiny_style, lv_color_white());
-    lv_style_set_text_font(&msg_tiny_style, font_msg_tiny);  // 60
+    lv_style_set_text_font(&msg_tiny_style, load_font("/usr/share/brass/font/Jura.ttf", 40));
     lv_style_set_width(&msg_tiny_style, 324);
     lv_style_set_height(&msg_tiny_style, 76);
     lv_style_set_x(&msg_tiny_style, 800 / 2 - (324 / 2));
     lv_style_set_y(&msg_tiny_style, 160 - 66/2 + 36/2);
     lv_style_set_radius(&msg_tiny_style, 0);
     lv_style_set_bg_img_src(&msg_tiny_style, PATH "images/msg_tiny.bin");
-    lv_style_set_pad_ver(&msg_tiny_style, 12);
 
     lv_style_init(&pannel_style);
     lv_style_set_text_color(&pannel_style, lv_color_white());

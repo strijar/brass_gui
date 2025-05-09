@@ -260,22 +260,7 @@ typedef struct {
     } durty;
 } params_t;
 
-typedef struct {
-    uint64_t        from;
-    uint64_t        to;
-    uint64_t        shift;
-    
-    struct {
-        bool        from;
-        bool        to;
-        bool        shift;
-    } durty;
-} transverter_t;
-
-#define TRANSVERTER_NUM 2
-
 extern params_t params;
-extern transverter_t params_transverter[TRANSVERTER_NUM];
 
 void params_init();
 void params_lock();

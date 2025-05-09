@@ -87,11 +87,6 @@ params_t params = {
     .voice_volume           = { .x = 100, .min = 50, .max = 150,                .name = "voice_volume",   .voice = "Voice volume" }
 };
 
-transverter_t params_transverter[TRANSVERTER_NUM] = {
-    { .from = 144000000,    .to = 150000000,    .shift = 116000000 },
-    { .from = 432000000,    .to = 438000000,    .shift = 404000000 }
-};
-
 static pthread_mutex_t  params_mux;
 static uint64_t         durty_time;
 static sqlite3          *db = NULL;
@@ -415,72 +410,6 @@ static void params_save() {
     params_exec("COMMIT");
 }
 
-/* Transverter */
-
-bool transverter_load() {
-    sqlite3_stmt    *stmt;
-    int             rc;
-    
-    rc = sqlite3_prepare_v2(db, "SELECT * FROM transverter", -1, &stmt, 0);
-    
-    if (rc != SQLITE_OK) {
-        return false;
-    }
-    
-    while (sqlite3_step(stmt) != SQLITE_DONE) {
-        const int       id = sqlite3_column_int(stmt, 0);
-        const char      *name = sqlite3_column_text(stmt, 1);
-        const uint64_t  val = sqlite3_column_int64(stmt, 2);
-
-        if (strcmp(name, "from") == 0) {
-            params_transverter[id].from = val;
-        } else if (strcmp(name, "to") == 0) {
-            params_transverter[id].to = val;
-        } else if (strcmp(name, "shift") == 0) {
-            params_transverter[id].shift = val;
-        }
-    }
-
-    sqlite3_finalize(stmt);
-    return true;
-}
-
-static void transverter_write(sqlite3_stmt *stmt, uint8_t id, const char *name, uint64_t data, bool *durty) {
-    sqlite3_bind_int64(stmt, 1, id);
-    sqlite3_bind_text(stmt, 2, name, strlen(name), 0);
-    sqlite3_bind_int64(stmt, 3, data);
-    sqlite3_step(stmt);
-    sqlite3_reset(stmt);
-    sqlite3_clear_bindings(stmt);
-    
-    *durty = false;
-}
-
-void transverter_save() {
-    sqlite3_stmt    *stmt;
-    int             rc;
-
-    rc = sqlite3_prepare_v2(db, "INSERT INTO transverter(id, name, val) VALUES(?, ?, ?)", -1, &stmt, 0);
-
-    if (rc != SQLITE_OK) {
-        return;
-    }
-
-    if (!params_exec("BEGIN")) {
-        return;
-    }
-    
-    for (uint8_t i = 0; i < TRANSVERTER_NUM; i++) {
-        transverter_t *transverter = &params_transverter[i];
-        
-        if (transverter->durty.from)    transverter_write(stmt, i, "from", transverter->from, &transverter->durty.from);
-        if (transverter->durty.to)      transverter_write(stmt, i, "to", transverter->to, &transverter->durty.to);
-        if (transverter->durty.shift)   transverter_write(stmt, i, "shift", transverter->shift, &transverter->durty.shift);
-    }
-
-    params_exec("COMMIT");
-}
-
 /* * */
 
 static void * params_thread(void *arg) {
@@ -495,7 +424,6 @@ static void * params_thread(void *arg) {
                 durty_time = 0;
 
                 params_save();
-                transverter_save();
             }
         }
         
@@ -536,10 +464,6 @@ void params_init() {
 
         if (rc != SQLITE_OK) {
             LV_LOG_ERROR("Prepare atu load");
-        }
-
-        if (!transverter_load()) {
-            LV_LOG_ERROR("Load transverter");
         }
     } else {
         LV_LOG_ERROR("Open params.db");
