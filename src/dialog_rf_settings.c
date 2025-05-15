@@ -55,6 +55,49 @@ static void destruct_cb() {
     settings_rf_save();
 }
 
+/* Mode */
+
+static void mode_update_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+
+    rf->mode = lv_dropdown_get_selected(obj);
+}
+
+static uint8_t make_mode(uint8_t row) {
+    lv_obj_t    *obj;
+    uint8_t     col = 0;
+
+    /* Label */
+
+    row_dsc[row] = 54;
+
+    obj = lv_label_create(grid);
+
+    lv_label_set_text(obj, "TX Mode");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+    /* * */
+
+    obj = lv_dropdown_create(grid);
+
+    dialog_item(&dialog, obj);
+
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
+    lv_obj_center(obj);
+
+    lv_obj_t *list = lv_dropdown_get_list(obj);
+    lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
+
+    lv_dropdown_set_options(obj, " Normal \n Two Tone \n Silence");
+    lv_dropdown_set_symbol(obj, NULL);
+    lv_dropdown_set_selected(obj, rf->mode);
+    lv_obj_add_event_cb(obj, mode_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    return row + 1;
+}
+
+
 /* PA Bias item */
 
 static void pa_bias_update_cb(lv_event_t * e) {
@@ -96,6 +139,75 @@ static uint8_t make_pa_bias(uint8_t row) {
     return row + 1;
 }
 
+/* TX Band */
+
+static void tx_band_freq_update_cb(lv_event_t * e) {
+    lv_obj_t        *obj = lv_event_get_target(e);
+    tx_band_item_t  *item = lv_event_get_user_data(e);
+
+    item->to = lv_spinbox_get_value(obj) * 1000;
+}
+
+static void tx_band_vref_update_cb(lv_event_t * e) {
+    lv_obj_t        *obj = lv_event_get_target(e);
+    tx_band_item_t  *item = lv_event_get_user_data(e);
+
+    item->vref = lv_spinbox_get_value(obj);
+}
+
+static uint8_t make_tx_band(uint8_t row) {
+    lv_obj_t    *obj;
+
+    for (int i = 0; i < rf->tx_band_count; i++) {
+        uint8_t         col = 0;
+        tx_band_item_t  *item = &rf->tx_band[i];
+
+        /* Label */
+
+        row_dsc[row] = 54;
+
+        obj = lv_label_create(grid);
+
+        lv_label_set_text_fmt(obj, "TX band LPF:%i", item->lpf + 1);
+        lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
+
+        /* Freq */
+
+        obj = lv_spinbox_create(grid);
+
+        dialog_item(&dialog, obj);
+
+        lv_spinbox_set_value(obj, item->to / 1000);
+        lv_spinbox_set_range(obj, 0, 62000);
+        lv_spinbox_set_digit_format(obj, 6, 3);
+        lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+        lv_obj_set_size(obj, SMALL_3, 56);
+
+        lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 3;
+        lv_obj_add_event_cb(obj, tx_band_freq_update_cb, LV_EVENT_VALUE_CHANGED, item);
+
+        /* VRef */
+
+        obj = lv_spinbox_create(grid);
+
+        dialog_item(&dialog, obj);
+
+        lv_spinbox_set_value(obj, item->vref);
+        lv_spinbox_set_range(obj, 0, 4095);
+        lv_spinbox_set_digit_format(obj, 4, 0);
+        lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+        lv_obj_set_size(obj, SMALL_3, 56);
+
+        lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 3;
+        lv_obj_add_event_cb(obj, tx_band_vref_update_cb, LV_EVENT_VALUE_CHANGED, item);
+
+        row++;
+    }
+
+    return row + 1;
+}
+
+
 /* * */
 
 static uint8_t make_delimiter(uint8_t row) {
@@ -122,7 +234,13 @@ static void construct_cb(lv_obj_t *parent) {
 
     uint8_t row = 1;
 
+    row = make_mode(row);
+    row = make_delimiter(row);
+
     row = make_pa_bias(row);
+    row = make_delimiter(row);
+
+    row = make_tx_band(row);
     row = make_delimiter(row);
 
     row_dsc[row] = LV_GRID_TEMPLATE_LAST;

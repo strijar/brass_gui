@@ -172,6 +172,7 @@ static void key_cb(lv_event_t * e);
 static void destruct_cb();
 static void audio_cb(float complex *samples, size_t n);
 static void rotary_cb(int32_t diff);
+static void band_cb(bool up);
 static void * decode_thread(void *arg);
 
 static void show_all_cb(lv_event_t * e);
@@ -211,6 +212,7 @@ static dialog_t             dialog = {
     .construct_cb = construct_cb,
     .destruct_cb = destruct_cb,
     .audio_cb = audio_cb,
+    .bands_change_cb = band_cb,
     .rotary_cb = rotary_cb,
     .buttons = true,
     .key_cb = key_cb
@@ -1010,7 +1012,7 @@ static bool do_rx_msg(ft8_cell_t *cell, const char * msg, bool pressed) {
     return true;
 }
 
-static void band_cb(lv_event_t * e) {
+static void band_cb(bool up) {
     int band = 0;
     int max = 0;
 
@@ -1026,7 +1028,7 @@ static void band_cb(lv_event_t * e) {
             break;
     }
 
-    if (lv_event_get_code(e) == EVENT_BAND_UP) {
+    if (up) {
         band++;
 
         if (band > max) {
@@ -1113,9 +1115,6 @@ static void construct_cb(lv_obj_t *parent) {
     /* * */
 
     dialog_init(parent, &dialog);
-
-    lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_UP, NULL);
-    lv_obj_add_event_cb(dialog.obj, band_cb, EVENT_BAND_DOWN, NULL);
 
     audio_buf = cbuffercf_create(ADC_RATE * 3);
 

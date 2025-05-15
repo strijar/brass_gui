@@ -40,6 +40,7 @@
 #include "vt.h"
 #include "render/render.h"
 #include "hw/gpio.h"
+#include "hw/iio.h"
 #include "settings/bands.h"
 #include "settings/modes.h"
 #include "settings/options.h"
@@ -94,6 +95,7 @@ int main(void) {
     queue_init();
     event_init();
     gpio_init();
+    iio_init();
     bands_init();
 
     lv_disp_draw_buf_init(&disp_buf, buf_1, buf_2, DISP_BUF_SIZE);

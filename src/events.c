@@ -26,8 +26,6 @@ uint32_t        EVENT_MSG_TINY_UPDATE;
 uint32_t        EVENT_FREQ_UPDATE;
 uint32_t        EVENT_FT8_MSG;
 uint32_t        EVENT_GPS;
-uint32_t        EVENT_BAND_UP;
-uint32_t        EVENT_BAND_DOWN;
 
 void event_init() {
     EVENT_ROTARY = lv_event_register_id();
@@ -43,6 +41,4 @@ void event_init() {
     EVENT_FREQ_UPDATE = lv_event_register_id();
     EVENT_FT8_MSG = lv_event_register_id();
     EVENT_GPS = lv_event_register_id();
-    EVENT_BAND_UP = lv_event_register_id();
-    EVENT_BAND_DOWN = lv_event_register_id();
 }

@@ -20,6 +20,7 @@ typedef void (*dialog_rotary_cb_t)(int32_t diff);
 typedef bool (*dialog_keypad_cb_t)(event_keypad_t *keypad);
 typedef bool (*dialog_modulate_state_cb_t)(void);
 typedef size_t (*dialog_modulate_cb_t)(float complex *data, size_t max_size, radio_mode_t mode);
+typedef void (*dialog_bands_change_cb_t)(bool up);
 
 typedef struct {
     lv_obj_t                    *obj;
@@ -30,6 +31,7 @@ typedef struct {
     dialog_keypad_cb_t          keypad_cb;
     dialog_modulate_state_cb_t  modulate_state_cb;
     dialog_modulate_cb_t        modulate_cb;
+    dialog_bands_change_cb_t    bands_change_cb;
     lv_event_cb_t               key_cb;
     bool                        buttons;
     bool                        run;
@@ -46,6 +48,7 @@ void dialog_item(dialog_t *dialog, lv_obj_t *obj);
 void dialog_rotary(int32_t diff);
 bool dialog_keypad(event_keypad_t *keypad);
 bool dialog_modulate_state();
+void dialog_bands_change(bool up);
 size_t dialog_modulate(float complex *data, size_t max_size, radio_mode_t mode);
 
 /* From thread */

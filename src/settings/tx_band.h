@@ -13,8 +13,9 @@
 #include <cyaml/cyaml.h>
 
 typedef struct {
-    uint64_t        to;
+    uint32_t        to;
     uint16_t        lpf;
+    uint16_t        vref;
 } tx_band_item_t;
 
 extern const cyaml_schema_value_t tx_band_schema;

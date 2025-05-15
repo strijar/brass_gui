@@ -34,12 +34,14 @@
 #include "hw/gpio.h"
 #include "hw/xvrt.h"
 #include "hw/pa_bias.h"
+#include "hw/iio.h"
 
 #define FLOW_RESTART_TIMOUT     300
 
 static lv_obj_t                 *main_obj;
 
 static radio_state_t            state = RADIO_RX;
+static tx_band_item_t           *current_tx_band = NULL;
 
 bool check_freq(uint64_t freq, uint32_t *shift, int32_t *corr);
 
@@ -157,10 +159,15 @@ void radio_load_lpf() {
         tx_band_item_t *item = &rf->tx_band[i];
 
         if (freq < item->to) {
+            current_tx_band = item;
+
             gpio_set_rf_lpf(item->lpf);
+            iio_set_vref(item->vref);
             return;
         }
     }
+
+    current_tx_band = NULL;
     LV_LOG_WARN("LPF now found for %llu", freq);
 }
 
@@ -359,7 +366,7 @@ uint16_t radio_change_sql(int16_t df) {
     if (df == 0) {
         return params.sql;
     }
-    
+
     params_lock();
     params.sql = limit(params.sql + df, 0, 100);
     params_unlock(&params.durty.sql);
@@ -678,6 +685,10 @@ uint8_t radio_change_nb_width(int16_t d) {
 
 void radio_set_ptt(bool on) {
     if (on) {
+        if (current_tx_band) {
+            iio_set_vref(current_tx_band->vref);
+        }
+
         pa_bias_update();
         gpio_set_preamp(false);
         gpio_set_tx(true);

@@ -314,7 +314,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                     bands_change(true);
                     dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
-                dialog_send(EVENT_BAND_UP, NULL);
+                dialog_bands_change(true);
             } else if (keypad->state == KEYPAD_LONG) {
                 main_screen_action(options->control.long_band_up);
             }
@@ -326,7 +326,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                     bands_change(false);
                     dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
-                dialog_send(EVENT_BAND_DOWN, NULL);
+                dialog_bands_change(false);
             } else if (keypad->state == KEYPAD_LONG) {
                 main_screen_action(options->control.long_band_down);
             }
@@ -486,7 +486,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
                     bands_change(true);
                     dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
-                dialog_send(EVENT_BAND_UP, NULL);
+                dialog_bands_change(true);
             }
             break;
 
@@ -500,7 +500,7 @@ static void main_screen_hkey_cb(lv_event_t * e) {
                     bands_change(false);
                     dialog_send(EVENT_FREQ_UPDATE, NULL);
                 }
-                dialog_send(EVENT_BAND_DOWN, NULL);
+                dialog_bands_change(false);
             }
             break;
 
@@ -743,7 +743,7 @@ static void main_screen_key_cb(lv_event_t * e) {
                 bands_change(true);
                 dialog_send(EVENT_FREQ_UPDATE, NULL);
             }
-            dialog_send(EVENT_BAND_UP, NULL);
+            dialog_bands_change(true);
             break;
 
         case KEYBOARD_PGDN:
@@ -751,7 +751,7 @@ static void main_screen_key_cb(lv_event_t * e) {
                 bands_change(false);
                 dialog_send(EVENT_FREQ_UPDATE, NULL);
             }
-            dialog_send(EVENT_BAND_DOWN, NULL);
+            dialog_bands_change(false);
             break;
 
         case KEYBOARD_F10:

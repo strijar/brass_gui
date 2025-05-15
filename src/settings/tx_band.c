@@ -11,6 +11,7 @@
 static const cyaml_schema_field_t tx_band_item_schema[] = {
     CYAML_FIELD_UINT("to",              CYAML_FLAG_DEFAULT, tx_band_item_t, to),
     CYAML_FIELD_UINT("lpf",             CYAML_FLAG_DEFAULT, tx_band_item_t, lpf),
+    CYAML_FIELD_UINT("vref",            CYAML_FLAG_DEFAULT, tx_band_item_t, vref),
     CYAML_FIELD_END
 };
 

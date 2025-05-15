@@ -87,6 +87,12 @@ size_t dialog_modulate(float complex *data, size_t max_size, radio_mode_t mode) 
     return 0;
 }
 
+void dialog_bands_change(bool up) {
+    if (dialog_is_run() && current_dialog->bands_change_cb) {
+        current_dialog->bands_change_cb(up);
+    }
+}
+
 bool dialog_is_run() {
     return (current_dialog != NULL) && current_dialog->run;
 }
