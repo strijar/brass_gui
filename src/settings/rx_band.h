@@ -13,8 +13,8 @@
 #include <cyaml/cyaml.h>
 
 typedef struct {
-    uint64_t        start;
-    uint64_t        stop;
-} rf_filter_t;
+    uint64_t        to;
+    uint16_t        bpf;
+} rx_band_item_t;
 
-extern const cyaml_schema_value_t rf_filter_schema;
+extern const cyaml_schema_value_t rx_band_schema;

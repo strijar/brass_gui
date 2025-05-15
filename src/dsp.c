@@ -35,8 +35,10 @@
 #include "main.h"
 #include "settings/modes.h"
 #include "settings/options.h"
+#include "settings/rf.h"
 #include "olivia/olivia.h"
 #include "dsp/biquad.h"
+#include "two_tone.h"
 
 const uint16_t                  fft_over = (FFT_SAMPLES - 800) / 2;
 
@@ -172,6 +174,8 @@ void dsp_init() {
     meter_timer = lv_timer_create(meter_timer_cb, 1000 / 10, NULL);
 
     denoise = specbleach_adaptive_initialize(ADC_RATE, options->audio.denoise.frame_size);
+
+    two_tone_update();
 }
 
 void dsp_reset() {
@@ -646,6 +650,19 @@ size_t dsp_dac(float complex *data, size_t max_size) {
     } else {
         radio_mode_t mode = op_work->mode;
 
+        switch (rf->mode) {
+            case RF_TWO_TONE:
+                mode = RADIO_MODE_TWO_TONE;
+                break;
+
+            case RF_SILENCE:
+                mode = RADIO_MODE_SILENCE;
+                break;
+
+            default:
+                break;
+        }
+
         switch (mode) {
             case RADIO_MODE_CW:
                 mic_on_air(false);
@@ -668,6 +685,15 @@ size_t dsp_dac(float complex *data, size_t max_size) {
                     mic_on_air(true);
                     size = mic_modulate(data, max_size, mode);
                 }
+                break;
+
+            case RADIO_MODE_TWO_TONE:
+                mic_on_air(false);
+                size = two_tone_generator(data, max_size);
+                break;
+
+            case RADIO_MODE_SILENCE:
+                mic_on_air(false);
                 break;
 
             default:

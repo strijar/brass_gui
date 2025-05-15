@@ -13,7 +13,7 @@
 #include "lvgl/lvgl.h"
 
 #include "gpio.h"
-#include "settings/options.h"
+#include "src/settings/options.h"
 
 /* Main unit */
 
@@ -22,7 +22,11 @@ static struct gpiod_line    *line_tx = NULL;
 
 /* RF unit */
 
+#define BPF_NUM     8
+#define LPF_NUM     7
+
 static struct gpiod_line    *bpf[BPF_NUM];
+static struct gpiod_line    *lpf[LPF_NUM];
 
 static struct gpiod_line    *adf_clk = NULL;
 static struct gpiod_line    *adf_data = NULL;
@@ -38,7 +42,10 @@ static struct gpiod_line    *k23 = NULL;        /* RELAY_HF_RX_TX       */
 static struct gpiod_line    *k22 = NULL;        /* RELAY_HF_VHF/UHF     */
 static struct gpiod_line    *k40 = NULL;        /* SEL_VHF/UHF          */
 
+static struct gpiod_line    *hf_tx = NULL;
+
 static int16_t              current_bpf = -1;
+static int16_t              current_lpf = -1;
 static int16_t              current_rf_route = -1;
 
 static struct gpiod_line * init_line(struct gpiod_chip *chip, const char *name) {
@@ -111,10 +118,32 @@ static void rf_3_init() {
     k40 = init_line(chip, "k40");
 }
 
+static void rf_4_init() {
+    struct gpiod_chip    *chip = NULL;
+
+    chip = gpiod_chip_open_by_number(4);
+
+    if (!chip) {
+        LV_LOG_ERROR("Unable to open gpio chip 4");
+        return;
+    }
+
+    const char* lpf_gpio[LPF_NUM] = {
+        "lpf_160", "lpf_80", "lpf_40",
+        "lpf_20", "lpf_15", "lpf_10", "lpf_6"
+    };
+
+    for (uint8_t i = 0; i < LPF_NUM; i++)
+        lpf[i] = init_line(chip, lpf_gpio[i]);
+
+    hf_tx = init_line(chip, "hf_tx");
+}
+
 void gpio_init() {
     main_init();
     rf_2_init();
     rf_3_init();
+    rf_4_init();
 
     gpiod_line_set_value(adf_le, 0); usleep(100);
     gpiod_line_set_value(adf_le, 1); usleep(100);
@@ -127,9 +156,20 @@ void gpio_set_preamp(bool on) {
 }
 
 void gpio_set_tx(bool on) {
-    if (line_tx) {
-        gpiod_line_set_value(line_tx, on ? 1 : 0);
+    switch (current_rf_route) {
+        case RF_ROUTE_HF:
+            gpiod_line_set_value(k22, on ? 1 : 0);
+            gpiod_line_set_value(hf_tx, on ? 1 : 0);
+            break;
+
+        case RF_ROUTE_VHF:
+            break;
+
+        case RF_ROUTE_UHF:
+            break;
     }
+
+    gpiod_line_set_value(line_tx, on ? 1 : 0);
 }
 
 void gpio_set_rf_route(rf_route_t route) {
@@ -170,6 +210,16 @@ void gpio_set_rf_bpf(uint8_t index) {
         gpiod_line_set_value(bpf[i], i == index ? 1 : 0);
 
     current_bpf = index;
+}
+
+void gpio_set_rf_lpf(uint8_t index) {
+    if (current_lpf == index)
+        return;
+
+    for (uint8_t i = 0; i < LPF_NUM; i++)
+        gpiod_line_set_value(lpf[i], i == index ? 1 : 0);
+
+    current_lpf = index;
 }
 
 void gpio_send_adf(uint32_t data) {

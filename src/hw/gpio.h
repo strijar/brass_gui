@@ -23,5 +23,6 @@ void gpio_set_tx(bool on);
 
 void gpio_set_rf_route(rf_route_t route);
 void gpio_set_rf_bpf(uint8_t index);
+void gpio_set_rf_lpf(uint8_t index);
 
 void gpio_send_adf(uint32_t data);

@@ -6,6 +6,7 @@
  *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <cyaml/cyaml.h>
 #include "lvgl/lvgl.h"

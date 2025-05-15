@@ -12,10 +12,6 @@
 #include <stdbool.h>
 #include "filter.h"
 #include "audio.h"
-#include "rf_filter.h"
-#include "xvrt.h"
-
-#define BPF_NUM 8
 
 typedef struct {
     char                qth[16];
@@ -91,6 +87,12 @@ typedef struct {
 } options_msg_t;
 
 typedef struct {
+    bool                enable;
+    uint16_t            freq1;
+    uint16_t            freq2;
+} options_dual_tone_t;
+
+typedef struct {
     options_operator_t  op;
     options_audio_t     audio;
     options_spectrum_t  spectrum;
@@ -99,9 +101,6 @@ typedef struct {
     options_cw_t        cw;
     options_olivia_t    olivia;
     options_msg_t       msg;
-    rf_filter_t         *bpf;
-    xvrt_item_t         *xvrt;
-    uint64_t            xvrt_count;
 } options_t;
 
 extern options_t   *options;

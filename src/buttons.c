@@ -145,8 +145,8 @@ static button_item_t    buttons[] = {
     { .label = "Callsign",          .press = button_action_cb,      .data = ACTION_APP_CALLSIGN },
     { .label = "Settings",          .press = button_app_page_cb,    .data = APP_SETTINGS },
 
+    { .label = "RF\nSettings",      .press = button_app_page_cb,    .data = APP_RF_SETTINGS },
     { .label = "Exit",              .press = button_exit_cb },
-    { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },

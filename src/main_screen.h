@@ -26,6 +26,7 @@ typedef enum {
     APP_RECORDER,
     APP_MSG_VOICE,
     APP_AUDIO_SETTINGS,
+    APP_RF_SETTINGS,
 } app_t;
 
 lv_obj_t * main_screen();

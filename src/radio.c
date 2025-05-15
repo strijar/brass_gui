@@ -30,8 +30,10 @@
 #include "msg.h"
 #include "msgs.h"
 #include "settings/modes.h"
-#include "gpio.h"
-#include "xvrt.h"
+#include "settings/rf.h"
+#include "hw/gpio.h"
+#include "hw/xvrt.h"
+#include "hw/pa_bias.h"
 
 #define FLOW_RESTART_TIMOUT     300
 
@@ -137,15 +139,29 @@ bool radio_tick() {
 void radio_load_bpf() {
     uint64_t freq = op_work->rx - op_work->shift;
 
-    for (uint8_t i = 0; i < BPF_NUM; i++) {
-        rf_filter_t *item = &options->bpf[i];
+    for (uint8_t i = 0; i < rf->rx_band_count; i++) {
+        rx_band_item_t *item = &rf->rx_band[i];
 
-        if (freq >= item->start && freq < item->stop) {
-            gpio_set_rf_bpf(i);
+        if (freq < item->to) {
+            gpio_set_rf_bpf(item->bpf);
             return;
         }
     }
     LV_LOG_WARN("BPF now found for %llu", freq);
+}
+
+void radio_load_lpf() {
+    uint64_t freq = op_work->tx - op_work->shift;
+
+    for (uint8_t i = 0; i < rf->tx_band_count; i++) {
+        tx_band_item_t *item = &rf->tx_band[i];
+
+        if (freq < item->to) {
+            gpio_set_rf_lpf(item->lpf);
+            return;
+        }
+    }
+    LV_LOG_WARN("LPF now found for %llu", freq);
 }
 
 void radio_rf_route() {
@@ -174,6 +190,7 @@ void radio_freq_update() {
     control_set_fft_freq(op_work->fft - shift - corr);
 
     radio_load_bpf();
+    radio_load_lpf();
     radio_rf_route();
 }
 
@@ -231,10 +248,8 @@ void radio_set_freq_rx(uint64_t freq) {
     op_work->rx = freq;
 
     control_set_rx_freq(freq - shift - corr);
-
     radio_rf_route();
     radio_load_bpf();
-    radio_load_atu();
 
     lv_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);
 }
@@ -255,6 +270,7 @@ void radio_set_freq_tx(uint64_t freq) {
     op_work->tx = freq;
 
     control_set_tx_freq(freq - shift - corr);
+    radio_load_lpf();
     radio_load_atu();
 
     lv_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
@@ -303,8 +319,8 @@ bool check_freq(uint64_t freq, uint32_t *shift, int32_t *corr) {
         return true;
     }
 
-    for (uint8_t i = 0; i < options->xvrt_count; i++) {
-        xvrt_item_t *item = &options->xvrt[i];
+    for (uint8_t i = 0; i < rf->xvrt_count; i++) {
+        xvrt_item_t *item = &rf->xvrt[i];
 
         if (freq >= item->start && freq <= item->stop) {
             *shift = item->shift;
@@ -662,6 +678,7 @@ uint8_t radio_change_nb_width(int16_t d) {
 
 void radio_set_ptt(bool on) {
     if (on) {
+        pa_bias_update();
         gpio_set_preamp(false);
         gpio_set_tx(true);
 

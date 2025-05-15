@@ -11,10 +11,10 @@ target_sources(${PROJECT_NAME} PUBLIC
     rtty.c screenshot.c backlight.c gps.c
     dialog.c dialog_settings.c dialog_swrscan.c
     dialog_ft8.c dialog_freq.c dialog_gps.c dialog_msg_cw.c 
-    dialog_msg_voice.c dialog_recorder.c dialog_qth.c dialog_callsign.c dialog_audio_settings.c
+    dialog_msg_voice.c dialog_recorder.c dialog_qth.c dialog_callsign.c dialog_audio_settings.c dialog_rf_settings.c
     textarea_window.c cw_encoder.c buttons.c vol.c recorder.c
     qth.c voice.cpp gfsk.c generator.c cw_key.c mic.c
-    vt.c gpio.c memory.c queue.c xvrt.c
+    vt.c memory.c queue.c two_tone.c
 )
 
 add_subdirectory(fonts)
@@ -27,6 +27,7 @@ add_subdirectory(render)
 add_subdirectory(settings)
 add_subdirectory(olivia)
 add_subdirectory(bands)
+add_subdirectory(hw)
 
 include_directories(utf8)
 include_directories(${CMAKE_SYSROOT}/usr/include/RHVoice/)

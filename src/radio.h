@@ -21,6 +21,9 @@ typedef enum {
     RADIO_MODE_NFM,
     RADIO_MODE_RTTY,
     RADIO_MODE_OLIVIA,
+
+    RADIO_MODE_TWO_TONE = 100,
+    RADIO_MODE_SILENCE,
 } radio_mode_t;
 
 typedef enum {

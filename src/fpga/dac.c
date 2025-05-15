@@ -19,7 +19,7 @@
 
 #include "lvgl/lvgl.h"
 #include "src/dsp.h"
-#include "src/gpio.h"
+#include "src/hw/gpio.h"
 #include "dac.h"
 
 static int              fd;
