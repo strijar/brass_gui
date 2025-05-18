@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #pragma once
@@ -15,19 +15,19 @@
 
 typedef enum {
     KEYPAD_UNKNOWN = 0,
-    
-    KEYPAD_POWER, 
+
+    KEYPAD_POWER,
     KEYPAD_VOL,
     KEYPAD_MFK,
     KEYPAD_APP,
-    
+
     KEYPAD_F1,
     KEYPAD_F2,
     KEYPAD_F3,
     KEYPAD_F4,
     KEYPAD_F5,
     KEYPAD_F6,
-    
+
     KEYPAD_PTT,
     KEYPAD_BAND_DOWN,
     KEYPAD_BAND_UP,
@@ -48,17 +48,12 @@ typedef struct {
 } event_keypad_t;
 
 typedef enum {
-    HKEY_UNKNOWN = 0,
+    HKEY_NONE = 0,
 
-    HKEY_SPCH,
-    HKEY_TUNER,
-    HKEY_XFC,
     HKEY_UP,
     HKEY_DOWN,
-    HKEY_VM,
-    HKEY_NW,
-    HKEY_F1,
-    HKEY_F2,
+
+    HKEY_0,
     HKEY_1,
     HKEY_2,
     HKEY_3,
@@ -68,17 +63,24 @@ typedef enum {
     HKEY_7,
     HKEY_8,
     HKEY_9,
-    HKEY_DOT,
-    HKEY_0, 
-    HKEY_CE,
-    HKEY_MODE,
-    HKEY_FIL,
-    HKEY_GENE
+
+    HKEY_STAR,
+    HKEY_SHARP,
+
+    HKEY_P1,
+    HKEY_P2,
+    HKEY_P3,
+    HKEY_P4,
+
+    HKEY_A,
+    HKEY_B,
+    HKEY_C,
+    HKEY_D
 } hkey_t;
 
 typedef enum {
-    HKEY_PRESS = 0,
-    HKEY_RELEASE,
+    HKEY_RELEASE = 0,
+    HKEY_PRESS,
     HKEY_LONG,
     HKEY_LONG_RELEASE
 } hkey_state_t;

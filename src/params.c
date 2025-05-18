@@ -73,13 +73,6 @@ params_t params = {
     .swrscan_linear         = true,
     .swrscan_span           = 200000,
 
-    /*
-    .press_f1               = ACTION_STEP_UP,
-    .press_f2               = ACTION_NONE,
-    .long_f1                = ACTION_STEP_DOWN,
-    .long_f2                = ACTION_NONE,
-    */
-
     .voice_mode             = { .x = VOICE_LCD,                                 .name = "voice_mode" },
     .voice_lang             = { .x = 0,   .min = 0,  .max = (VOICES_NUM - 1),   .name = "voice_lang" },
     .voice_rate             = { .x = 100, .min = 50, .max = 150,                .name = "voice_rate",     .voice = "Voice rate" },
@@ -235,14 +228,6 @@ static bool params_load() {
             params.swrscan_linear = i;
         } else if (strcmp(name, "swrscan_span") == 0) {
             params.swrscan_span = i;
-        } else if (strcmp(name, "press_f1") == 0) {
-            params.press_f1 = i;
-        } else if (strcmp(name, "press_f2") == 0) {
-            params.press_f2 = i;
-        } else if (strcmp(name, "long_f1") == 0) {
-            params.long_f1 = i;
-        } else if (strcmp(name, "long_f2") == 0) {
-            params.long_f2 = i;
         } 
         
         if (params_load_bool(&params.mag_freq, name, i)) continue;
@@ -388,11 +373,6 @@ static void params_save() {
 
     if (params.durty.swrscan_linear)        params_write_int("swrscan_linear", params.swrscan_linear, &params.durty.swrscan_linear);
     if (params.durty.swrscan_span)          params_write_int("swrscan_span", params.swrscan_span, &params.durty.swrscan_span);
-
-    if (params.durty.press_f1)              params_write_int("press_f1", params.press_f1, &params.durty.press_f1);
-    if (params.durty.press_f2)              params_write_int("press_f2", params.press_f2, &params.durty.press_f2);
-    if (params.durty.long_f1)               params_write_int("long_f1", params.long_f1, &params.durty.long_f1);
-    if (params.durty.long_f2)               params_write_int("long_f2", params.long_f2, &params.durty.long_f2);
 
     params_save_uint8(&params.voice_mode);
     params_save_uint8(&params.voice_lang);

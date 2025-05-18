@@ -31,6 +31,8 @@ typedef enum {
 
 lv_obj_t * main_screen();
 
+bool main_screen_ready();
+
 void main_screen_keys_enable(bool value);
 void main_screen_dialog_deleted_cb();
 void main_screen_app(app_t app);

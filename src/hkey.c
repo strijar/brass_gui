@@ -1,246 +1,148 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include <stdlib.h>
-#include "lvgl/lvgl.h"
 
-#include "hkey.h"
+#include "lvgl/lvgl.h"
+#include "settings/options.h"
 #include "events.h"
-#include "backlight.h"
+#include "hkey.h"
+#include "util.h"
+#include "queue.h"
+#include "main_screen.h"
 #include "keyboard.h"
 
-#define HKEY_LONG_TIME 1000
+static uint8_t      hist = 0;
+static int16_t      hist_x[3] = {-1, -1, -1};
+static int16_t      hist_y[3] = {-1, -1, -1};
+static hkey_state_t state = HKEY_RELEASE;
+static uint64_t     press_time;
+static hkey_t       key = HKEY_NONE;
 
-static event_hkey_t     event = { .state = HKEY_RELEASE };
-static lv_timer_t       *timer = NULL;
+static const hkey_t matrix[7][5] = {
+    { HKEY_NONE, HKEY_1,    HKEY_2,    HKEY_3,      HKEY_A    },
+    { HKEY_NONE, HKEY_4,    HKEY_5,    HKEY_6,      HKEY_B    },
+    { HKEY_UP,   HKEY_NONE, HKEY_NONE, HKEY_NONE,   HKEY_NONE },
+    { HKEY_NONE, HKEY_7,    HKEY_8,    HKEY_9,      HKEY_C    },
+    { HKEY_DOWN, HKEY_NONE, HKEY_NONE, HKEY_NONE,   HKEY_NONE },
+    { HKEY_NONE, HKEY_STAR, HKEY_0,    HKEY_SHARP,  HKEY_D    },
+    { HKEY_NONE, HKEY_P1,   HKEY_P2,   HKEY_P3,     HKEY_P4   }
+};
 
-static void hkey_event() {
-    event_hkey_t    *e = malloc(sizeof(event_hkey_t));
-    
-    *e = event;
-    lv_event_send(lv_scr_act(), EVENT_HKEY, (void*) e);
+static void hkey_send_key(int32_t key) {
+    int32_t *c = malloc(sizeof(int32_t));
+    *c = key;
+
+    queue_send(lv_group_get_focused(keyboard_group), LV_EVENT_KEY, c);
 }
 
-static void hkey_key(int32_t key) {
-    if (event.state == HKEY_RELEASE || event.state == HKEY_LONG_RELEASE) {
-        event_send_key(key);
-        event.state = HKEY_PRESS;
-        event.key = HKEY_UNKNOWN;
-    }
-}
-
-static void hkey_timer(lv_timer_t *t) {
-    event.state = HKEY_LONG;
-    hkey_event();
-    timer = NULL;
-}
-
-void hkey_put(uint32_t key) {
-    switch (key) {
-        case 0:
-            switch (event.state) {
-                case HKEY_PRESS:
-                    event.state = HKEY_RELEASE;
-                    
-                    if (event.key != HKEY_UNKNOWN) {
-                        hkey_event();
-                    }
+static void hkey_send(hkey_state_t event) {
+    if (!lv_group_get_editing(keyboard_group)) {
+        if (event == HKEY_PRESS) {
+            switch (key) {
+                case HKEY_0 ... HKEY_9:
+                    hkey_send_key(key - HKEY_0 + '0');
                     break;
 
-                case HKEY_LONG:
-                    event.state = HKEY_LONG_RELEASE;
-
-                    if (event.key != HKEY_UNKNOWN) {
-                        hkey_event();
-                    }
+                case HKEY_STAR:
+                    hkey_send_key('.');
                     break;
-                    
+
+                case HKEY_SHARP:
+                    hkey_send_key(LV_KEY_BACKSPACE);
+                    break;
+
                 default:
                     break;
             }
-            
-            if (timer) {
-                lv_timer_del(timer);
-                timer = NULL;
-            }
-            return;
+        }
 
-        /* * */
-/*
-        case X6100_HKEY_1:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_1;
-            } else {
-                hkey_key('1');
-            }
-            break;
-
-        case X6100_HKEY_2:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_2;
-            } else {
-                hkey_key('2');
-            }
-            break;
-
-        case X6100_HKEY_3:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_3;
-            } else {
-                hkey_key('3');
-            }
-            break;
-
-        case X6100_HKEY_4:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_4;
-            } else {
-                hkey_key('4');
-            }
-            break;
-
-        case X6100_HKEY_5:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_5;
-            } else {
-                hkey_key('5');
-            }
-            break;
-
-        case X6100_HKEY_6:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_6;
-            } else {
-                hkey_key('6');
-            }
-            break;
-
-        case X6100_HKEY_7:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_7;
-            } else {
-                hkey_key('7');
-            }
-            break;
-
-        case X6100_HKEY_8:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_8;
-            } else {
-                hkey_key('8');
-            }
-            break;
-
-        case X6100_HKEY_9:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_9;
-            } else {
-                hkey_key('9');
-            }
-            break;
-
-        case X6100_HKEY_DOT:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_DOT;
-            } else {
-                hkey_key('.');
-            }
-            break;
-
-        case X6100_HKEY_0:
-            if (lv_group_get_editing(keyboard_group)) {
-                event.key = HKEY_0;
-            } else {
-                hkey_key('0');
-            }
-            break;
-
-        case X6100_HKEY_CE:
-            hkey_key(LV_KEY_BACKSPACE);
-            break;
-
-        case X6100_HKEY_FINP:
-            hkey_key(HKEY_FINP);
-            break;
-
-        case X6100_HKEY_SPCH:
-            event.key = HKEY_SPCH;
-            break;
-                
-        case X6100_HKEY_TUNER:
-            event.key = HKEY_TUNER;
-            break;
-
-        case X6100_HKEY_XFC:
-            event.key = HKEY_XFC;
-            break;
-    
-        case X6100_HKEY_UP:
-            event.key = HKEY_UP;
-            break;
-
-        case X6100_HKEY_DOWN:
-            event.key = HKEY_DOWN;
-            break;
-
-        case X6100_HKEY_VM:
-            event.key = HKEY_VM;
-            break;
-
-        case X6100_HKEY_NW:
-            event.key = HKEY_NW;
-            break;
-
-        case X6100_HKEY_F1:
-            event.key = HKEY_F1;
-            break;
-
-        case X6100_HKEY_F2:
-            event.key = HKEY_F2;
-            break;
-
-        case X6100_HKEY_MODE:
-            event.key = HKEY_MODE;
-            break;
-
-        case X6100_HKEY_FIL:
-            event.key = HKEY_FIL;
-            break;
-
-        case X6100_HKEY_GENE:
-            event.key = HKEY_GENE;
-            break;
-*/
-       default:
-            event.key = HKEY_UNKNOWN;
-            break;
+        return;
     }
 
-    switch (event.state) {
-        case HKEY_RELEASE:
-        case HKEY_LONG_RELEASE:
-            event.state = HKEY_PRESS;
-            backlight_tick();
-            
-            if (event.key != HKEY_UNKNOWN) {
-                hkey_event();
+    event_hkey_t    *e = malloc(sizeof(event_hkey_t));
 
-                if (timer) {
-                    lv_timer_del(timer);
-                    timer = NULL;
+    e->key = key;
+    e->state = event;
+
+    if (main_screen_ready()) {
+        queue_send(lv_scr_act(), EVENT_HKEY, (void*) e);
+    }
+}
+
+void hkey_put(uint16_t x, uint16_t y) {
+    int16_t xi = -1;
+    int16_t yi = -1;
+
+    for (int i = 0; i < 7; i++) {
+        if (x < options->hkeys.x[i]) {
+            xi = i;
+            break;
+        }
+    }
+
+    for (int i = 0; i < 5; i++) {
+        if (y < options->hkeys.y[i]) {
+            yi = i;
+            break;
+        }
+    }
+
+    hist_x[hist] = xi;
+    hist_y[hist] = yi;
+
+    hist = (hist + 1) % 3;
+
+    for (int i = 0; i < 2; i++)
+        if (hist_x[i] != hist_x[i + 1])
+            return;
+
+    for (int i = 0; i < 2; i++)
+        if (hist_y[i] != hist_y[i + 1])
+            return;
+
+    uint64_t now = get_time();
+
+    if (xi >= 0 && yi >= 0) {
+        switch (state) {
+            case HKEY_RELEASE:
+                state = HKEY_PRESS;
+                key = matrix[xi][yi];
+                press_time = now;
+                hkey_send(HKEY_PRESS);
+                break;
+
+            case HKEY_PRESS:
+                if (now - press_time > 1000) {
+                    state = HKEY_LONG;
+                    hkey_send(HKEY_LONG);
                 }
+                break;
 
-                timer = lv_timer_create(hkey_timer, HKEY_LONG_TIME, NULL);
-                lv_timer_set_repeat_count(timer, 1);
-            }
-            break;
+            default:
+                break;
+        }
+    } else {
+        switch (state) {
+            case HKEY_PRESS:
+                state = HKEY_RELEASE;
+                hkey_send(HKEY_RELEASE);
+                key = HKEY_NONE;
+                break;
 
-        default:
-            break;
+            case HKEY_LONG:
+                state = HKEY_RELEASE;
+                hkey_send(HKEY_LONG_RELEASE);
+                key = HKEY_NONE;
+                break;
+
+            default:
+                break;
+        }
     }
 }

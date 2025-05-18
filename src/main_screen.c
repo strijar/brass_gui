@@ -53,7 +53,7 @@
 #include "settings/modes.h"
 #include "bands/bands.h"
 
-static lv_obj_t     *obj;
+static lv_obj_t     *obj = NULL;
 static bool         freq_lock = false;
 static bool         mode_lock = false;
 static bool         band_lock = false;
@@ -460,22 +460,6 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             }
             break;
 
-        case HKEY_SPCH:
-            if (hkey->state == HKEY_RELEASE) {
-                freq_lock = !freq_lock;
-                voice_say_text_fmt("Frequency %s", freq_lock ? "locked" : "unlocked");
-            }
-            break;
-
-        case HKEY_TUNER:
-            if (hkey->state == HKEY_RELEASE) {
-                radio_change_atu();
-                info_params_set();
-            } else if (hkey->state == HKEY_LONG) {
-                radio_start_atu();
-            }
-            break;
-
         case HKEY_UP:
             if (hkey->state == HKEY_RELEASE) {
                 if (!freq_lock) {
@@ -504,19 +488,17 @@ static void main_screen_hkey_cb(lv_event_t * e) {
             }
             break;
 
-        case HKEY_F1:
+        case HKEY_P1 ... HKEY_P4:
             if (hkey->state == HKEY_RELEASE) {
-                main_screen_action(params.press_f1);
+                main_screen_action(options->hkeys.press_p[hkey->key - HKEY_P1]);
             } else if (hkey->state == HKEY_LONG) {
-                main_screen_action(params.long_f1);
             }
             break;
 
-        case HKEY_F2:
+        case HKEY_A ... HKEY_D:
             if (hkey->state == HKEY_RELEASE) {
-                main_screen_action(params.press_f2);
+                main_screen_action(options->hkeys.press_char[hkey->key - HKEY_A]);
             } else if (hkey->state == HKEY_LONG) {
-                main_screen_action(params.long_f2);
             }
             break;
 
@@ -854,6 +836,10 @@ lv_obj_t * main_screen() {
     msg_set_text_fmt("TRX Brass de R1CBU " VERSION);
 
     return obj;
+}
+
+bool main_screen_ready() {
+    return obj != NULL;
 }
 
 static void band_changed_cb(void *s, lv_msg_t *m) {

@@ -124,6 +124,22 @@ const cyaml_schema_field_t msg_fields_schema[] = {
     CYAML_FIELD_END
 };
 
+static const cyaml_schema_value_t uint_entry = {
+    CYAML_VALUE_UINT(CYAML_FLAG_DEFAULT, uint16_t),
+};
+
+static const cyaml_schema_value_t action_entry = {
+    CYAML_VALUE_ENUM(CYAML_FLAG_DEFAULT, options_action_t, action_strings, CYAML_ARRAY_LEN(action_strings)),
+};
+
+const cyaml_schema_field_t hkeys_fields_schema[] = {
+    CYAML_FIELD_SEQUENCE_FIXED("x",             CYAML_FLAG_DEFAULT,  options_hkeys_t, x, &uint_entry, 7),
+    CYAML_FIELD_SEQUENCE_FIXED("y",             CYAML_FLAG_DEFAULT,  options_hkeys_t, y, &uint_entry, 5),
+    CYAML_FIELD_SEQUENCE_FIXED("press_p",       CYAML_FLAG_OPTIONAL, options_hkeys_t, press_p, &action_entry, 4),
+    CYAML_FIELD_SEQUENCE_FIXED("press_char",    CYAML_FLAG_OPTIONAL, options_hkeys_t, press_char, &action_entry, 4),
+    CYAML_FIELD_END
+};
+
 const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, op, operator_fields_schema),
     CYAML_FIELD_MAPPING("audio",        CYAML_FLAG_OPTIONAL, options_t, audio, audio_fields_schema),
@@ -133,6 +149,7 @@ const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("cw",           CYAML_FLAG_OPTIONAL, options_t, cw, cw_fields_schema),
     CYAML_FIELD_MAPPING("olivia",       CYAML_FLAG_OPTIONAL, options_t, olivia, olivia_fields_schema),
     CYAML_FIELD_MAPPING("msg",          CYAML_FLAG_OPTIONAL, options_t, msg, msg_fields_schema),
+    CYAML_FIELD_MAPPING("hkeys",        CYAML_FLAG_OPTIONAL, options_t, hkeys, hkeys_fields_schema),
     CYAML_FIELD_END
 };
 

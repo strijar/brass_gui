@@ -75,3 +75,29 @@ olivia:
 
 msg:
   voice_period: 10
+
+hkeys:
+  x:
+  - 10
+  - 540
+  - 600
+  - 950
+  - 985
+  - 1260
+  - 1480
+  y:
+  - 105
+  - 615
+  - 980
+  - 1270
+  - 1500
+  press_p:
+  - step_down
+  - step_up
+  - mute
+  - app_freq
+  press_char:
+  - none
+  - none
+  - none
+  - none

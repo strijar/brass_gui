@@ -688,7 +688,7 @@ static uint8_t make_long_action(uint8_t row) {
     return row;
 }
 
-/* HMic F1, F2 actions */
+/* HMic actions */
 
 static action_items_t hmic_action_items[] = {
     { .label = " None ", .action = ACTION_NONE },
@@ -697,6 +697,7 @@ static action_items_t hmic_action_items[] = {
     { .label = " Step up ", .action = ACTION_STEP_UP },
     { .label = " Step down ", .action = ACTION_STEP_DOWN },
     { .label = " Voice mode ", .action = ACTION_VOICE_MODE },
+    { .label = " APP Freq", .action = ACTION_APP_FREQ },
     { .label = NULL, .action = ACTION_NONE }
 };
 
@@ -705,91 +706,83 @@ static void hmic_action_update_cb(lv_event_t * e) {
     uint32_t    *i = lv_event_get_user_data(e);
     uint8_t     val = hmic_action_items[lv_dropdown_get_selected(obj)].action;
 
-    params_lock();
-
     switch (*i) {
-        case 0:
-            params.press_f1 = val;
-            params_unlock(&params.durty.press_f1);
-            break;
-        
-        case 1:
-            params.press_f2 = val;
-            params_unlock(&params.durty.press_f2);
+        case 0 ... 3:
+            options->hkeys.press_p[*i] = val;
             break;
 
-        case 2:
-            params.long_f1 = val;
-            params_unlock(&params.durty.long_f1);
-            break;
-
-        case 3:
-            params.long_f2 = val;
-            params_unlock(&params.durty.long_f2);
+        case 4 ... 7:
+            options->hkeys.press_char[*i - 4] = val;
             break;
     }
 }
 
 static uint8_t make_hmic_action(uint8_t row) {
-    char        *labels[] = { "HMic F1 press", "HMic F2 press", "HMic F1 long press", "HMic F2 long press" };
     lv_obj_t    *obj;
+    char        *labels[] = {
+        "HMic P1 press", "HMic P2 press", "HMic P3 press", "HMic P4 press",
+        "HMic A press", "HMic B press", "HMic C press", "HMic D press"
+    };
 
-    for (uint8_t i = 0; i < 4; i++) {
+    for (uint8_t i = 0; i < 8; i++) {
         row_dsc[row] = 54;
 
         obj = lv_label_create(grid);
-        
+
         lv_label_set_text(obj, labels[i]);
         lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
         obj = lv_dropdown_create(grid);
 
         dialog_item(&dialog, obj);
-    
+
         lv_obj_set_size(obj, SMALL_6, 56);
         lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
         lv_obj_center(obj);
-    
+
         lv_obj_t *list = lv_dropdown_get_list(obj);
         lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
-    
+
         lv_dropdown_set_symbol(obj, NULL);
-        
+
         uint8_t x;
-        
+
         switch (i) {
-            case 0: x = params.press_f1;    break;
-            case 1: x = params.press_f2;    break;
-            case 2: x = params.long_f1;     break;
-            case 3: x = params.long_f2;     break;
-                
+            case 0 ... 3:
+                x = options->hkeys.press_p[i];
+                break;
+
+            case 4 ... 7:
+                x = options->hkeys.press_char[i - 4];
+                break;
+
             default:
                 x = ACTION_NONE;
                 break;
         }
-        
+
         lv_dropdown_clear_options(obj);
-        
+
         uint8_t n = 0;
-        
+
         while (hmic_action_items[n].label) {
             lv_dropdown_add_option(obj, hmic_action_items[n].label, LV_DROPDOWN_POS_LAST);
-            
+
             if (hmic_action_items[n].action == x) {
                 lv_dropdown_set_selected(obj, n);
             }
 
             n++;
         }
-        
+
         uint32_t *param = malloc(sizeof(uint32_t));
         *param = i;
-        
+
         lv_obj_add_event_cb(obj, hmic_action_update_cb, LV_EVENT_VALUE_CHANGED, param);
-        
+
         row++;
     }
-    
+
     return row;
 }
 
@@ -881,7 +874,7 @@ static uint8_t make_txo_freq(uint8_t row) {
     row_dsc[row] = 54;
 
     obj = lv_label_create(grid);
-    
+
     lv_label_set_text(obj, "TXO offset");
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
 

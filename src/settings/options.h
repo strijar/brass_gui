@@ -87,10 +87,11 @@ typedef struct {
 } options_msg_t;
 
 typedef struct {
-    bool                enable;
-    uint16_t            freq1;
-    uint16_t            freq2;
-} options_dual_tone_t;
+    uint16_t            x[7];
+    uint16_t            y[5];
+    options_action_t    press_p[4];
+    options_action_t    press_char[4];
+} options_hkeys_t;
 
 typedef struct {
     options_operator_t  op;
@@ -101,6 +102,7 @@ typedef struct {
     options_cw_t        cw;
     options_olivia_t    olivia;
     options_msg_t       msg;
+    options_hkeys_t     hkeys;
 } options_t;
 
 extern options_t   *options;

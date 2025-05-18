@@ -188,13 +188,6 @@ typedef struct {
     bool                swrscan_linear;
     uint32_t            swrscan_span;
 
-    /* HMic F1, F2 actions */
-    
-    uint8_t             press_f1;
-    uint8_t             press_f2;
-    uint8_t             long_f1;
-    uint8_t             long_f2;
-    
     /* Voice */
 
     params_uint8_t      voice_mode;
@@ -252,11 +245,6 @@ typedef struct {
 
         bool    swrscan_linear;
         bool    swrscan_span;
-
-        bool    press_f1;
-        bool    press_f2;
-        bool    long_f1;
-        bool    long_f2;
     } durty;
 } params_t;
 
