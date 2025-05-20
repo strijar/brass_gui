@@ -18,7 +18,6 @@
 #include "msg.h"
 #include "msg_tiny.h"
 #include "dsp.h"
-#include "params.h"
 #include "clock.h"
 #include "info.h"
 #include "meter.h"
@@ -353,7 +352,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
 
             info_params_set();
 
-            if (params.mag_info.x) {
+            if (options->mag.info) {
                 msg_tiny_set_text_fmt("%s", info_params_mode());
             }
             break;
@@ -521,7 +520,7 @@ static uint16_t freq_accel(uint16_t diff) {
         return 1;
     }
 
-    switch (params.freq_accel.x) {
+    switch (options->freq.accel) {
         case FREQ_ACCEL_NONE:
             return 1;
 
@@ -562,7 +561,7 @@ static void freq_shift(int16_t diff) {
             break;
     }
 
-    switch (params.freq_mode.x) {
+    switch (options->freq.mode) {
         case FREQ_MODE_JOIN:
             radio_set_freqs(freq_rx, freq_tx);
             freq_shift = freq_rx - prev_freq_rx;
@@ -603,7 +602,7 @@ static void freq_shift(int16_t diff) {
             break;
     }
 
-    if (params.mag_freq.x) {
+    if (options->mag.freq) {
         uint16_t    mhz, khz, hz;
 
         split_freq(freq_rx, &mhz, &khz, &hz);
@@ -846,7 +845,7 @@ static void band_changed_cb(void *s, lv_msg_t *m) {
     info_params_set();
     dsp_auto_clear();
 
-    switch (params.freq_mode.x) {
+    switch (options->freq.mode) {
         case FREQ_MODE_SLIDE:
             if (op_work) {
                 radio_set_freq_fft(op_work->fft);

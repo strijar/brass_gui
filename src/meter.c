@@ -9,7 +9,6 @@
 #include "meter.h"
 #include "styles.h"
 #include "events.h"
-#include "params.h"
 #include "msgs.h"
 #include "main.h"
 

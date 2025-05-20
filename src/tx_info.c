@@ -12,9 +12,9 @@
 #include "styles.h"
 #include "events.h"
 #include "msg_tiny.h"
-#include "params.h"
 #include "main.h"
 #include "msgs.h"
+#include "settings/options.h"
 
 #define NUM_PWR_ITEMS   6
 #define NUM_VSWR_ITEMS  5
@@ -218,7 +218,7 @@ void tx_info_update(float p, float s, float a) {
 
     lv_obj_invalidate(obj);
 
-    if (params.mag_alc.x) {
+    if (options->mag.alc) {
         msg_tiny_set_text_fmt("ALC: %.1f", alc);
     }
 }

@@ -1,19 +1,19 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include "vol.h"
 #include "msg.h"
 #include "radio.h"
 #include "main.h"
-#include "params.h"
 #include "voice.h"
 #include "dsp.h"
 #include "info.h"
+#include "util.h"
 #include "settings/options.h"
 
 static vol_mode_t   vol_mode = VOL_VOL;
@@ -30,14 +30,14 @@ void vol_update(int16_t diff, bool voice) {
         case VOL_VOL:
             i = dsp_change_vol(diff);
             msg_set_text_fmt("#%3X Volume: %i", color, i);
-            
+
             if (diff) {
                 voice_say_int("Audio level", i);
             } else if (voice) {
                 voice_say_text_fmt("Audio level");
             }
             break;
-            
+
         case VOL_PWR:
             f = radio_change_pwr(diff);
             msg_set_text_fmt("#%3X Power: %0.1f W", color, f);
@@ -61,35 +61,38 @@ void vol_update(int16_t diff, bool voice) {
             break;
 
         case VOL_VOICE_RATE:
-            i = params_uint8_change(&params.voice_rate, diff);
+            i = limit(options->voice.rate + diff, 50, 150);
             msg_set_text_fmt("#%3X Voice rate: %i", color, i);
-            
+            options->voice.rate = i;
+
             if (diff == 0 && voice) {
-                voice_say_text_fmt(params.voice_rate.voice);
+///                voice_say_text_fmt(params.voice_rate.voice);
             }
             break;
 
         case VOL_VOICE_PITCH:
-            i = params_uint8_change(&params.voice_pitch, diff);
+            i = limit(options->voice.pitch + diff, 50, 150);
             msg_set_text_fmt("#%3X Voice pitch: %i", color, i);
+            options->voice.pitch = i;
 
             if (diff == 0 && voice) {
-                voice_say_text_fmt(params.voice_pitch.voice);
+///                voice_say_text_fmt(params.voice_pitch.voice);
             }
             break;
 
         case VOL_VOICE_VOLUME:
-            i = params_uint8_change(&params.voice_volume, diff);
+            i = limit(options->voice.volume + diff, 50, 150);
             msg_set_text_fmt("#%3X Voice volume: %i", color, i);
+            options->voice.volume = i;
 
             if (diff == 0 && voice) {
-                voice_say_text_fmt(params.voice_volume.voice);
+///                voice_say_text_fmt(params.voice_volume.voice);
             }
             break;
 
         case VOL_FREQ_MODE:
-            i = params_uint8_change(&params.freq_mode, diff);
-            
+            i = limit(options->freq.mode + diff, FREQ_MODE_JOIN, FREQ_MODE_FFT_ONLY);
+
             switch (i) {
                 case FREQ_MODE_JOIN:
                     str = "join";
@@ -98,16 +101,16 @@ void vol_update(int16_t diff, bool voice) {
                 case FREQ_MODE_SLIDE:
                     str = "slide";
                     break;
-                    
+
                 case FREQ_MODE_RX_ONLY:
                     str = "RX only";
                     break;
-                    
+
                 case FREQ_MODE_FFT_ONLY:
                     str = "spectrum only";
                     break;
             }
-            
+
             msg_set_text_fmt("#%3X Freq mode: %s", color, str);
 
             if (diff) {
@@ -119,16 +122,16 @@ void vol_update(int16_t diff, bool voice) {
 
         case VOL_SPLIT:
             i = radio_change_split(diff);
-            
+
             switch (i) {
                 case SPLIT_NONE:
                     str = "RX/TX";
                     break;
-                    
+
                 case SPLIT_RX:
                     str = "RX";
                     break;
-                    
+
                 case SPLIT_TX:
                     str = "TX";
                     break;
@@ -142,7 +145,7 @@ void vol_update(int16_t diff, bool voice) {
                 voice_say_text_fmt("Split mode selector");
             }
             break;
-            
+
         default:
             break;
     }

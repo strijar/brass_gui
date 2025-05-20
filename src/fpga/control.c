@@ -15,7 +15,7 @@
 
 #include "lvgl/lvgl.h"
 #include "control.h"
-#include "src/params.h"
+#include "src/settings/rf.h"
 
 #define RX_ENABLE_ADC  (1 << 0)
 #define RX_ENABLE_FFT  (1 << 1)
@@ -66,7 +66,7 @@ void control_update() {
 }
 
 void control_set_rx_freq(uint64_t freq) {
-    float txo = 122880000.0f + params.txo_offset.x;
+    float txo = 122880000.0f + rf->txo_offset;
 
     rx_freq = freq;
     reg->adc_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
@@ -77,14 +77,14 @@ void control_set_rx_rate(uint32_t rate) {
 }
 
 void control_set_tx_freq(uint64_t freq) {
-    float txo = 122880000.0f + params.txo_offset.x;
+    float txo = 122880000.0f + rf->txo_offset;
 
     tx_freq = freq;
     reg->dac_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);
 }
 
 void control_set_fft_freq(uint64_t freq) {
-    float txo = 122880000.0f + params.txo_offset.x;
+    float txo = 122880000.0f + rf->txo_offset;
 
     fft_freq = freq;
     reg->fft_dds_step = (uint32_t) floor(freq / txo * (1 << 30) + 0.5f);

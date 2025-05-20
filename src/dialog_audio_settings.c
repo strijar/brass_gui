@@ -13,7 +13,6 @@
 #include "dialog.h"
 #include "dialog_settings.h"
 #include "styles.h"
-#include "params.h"
 #include "events.h"
 #include "keyboard.h"
 #include "dsp.h"

@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include <time.h>
@@ -57,11 +57,11 @@ static void show_time() {
         return;
     }
 
-    if (params.clock_view == CLOCK_TIME_ALLWAYS) {
+    if (options->clock.view == CLOCK_TIME_ALWAYS) {
         set_state(CLOCK_TIME);
-    } else if (params.clock_view == CLOCK_POWER_ALLWAYS) {
+    } else if (options->clock.view == CLOCK_POWER_ALWAYS) {
         set_state(CLOCK_POWER);
-    } else if (params.clock_view == CLOCK_TIME_POWER) {
+    } else if (options->clock.view == CLOCK_TIME_POWER) {
         uint64_t    ms = get_time();
 
         if (radio_get_state() == RADIO_RX) {
@@ -69,18 +69,18 @@ static void show_time() {
                 switch (state) {
                     case CLOCK_TIME:
                         set_state(CLOCK_POWER);
-                        timeout = ms + params.clock_power_timeout * 1000;
+                        timeout = ms + options->clock.power_timeout * 1000;
                         break;
 
                     case CLOCK_POWER:
                         set_state(CLOCK_TIME);
-                        timeout = ms + params.clock_time_timeout * 1000;
+                        timeout = ms + options->clock.time_timeout * 1000;
                         break;
                 }
             }
         } else {
             set_state(CLOCK_POWER);
-            timeout = ms + params.clock_tx_timeout * 1000;
+            timeout = ms + options->clock.tx_timeout * 1000;
         }
     }
         
@@ -117,7 +117,7 @@ lv_obj_t * clock_init(lv_obj_t * parent) {
     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, 0);
 
     set_state(CLOCK_TIME);
-    timeout = get_time() + params.clock_time_timeout * 1000;
+    timeout = get_time() + options->clock.time_timeout * 1000;
 
     show_time();
     lv_timer_create(show_time, 500, NULL);
@@ -132,29 +132,21 @@ void clock_update_power(float ext, float bat, uint8_t cap) {
 }
 
 void clock_set_view(clock_view_t x) {
-    params_lock();
-    params.clock_view = x;
-    params_unlock(&params.durty.clock_view);
+    options->clock.view = x;
     timeout = get_time();
 }
 
 void clock_set_time_timeout(uint8_t sec) {
-    params_lock();
-    params.clock_time_timeout = sec;
-    params_unlock(&params.durty.clock_time_timeout);
+    options->clock.time_timeout = sec;
     timeout = get_time();
 }
 
 void clock_set_power_timeout(uint8_t sec) {
-    params_lock();
-    params.clock_power_timeout = sec;
-    params_unlock(&params.durty.clock_power_timeout);
+    options->clock.power_timeout = sec;
     timeout = get_time();
 }
 
 void clock_set_tx_timeout(uint8_t sec) {
-    params_lock();
-    params.clock_tx_timeout = sec;
-    params_unlock(&params.durty.clock_tx_timeout);
+    options->clock.tx_timeout = sec;
     timeout = get_time();
 }

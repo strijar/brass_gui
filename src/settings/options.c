@@ -76,6 +76,41 @@ static const cyaml_strval_t action_strings[] = {
     { "app_freq",           ACTION_APP_FREQ }
 };
 
+static const cyaml_strval_t key_mode_strings[] = {
+    { "manual",             KEY_MODE_MANUAL },
+    { "auto_left",          KEY_MODE_AUTO_LEFT },
+    { "auto_right",         KEY_MODE_AUTO_RIGHT },
+};
+
+static const cyaml_strval_t iambic_mode_strings[] = {
+    { "mode_a",             IAMBIC_A },
+    { "mode_b",             IAMBIC_B },
+};
+
+static const cyaml_strval_t voice_mode_strings[] = {
+    { "off",                VOICE_OFF },
+    { "lcd",                VOICE_LCD },
+    { "always",             VOICE_ALWAYS },
+};
+
+static const cyaml_strval_t freq_accel_strings[] = {
+    { "none",               FREQ_ACCEL_NONE },
+    { "lite",               FREQ_ACCEL_LITE },
+    { "strong",             FREQ_ACCEL_STRONG },
+};
+
+static const cyaml_strval_t freq_mode_strings[] = {
+    { "join",               FREQ_MODE_JOIN },
+    { "slide",              FREQ_MODE_SLIDE },
+    { "rx_only",            FREQ_MODE_RX_ONLY },
+    { "fft_only",           FREQ_MODE_FFT_ONLY },
+};
+
+static const cyaml_strval_t clock_view_strings[] = {
+    { "time_always",        CLOCK_TIME_ALWAYS },
+    { "time_power",         CLOCK_TIME_POWER },
+    { "power_always",       CLOCK_POWER_ALWAYS },
+};
 
 #define CONTROL_FLAGS (CYAML_FLAG_OPTIONAL | CYAML_FLAG_STRICT)
 
@@ -106,6 +141,13 @@ const cyaml_schema_field_t cw_fields_schema[] = {
     CYAML_FIELD_FLOAT("decoder_snr_gist",   CYAML_FLAG_OPTIONAL, options_cw_t, decoder_snr_gist),
     CYAML_FIELD_FLOAT("decoder_peak_beta",  CYAML_FLAG_OPTIONAL, options_cw_t, decoder_peak_beta),
     CYAML_FIELD_FLOAT("decoder_noise_beta", CYAML_FLAG_OPTIONAL, options_cw_t, decoder_noise_beta),
+    CYAML_FIELD_UINT("key_speed",           CYAML_FLAG_OPTIONAL, options_cw_t, key_speed),
+    CYAML_FIELD_UINT("key_ratio",           CYAML_FLAG_OPTIONAL, options_cw_t, key_ratio),
+    CYAML_FIELD_UINT("key_tone",            CYAML_FLAG_OPTIONAL, options_cw_t, key_tone),
+    CYAML_FIELD_ENUM("key_mode",            CYAML_FLAG_OPTIONAL, options_cw_t, key_mode, key_mode_strings, CYAML_ARRAY_LEN(key_mode_strings)),
+    CYAML_FIELD_BOOL("key_train",           CYAML_FLAG_OPTIONAL, options_cw_t, key_train),
+    CYAML_FIELD_UINT("qsk_time",            CYAML_FLAG_OPTIONAL, options_cw_t, qsk_time),
+    CYAML_FIELD_ENUM("iambic_mode",         CYAML_FLAG_OPTIONAL, options_cw_t, iambic_mode, iambic_mode_strings, CYAML_ARRAY_LEN(iambic_mode_strings)),
     CYAML_FIELD_END
 };
 
@@ -121,6 +163,7 @@ const cyaml_schema_field_t olivia_fields_schema[] = {
 
 const cyaml_schema_field_t msg_fields_schema[] = {
     CYAML_FIELD_UINT("voice_period",        CYAML_FLAG_OPTIONAL, options_msg_t, voice_period),
+    CYAML_FIELD_UINT("cw_period",           CYAML_FLAG_OPTIONAL, options_msg_t, cw_period),
     CYAML_FIELD_END
 };
 
@@ -140,6 +183,36 @@ const cyaml_schema_field_t hkeys_fields_schema[] = {
     CYAML_FIELD_END
 };
 
+const cyaml_schema_field_t mag_fields_schema[] = {
+    CYAML_FIELD_BOOL("freq",                    CYAML_FLAG_OPTIONAL, options_mag_t, freq),
+    CYAML_FIELD_BOOL("info",                    CYAML_FLAG_OPTIONAL, options_mag_t, info),
+    CYAML_FIELD_BOOL("alc",                     CYAML_FLAG_OPTIONAL, options_mag_t, alc),
+    CYAML_FIELD_END
+};
+
+const cyaml_schema_field_t voice_fields_schema[] = {
+    CYAML_FIELD_ENUM("mode",                    CYAML_FLAG_OPTIONAL, options_voice_t, mode, voice_mode_strings, CYAML_ARRAY_LEN(voice_mode_strings)),
+    CYAML_FIELD_UINT("lang",                    CYAML_FLAG_OPTIONAL, options_voice_t, lang),
+    CYAML_FIELD_UINT("rate",                    CYAML_FLAG_OPTIONAL, options_voice_t, rate),
+    CYAML_FIELD_UINT("pitch",                   CYAML_FLAG_OPTIONAL, options_voice_t, pitch),
+    CYAML_FIELD_UINT("volume",                  CYAML_FLAG_OPTIONAL, options_voice_t, volume),
+    CYAML_FIELD_END
+};
+
+const cyaml_schema_field_t freq_fields_schema[] = {
+    CYAML_FIELD_ENUM("accel",                   CYAML_FLAG_OPTIONAL, options_freq_t, accel, freq_accel_strings, CYAML_ARRAY_LEN(freq_accel_strings)),
+    CYAML_FIELD_ENUM("mode",                    CYAML_FLAG_OPTIONAL, options_freq_t, mode, freq_mode_strings, CYAML_ARRAY_LEN(freq_mode_strings)),
+    CYAML_FIELD_END
+};
+
+const cyaml_schema_field_t clock_fields_schema[] = {
+    CYAML_FIELD_ENUM("view",                    CYAML_FLAG_OPTIONAL, options_clock_t, view, clock_view_strings, CYAML_ARRAY_LEN(clock_view_strings)),
+    CYAML_FIELD_UINT("time_timeout",            CYAML_FLAG_OPTIONAL, options_clock_t, time_timeout),
+    CYAML_FIELD_UINT("power_timeout",           CYAML_FLAG_OPTIONAL, options_clock_t, power_timeout),
+    CYAML_FIELD_UINT("tx_timeout",              CYAML_FLAG_OPTIONAL, options_clock_t, tx_timeout),
+    CYAML_FIELD_END
+};
+
 const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("operator",     CYAML_FLAG_OPTIONAL, options_t, op, operator_fields_schema),
     CYAML_FIELD_MAPPING("audio",        CYAML_FLAG_OPTIONAL, options_t, audio, audio_fields_schema),
@@ -150,6 +223,10 @@ const cyaml_schema_field_t options_fields_schema[] = {
     CYAML_FIELD_MAPPING("olivia",       CYAML_FLAG_OPTIONAL, options_t, olivia, olivia_fields_schema),
     CYAML_FIELD_MAPPING("msg",          CYAML_FLAG_OPTIONAL, options_t, msg, msg_fields_schema),
     CYAML_FIELD_MAPPING("hkeys",        CYAML_FLAG_OPTIONAL, options_t, hkeys, hkeys_fields_schema),
+    CYAML_FIELD_MAPPING("mag",          CYAML_FLAG_OPTIONAL, options_t, mag, mag_fields_schema),
+    CYAML_FIELD_MAPPING("voice",        CYAML_FLAG_OPTIONAL, options_t, voice, voice_fields_schema),
+    CYAML_FIELD_MAPPING("freq",         CYAML_FLAG_OPTIONAL, options_t, freq, freq_fields_schema),
+    CYAML_FIELD_MAPPING("clock",        CYAML_FLAG_OPTIONAL, options_t, clock, clock_fields_schema),
     CYAML_FIELD_END
 };
 

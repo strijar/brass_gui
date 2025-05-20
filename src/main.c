@@ -21,7 +21,6 @@
 #include "util.h"
 #include "keyboard.h"
 #include "keypad.h"
-#include "params.h"
 #include "audio.h"
 #include "recorder.h"
 #include "cw.h"
@@ -79,7 +78,6 @@ int main(void) {
     vt_disable();
     pthread_mutex_init(&mux, NULL);
 
-    params_init();
     settings_modes_load();
     settings_bands_load();
     settings_options_load();

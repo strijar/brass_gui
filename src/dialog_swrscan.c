@@ -15,7 +15,8 @@
 #include "dialog.h"
 #include "dialog_swrscan.h"
 #include "styles.h"
-#include "params.h"
+#include "settings/op_work.h"
+#include "settings/swrscan.h"
 #include "radio.h"
 #include "events.h"
 #include "util.h"
@@ -62,9 +63,9 @@ static void do_init() {
 
     freq_index = 0;
     freq_center = op_work->rx;
-        
-    freq_start = freq_center - params.swrscan_span / 2;
-    freq_stop = freq_center + params.swrscan_span / 2;
+
+    freq_start = freq_center - settings_swrscan->span / 2;
+    freq_stop = freq_center + settings_swrscan->span / 2;
 }
 
 static void do_step(float vswr) {
@@ -103,7 +104,7 @@ static void do_step(float vswr) {
 static lv_coord_t calc_y(float vswr) {
     float x;
 
-    if (params.swrscan_linear) {
+    if (settings_swrscan->linear) {
         x = (vswr - 1.0f) / (5.0f - 1.0f);
     } else {
         float c = 1.0f / logf(10.0);
@@ -165,13 +166,13 @@ static void draw_cb(lv_event_t * e) {
         lv_draw_label(draw_ctx, &dsc_label, &area, str, NULL);
     }
     
-    uint64_t    freq = freq_center - params.swrscan_span / 4;
+    uint64_t    freq = freq_center - settings_swrscan->span / 4;
     uint16_t    mhz, khz, hz;
 
     a.y = y1;
     b.y = y1 + h;
     
-    for (int16_t x = -1; x <= 1; x++, freq += params.swrscan_span / 4) {
+    for (int16_t x = -1; x <= 1; x++, freq += settings_swrscan->span / 4) {
         a.x = x1 + w / 2 + (w / 4) * x;
         b.x = a.x;
 
@@ -268,10 +269,7 @@ void dialog_swrscan_run_cb(lv_event_t * e) {
 }
 
 void dialog_swrscan_scale_cb(lv_event_t * e) {
-    params_lock();
-    params.swrscan_linear = !params.swrscan_linear;
-    params_unlock(&params.durty.swrscan_linear);
-
+    settings_swrscan->linear = !settings_swrscan->linear;
     lv_obj_invalidate(chart);
 }
 
@@ -280,29 +278,25 @@ void dialog_swrscan_span_cb(lv_event_t * e) {
         return;
     }
 
-    params_lock();
-
-    switch (params.swrscan_span) {
+    switch (settings_swrscan->span) {
         case 50000:
-            params.swrscan_span = 100000;
+            settings_swrscan->span = 100000;
             break;
-    
+
         case 100000:
-            params.swrscan_span = 200000;
+            settings_swrscan->span = 200000;
             break;
-            
+
         case 200000:
-            params.swrscan_span = 500000;
+            settings_swrscan->span = 500000;
             break;
 
         case 500000:
-            params.swrscan_span = 50000;
+            settings_swrscan->span = 50000;
             break;
     }
 
-    params_unlock(&params.durty.swrscan_span);
     do_init();
-    
     lv_obj_invalidate(chart);
 }
 

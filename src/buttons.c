@@ -15,7 +15,6 @@
 #include "msg.h"
 #include "rtty.h"
 #include "pannel.h"
-#include "params.h"
 #include "dialog.h"
 #include "dialog_settings.h"
 #include "dialog_swrscan.h"
@@ -29,6 +28,7 @@
 #include "events.h"
 #include "msgs.h"
 #include "settings/options.h"
+#include "settings/op_work.h"
 #include "olivia/olivia.h"
 
 #define BUTTONS     6

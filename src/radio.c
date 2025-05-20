@@ -18,7 +18,6 @@
 #include "dsp.h"
 #include "main_screen.h"
 #include "hkey.h"
-#include "params.h"
 #include "tx_info.h"
 #include "meter.h"
 #include "events.h"
@@ -29,8 +28,10 @@
 #include "fpga/control.h"
 #include "msg.h"
 #include "msgs.h"
+#include "bands/bands.h"
 #include "settings/modes.h"
 #include "settings/rf.h"
+#include "settings/op_work.h"
 #include "hw/gpio.h"
 #include "hw/xvrt.h"
 #include "hw/pa_bias.h"
@@ -350,33 +351,7 @@ split_mode_t radio_change_split(int16_t d) {
     return op_work->split;
 }
 
-uint16_t radio_change_moni(int16_t df) {
-    if (df == 0) {
-        return params.moni;
-    }
-
-    params_lock();
-    params.moni = limit(params.moni + df, 0, 100);
-    params_unlock(&params.durty.moni);
-
-    return params.moni;
-}
-
-uint16_t radio_change_sql(int16_t df) {
-    if (df == 0) {
-        return params.sql;
-    }
-
-    params_lock();
-    params.sql = limit(params.sql + df, 0, 100);
-    params_unlock(&params.durty.sql);
-
-    return params.sql;
-}
-
 bool radio_change_pre() {
-    params_lock();
-
     op_work->pre = !op_work->pre;
 
     voice_say_text_fmt("Preamplifier %s", op_work->pre ? "On" : "Off");
@@ -540,15 +515,6 @@ uint32_t radio_change_filter_transition(int32_t df) {
     return op_mode->filter.transition;
 }
 
-void radio_change_atu() {
-    params_lock();
-    params.atu = !params.atu;
-    params_unlock(&params.durty.atu);
-
-    radio_load_atu();
-    voice_say_text_fmt("Auto tuner %s", params.atu ? "On" : "Off");
-}
-
 void radio_start_atu() {
     if (state == RADIO_RX) {
         state = RADIO_ATU_START;
@@ -590,97 +556,22 @@ void radio_load_atu() {
 
 float radio_change_pwr(int16_t d) {
     if (d == 0) {
-        return params.pwr;
+        return rf->pwr;
     }
-    
-    params_lock();
-    params.pwr += d * 0.1f;
-    
-    if (params.pwr > 10.0f) {
-        params.pwr = 10.0f;
-    } else if (params.pwr < 0.1f) {
-        params.pwr = 0.1f;
-    }
-    
-    params_unlock(&params.durty.pwr);
 
-    return params.pwr;
+    rf->pwr += d * 0.1f;
+
+    if (rf->pwr > 10.0f) {
+        rf->pwr = 10.0f;
+    } else if (rf->pwr < 0.1f) {
+        rf->pwr = 0.1f;
+    }
+
+    return rf->pwr;
 }
 
 void radio_poweroff() {
     state = RADIO_POWEROFF;
-}
-
-bool radio_change_dnf(int16_t d) {
-    if (d == 0) {
-        return params.dnf;
-    }
-
-    params_lock();
-    params.dnf = !params.dnf;
-    params_unlock(&params.durty.dnf);
-    
-    return params.dnf;
-}
-
-uint16_t radio_change_dnf_center(int16_t d) {
-    if (d == 0) {
-        return params.dnf_center;
-    }
-
-    params_lock();
-    params.dnf_center = limit(params.dnf_center + d * 50, 100, 3000);
-    params_unlock(&params.durty.dnf_center);
-    
-    return params.dnf_center;
-}
-
-uint16_t radio_change_dnf_width(int16_t d) {
-    if (d == 0) {
-        return params.dnf_width;
-    }
-
-    params_lock();
-    params.dnf_width = limit(params.dnf_width + d * 5, 10, 100);
-    params_unlock(&params.durty.dnf_width);
-    
-    return params.dnf_width;
-}
-
-bool radio_change_nb(int16_t d) {
-    if (d == 0) {
-        return params.nb;
-    }
-
-    params_lock();
-    params.nb = !params.nb;
-    params_unlock(&params.durty.nb);
-    
-    return params.nb;
-}
-
-uint8_t radio_change_nb_level(int16_t d) {
-    if (d == 0) {
-        return params.nb_level;
-    }
-
-    params_lock();
-    params.nb_level = limit(params.nb_level + d * 5, 0, 100);
-    params_unlock(&params.durty.nb_level);
-    
-    return params.nb_level;
-}
-
-uint8_t radio_change_nb_width(int16_t d) {
-    if (d == 0) {
-        return params.nb_width;
-    }
-
-    params_lock();
-    params.nb_width = limit(params.nb_width + d * 5, 0, 100);
-    params_unlock(&params.durty.nb_width);
-    
-    return params.nb_width;
 }
 
 void radio_set_ptt(bool on) {

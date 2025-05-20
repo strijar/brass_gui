@@ -8,7 +8,6 @@
 
 #include "lvgl/lvgl.h"
 #include "mfk.h"
-#include "params.h"
 #include "main_screen.h"
 #include "msg.h"
 #include "dsp.h"
@@ -23,6 +22,7 @@
 #include "dsp/agc.h"
 #include "settings/modes.h"
 #include "settings/options.h"
+#include "settings/rf.h"
 #include "olivia/olivia.h"
 
 mfk_state_t  mfk_state = MFK_STATE_EDIT;
@@ -233,15 +233,15 @@ void mfk_update(int16_t diff, bool voice) {
             i = cw_key_change_mode(diff);
 
             switch (i) {
-                case cw_key_manual:
+                case KEY_MODE_MANUAL:
                     str = "Manual";
                     break;
 
-                case cw_key_auto_left:
+                case KEY_MODE_AUTO_LEFT:
                     str = "Auto-L";
                     break;
 
-                case cw_key_auto_right:
+                case KEY_MODE_AUTO_RIGHT:
                     str = "Auto-R";
                     break;
             }
@@ -258,11 +258,11 @@ void mfk_update(int16_t diff, bool voice) {
             i = cw_key_change_iambic_mode(diff);
 
             switch (i) {
-                case cw_key_iambic_a:
+                case IAMBIC_A:
                     str = "A";
                     break;
 
-                case cw_key_iambic_b:
+                case IAMBIC_B:
                     str = "B";
                     break;
             }
@@ -283,17 +283,6 @@ void mfk_update(int16_t diff, bool voice) {
                 voice_say_int("CW key tone", i);
             } else if (voice) {
                 voice_say_text_fmt("CW key tone");
-            }
-            break;
-
-        case MFK_KEY_VOL:
-            i = cw_key_change_vol(diff);
-            msg_set_text_fmt("#%3X Key volume: %i", color, i);
-
-            if (diff) {
-                voice_say_int("CW key volume level", i);
-            } else if (voice) {
-                voice_say_text_fmt("CW key volume level");
             }
             break;
 
@@ -332,85 +321,17 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_ANT:
             if (diff != 0) {
-                params_lock();
-                params.ant = limit(params.ant + diff, 1, 5);
-                params_unlock(&params.durty.ant);
+                rf->ant = limit(rf->ant + diff, 1, 5);
 
                 radio_load_atu();
                 info_atu_update();
             }
-            msg_set_text_fmt("#%3X Antenna : %i", color, params.ant);
+            msg_set_text_fmt("#%3X Antenna : %i", color, rf->ant);
 
             if (diff) {
-                voice_say_int("Antenna", params.ant);
+                voice_say_int("Antenna", rf->ant);
             } else if (voice) {
                 voice_say_text_fmt("Antenna selector");
-            }
-            break;
-
-        case MFK_DNF:
-            b = radio_change_dnf(diff);
-            msg_set_text_fmt("#%3X DNF: %s", color, b ? "On" : "Off");
-
-            if (diff) {
-                voice_say_bool("DNF", b);
-            } else if (voice) {
-                voice_say_text_fmt("DNF switcher");
-            }
-            break;
-
-        case MFK_DNF_CENTER:
-            i = radio_change_dnf_center(diff);
-            msg_set_text_fmt("#%3X DNF center: %i Hz", color, i);
-
-            if (diff) {
-                voice_say_int("DNF center frequency", i);
-            } else if (voice) {
-                voice_say_text_fmt("DNF center frequency");
-            }
-            break;
-
-        case MFK_DNF_WIDTH:
-            i = radio_change_dnf_width(diff);
-            msg_set_text_fmt("#%3X DNF width: %i Hz", color, i);
-
-            if (diff) {
-                voice_say_int("DNF width", i);
-            } else if (voice) {
-                voice_say_text_fmt("DNF width");
-            }
-            break;
-
-        case MFK_NB:
-            b = radio_change_nb(diff);
-            msg_set_text_fmt("#%3X NB: %s", color, b ? "On" : "Off");
-
-            if (diff) {
-                voice_say_bool("NB", b);
-            } else if (voice) {
-                voice_say_text_fmt("NB switcher");
-            }
-            break;
-
-        case MFK_NB_LEVEL:
-            i = radio_change_nb_level(diff);
-            msg_set_text_fmt("#%3X NB level: %i", color, i);
-
-            if (diff) {
-                voice_say_int("NB level", i);
-            } else if (voice) {
-                voice_say_text_fmt("NB level");
-            }
-            break;
-
-        case MFK_NB_WIDTH:
-            i = radio_change_nb_width(diff);
-            msg_set_text_fmt("#%3X NB width: %i Hz", color, i);
-
-            if (diff) {
-                voice_say_int("NB width", i);
-            } else if (voice) {
-                voice_say_text_fmt("NB width");
             }
             break;
 

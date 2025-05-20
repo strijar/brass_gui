@@ -30,6 +30,10 @@ const cyaml_schema_field_t rf_fields_schema[] = {
     CYAML_FIELD_SEQUENCE("rx_band",         CYAML_FLAG_POINTER,  rf_t, rx_band, &rx_band_schema, 0, CYAML_UNLIMITED),
     CYAML_FIELD_SEQUENCE("tx_band",         CYAML_FLAG_POINTER,  rf_t, tx_band, &tx_band_schema, 0, CYAML_UNLIMITED),
     CYAML_FIELD_SEQUENCE("xvrt",            CYAML_FLAG_POINTER,  rf_t, xvrt, &xvrt_schema, 0, CYAML_UNLIMITED),
+    CYAML_FIELD_INT("txo_offset",           CYAML_FLAG_DEFAULT,  rf_t, txo_offset),
+    CYAML_FIELD_FLOAT("pwr",                CYAML_FLAG_DEFAULT,  rf_t, pwr),
+    CYAML_FIELD_UINT("ant",                 CYAML_FLAG_DEFAULT,  rf_t, ant),
+    CYAML_FIELD_BOOL("atu",                 CYAML_FLAG_DEFAULT,  rf_t, atu),
     CYAML_FIELD_END
 };
 

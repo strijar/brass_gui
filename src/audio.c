@@ -19,7 +19,6 @@
 #include "audio.h"
 #include "meter.h"
 #include "dsp.h"
-#include "params.h"
 #include "mic.h"
 #include "fpga/adc.h"
 

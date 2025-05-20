@@ -43,3 +43,8 @@ xvrt:
 - {start: 437000000, stop: 438000000, shift: 409500000, corr: -8000}
 - {start: 438000000, stop: 439000000, shift: 410500000, corr: -8000}
 - {start: 439000000, stop: 440000000, shift: 411500000, corr: -8000}
+
+txo_offset: 0
+pwr: 10.0
+ant: 1
+atu: false

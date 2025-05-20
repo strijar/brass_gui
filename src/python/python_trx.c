@@ -11,7 +11,6 @@
 #include "python_trx.h"
 #include "src/msgs.h"
 #include "src/events.h"
-#include "src/params.h"
 #include "src/widgets/lv_spectrum.h"
 #include "src/widgets/lv_waterfall.h"
 #include "src/widgets/lv_finder.h"

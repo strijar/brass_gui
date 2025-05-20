@@ -32,6 +32,11 @@ typedef struct {
     uint16_t        tx_band_count;
     xvrt_item_t     *xvrt;
     uint64_t        xvrt_count;
+    int32_t         txo_offset;
+    float           pwr;
+    uint8_t         ant;
+    bool            atu;
+    bool            atu_loaded;
 } rf_t;
 
 extern rf_t   *rf;

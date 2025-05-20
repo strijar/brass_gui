@@ -18,7 +18,6 @@
 #include "dialog.h"
 #include "dialog_settings.h"
 #include "styles.h"
-#include "params.h"
 #include "backlight.h"
 #include "radio.h"
 #include "events.h"
@@ -28,6 +27,7 @@
 #include "dsp.h"
 #include "fpga/control.h"
 #include "settings/options.h"
+#include "settings/rf.h"
 
 static lv_obj_t     *grid;
 
@@ -73,29 +73,28 @@ dialog_t            *dialog_settings = &dialog;
 
 static void bool_update_cb(lv_event_t * e) {
     lv_obj_t        *obj = lv_event_get_target(e);
-    params_bool_t   *var = lv_event_get_user_data(e);
+    bool            *var = lv_event_get_user_data(e);
 
-    params_bool_set(var, lv_obj_has_state(obj, LV_STATE_CHECKED));
+    *var = lv_obj_has_state(obj, LV_STATE_CHECKED);
 }
 
 static void uint8_spinbox_update_cb(lv_event_t * e) {
     lv_obj_t        *obj = lv_event_get_target(e);
-    params_uint8_t  *var = lv_event_get_user_data(e);
+    uint8_t         *var = lv_event_get_user_data(e);
 
-    params_uint8_set(var, lv_spinbox_get_value(obj));
+    *var = lv_spinbox_get_value(obj);
 }
-
 
 static void uint8_dropdown_update_cb(lv_event_t * e) {
     lv_obj_t        *obj = lv_event_get_target(e);
-    params_uint8_t  *var = lv_event_get_user_data(e);
+    uint8_t         *var = lv_event_get_user_data(e);
 
-    params_uint8_set(var, lv_dropdown_get_selected(obj));
+    *var = lv_dropdown_get_selected(obj);
 }
 
 /* Shared create */
 
-static lv_obj_t * switch_bool(lv_obj_t *parent, params_bool_t *var) {
+static lv_obj_t * switch_bool(lv_obj_t *parent, bool *var) {
     lv_obj_t *obj = lv_switch_create(parent);
 
     dialog_item(&dialog, obj);
@@ -103,27 +102,26 @@ static lv_obj_t * switch_bool(lv_obj_t *parent, params_bool_t *var) {
     lv_obj_center(obj);
     lv_obj_add_event_cb(obj, bool_update_cb, LV_EVENT_VALUE_CHANGED, var);
 
-    if (var->x) {
+    if (*var) {
         lv_obj_add_state(obj, LV_STATE_CHECKED);
     }
-    
+
     return obj;
 }
 
-static lv_obj_t * spinbox_uint8(lv_obj_t *parent, params_uint8_t *var) {
+static lv_obj_t * spinbox_uint8(lv_obj_t *parent, uint8_t *var, uint8_t min, uint8_t max) {
     lv_obj_t *obj = lv_spinbox_create(parent);
 
     dialog_item(&dialog, obj);
 
-    lv_spinbox_set_value(obj, var->x);
-    lv_spinbox_set_range(obj, var->min, var->max);
+    lv_spinbox_set_value(obj, *var);
+    lv_spinbox_set_range(obj, min, max);
     lv_obj_add_event_cb(obj, uint8_spinbox_update_cb, LV_EVENT_VALUE_CHANGED, var);
-    
+
     return obj;
 }
 
-
-static lv_obj_t * dropdown_uint8(lv_obj_t *parent, params_uint8_t *var, const char *options) {
+static lv_obj_t * dropdown_uint8(lv_obj_t *parent, uint8_t *var, const char *options) {
     lv_obj_t *obj = lv_dropdown_create(parent);
 
     dialog_item(&dialog, obj);
@@ -132,12 +130,12 @@ static lv_obj_t * dropdown_uint8(lv_obj_t *parent, params_uint8_t *var, const ch
 
     lv_obj_t *list = lv_dropdown_get_list(obj);
     lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
-    
+
     lv_dropdown_set_options(obj, options);
     lv_dropdown_set_symbol(obj, NULL);
 
-    lv_dropdown_set_selected(obj, var->x);
-    
+    lv_dropdown_set_selected(obj, *var);
+
     return obj;
 }
 
@@ -152,18 +150,18 @@ static void datetime_update_cb(lv_event_t * e) {
     ts.tm_sec = lv_spinbox_get_value(sec);
 
     /* Set system */
-    
+
     struct timespec tp;
-    
+
     tp.tv_sec = mktime(&ts);
     tp.tv_nsec = 0;
 
     clock_settime(CLOCK_REALTIME, &tp);
-    
+
     /* Set RTC */
-    
+
     int rtc = open("/dev/rtc1", O_WRONLY);
-    
+
     if (rtc > 0) {
         ioctl(rtc, RTC_SET_TIME, &ts);
         close(rtc);
@@ -305,9 +303,7 @@ static uint8_t make_time(uint8_t row) {
 static void backlight_timeout_update_cb(lv_event_t * e) {
     lv_obj_t *obj = lv_event_get_target(e);
 
-    params_lock();
-    params.brightness_timeout = lv_spinbox_get_value(obj);
-    params_unlock(&params.durty.brightness_timeout);
+///    params.brightness_timeout = lv_spinbox_get_value(obj);
 
     backlight_tick();
 }
@@ -315,21 +311,9 @@ static void backlight_timeout_update_cb(lv_event_t * e) {
 static void backlight_brightness_update_cb(lv_event_t * e) {
     lv_obj_t *obj = lv_event_get_target(e);
 
-    params_lock();
-    params.brightness_normal = lv_slider_get_value(obj);
-    params_unlock(&params.durty.brightness_normal);
-
-    params_lock();
-    params.brightness_idle = lv_slider_get_left_value(obj);
-    params_unlock(&params.durty.brightness_idle);
-
-    backlight_set_brightness(params.brightness_normal);
-}
-
-static void backlight_buttons_update_cb(lv_event_t * e) {
-    lv_obj_t *obj = lv_event_get_target(e);
-
-    backlight_set_buttons(lv_dropdown_get_selected(obj));
+///    params.brightness_normal = lv_slider_get_value(obj);
+///    params.brightness_idle = lv_slider_get_left_value(obj);
+///    backlight_set_brightness(params.brightness_normal);
 }
 
 static uint8_t make_backlight(uint8_t row) {
@@ -351,19 +335,19 @@ static uint8_t make_backlight(uint8_t row) {
 
     dialog_item(&dialog, obj);
 
-    lv_spinbox_set_value(obj, params.brightness_timeout);
+///    lv_spinbox_set_value(obj, params.brightness_timeout);
     lv_spinbox_set_range(obj, 5, 120);
     lv_spinbox_set_digit_format(obj, 3, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, SMALL_2, 56);
-    
+
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, backlight_timeout_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Brightness */
 
     obj = lv_obj_create(grid);
-    
+
     lv_obj_set_size(obj, SMALL_4, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 4, LV_GRID_ALIGN_CENTER, row, 1);   col += 4;
     lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
@@ -373,40 +357,16 @@ static uint8_t make_backlight(uint8_t row) {
     obj = lv_slider_create(obj);
 
     dialog_item(&dialog, obj);
-    
+
     lv_slider_set_mode(obj, LV_SLIDER_MODE_RANGE);
-    lv_slider_set_value(obj, params.brightness_normal, LV_ANIM_OFF);
-    lv_slider_set_left_value(obj, params.brightness_idle, LV_ANIM_OFF);
+///    lv_slider_set_value(obj, params.brightness_normal, LV_ANIM_OFF);
+///    lv_slider_set_left_value(obj, params.brightness_idle, LV_ANIM_OFF);
     lv_slider_set_range(obj, -1, 9);
     lv_obj_set_width(obj, SMALL_4 - 30);
     lv_obj_center(obj);
 
     lv_obj_add_event_cb(obj, backlight_brightness_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    row++;
-    row_dsc[row] = 54;
-
-    obj = lv_label_create(grid);
-
-    lv_label_set_text(obj, "Buttons brightness");
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
-
-    obj = lv_dropdown_create(grid);
-
-    dialog_item(&dialog, obj);
-    
-    lv_obj_set_size(obj, SMALL_6, 56);
-    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
-    lv_obj_center(obj);
-    
-    lv_obj_t *list = lv_dropdown_get_list(obj);
-    lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
-    
-    lv_dropdown_set_options(obj, " Always Off \n Always On \n Temporarily On ");
-    lv_dropdown_set_symbol(obj, NULL);
-    lv_dropdown_set_selected(obj, params.brightness_buttons);
-    lv_obj_add_event_cb(obj, backlight_buttons_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
-    
     return row + 1;
 }
 
@@ -426,42 +386,42 @@ static uint8_t make_mag(uint8_t row) {
     /* Freq */
 
     obj = lv_obj_create(grid);
-    
+
     lv_obj_set_size(obj, SMALL_2, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = switch_bool(obj, &params.mag_freq);
+    obj = switch_bool(obj, &options->mag.freq);
 
     lv_obj_set_width(obj, SMALL_2 - 30);
 
     /* Info */
 
     obj = lv_obj_create(grid);
-    
+
     lv_obj_set_size(obj, SMALL_2, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = switch_bool(obj, &params.mag_info);
+    obj = switch_bool(obj, &options->mag.info);
 
     lv_obj_set_width(obj, SMALL_2 - 30);
 
     /* ALC */
 
     obj = lv_obj_create(grid);
-    
+
     lv_obj_set_size(obj, SMALL_2, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 3, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_center(obj);
 
-    obj = switch_bool(obj, &params.mag_alc);
+    obj = switch_bool(obj, &options->mag.alc);
 
     lv_obj_set_width(obj, SMALL_2 - 30);
 
@@ -508,17 +468,17 @@ static uint8_t make_clock(uint8_t row) {
     obj = lv_dropdown_create(grid);
 
     dialog_item(&dialog, obj);
-    
+
     lv_obj_set_size(obj, SMALL_6, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
     lv_obj_center(obj);
-    
+
     lv_obj_t *list = lv_dropdown_get_list(obj);
     lv_obj_add_style(list, &dialog_dropdown_list_style, 0);
-    
+
     lv_dropdown_set_options(obj, " Always Time \n Time and Power \n Always Power");
     lv_dropdown_set_symbol(obj, NULL);
-    lv_dropdown_set_selected(obj, params.clock_view);
+///    lv_dropdown_set_selected(obj, params.clock_view);
     lv_obj_add_event_cb(obj, clock_view_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* * */
@@ -527,7 +487,7 @@ static uint8_t make_clock(uint8_t row) {
     row_dsc[row] = 54;
 
     obj = lv_label_create(grid);
-    
+
     lv_label_set_text(obj, "Timeout Clock, Power, TX");
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
@@ -535,12 +495,12 @@ static uint8_t make_clock(uint8_t row) {
 
     dialog_item(&dialog, obj);
 
-    lv_spinbox_set_value(obj, params.clock_time_timeout);
+///    lv_spinbox_set_value(obj, params.clock_time_timeout);
     lv_spinbox_set_range(obj, 1, 59);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, SMALL_2, 56);
-    
+
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, clock_time_timeout_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
@@ -548,12 +508,12 @@ static uint8_t make_clock(uint8_t row) {
 
     dialog_item(&dialog, obj);
 
-    lv_spinbox_set_value(obj, params.clock_power_timeout);
+///    lv_spinbox_set_value(obj, params.clock_power_timeout);
     lv_spinbox_set_range(obj, 1, 59);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, SMALL_2, 56);
-    
+
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, clock_power_timeout_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
@@ -561,12 +521,12 @@ static uint8_t make_clock(uint8_t row) {
 
     dialog_item(&dialog, obj);
 
-    lv_spinbox_set_value(obj, params.clock_tx_timeout);
+///    lv_spinbox_set_value(obj, params.clock_tx_timeout);
     lv_spinbox_set_range(obj, 0, 10);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, SMALL_2, 56);
-    
+
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
     lv_obj_add_event_cb(obj, clock_tx_timeout_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
@@ -799,38 +759,38 @@ static uint8_t make_voice(uint8_t row) {
     lv_label_set_text(obj, "Voice mode");
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
-    obj = dropdown_uint8(grid, &params.voice_mode, " Off \n When LCD off \n Always");
+    obj = dropdown_uint8(grid, &options->voice.mode, " Off \n When LCD off \n Always");
 
     lv_obj_set_size(obj, SMALL_6, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
     lv_obj_center(obj);
-    
+
     /* * */
 
     row++;
     row_dsc[row] = 54;
 
     obj = lv_label_create(grid);
-    
+
     lv_label_set_text(obj, "Voice rate, pitch, volume");
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
-    obj = spinbox_uint8(grid, &params.voice_rate);
+    obj = spinbox_uint8(grid, &options->voice.rate, 50, 150);
 
     lv_spinbox_set_digit_format(obj, 3, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, SMALL_2, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
 
-    obj = spinbox_uint8(grid, &params.voice_pitch);
+    obj = spinbox_uint8(grid, &options->voice.pitch, 50, 150);
 
     lv_spinbox_set_digit_format(obj, 3, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
     lv_obj_set_size(obj, SMALL_2, 56);
-    
+
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col, 2, LV_GRID_ALIGN_CENTER, row, 1);   col += 2;
 
-    obj = spinbox_uint8(grid, &params.voice_volume);
+    obj = spinbox_uint8(grid, &options->voice.volume, 50, 150);
 
     lv_spinbox_set_digit_format(obj, 3, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
@@ -851,12 +811,12 @@ static uint8_t make_freq_accel(uint8_t row) {
     lv_label_set_text(obj, "Freq acceleration");
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, col++, 1, LV_GRID_ALIGN_CENTER, row, 1);
 
-    obj = dropdown_uint8(grid, &params.freq_accel, " None \n Lite \n Strong");
+    obj = dropdown_uint8(grid, &options->freq.accel, " None \n Lite \n Strong");
 
     lv_obj_set_size(obj, SMALL_6, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, row, 1);
     lv_obj_center(obj);
-    
+
     return row + 1;
 }
 
@@ -865,7 +825,7 @@ static uint8_t make_freq_accel(uint8_t row) {
 static void txo_freq_update_cb(lv_event_t * e) {
     lv_obj_t        *obj = lv_event_get_target(e);
 
-    params_int32_set(&params.txo_offset, lv_spinbox_get_value(obj));
+    rf->txo_offset = lv_spinbox_get_value(obj);
     control_update();
 }
 
@@ -881,8 +841,8 @@ static uint8_t make_txo_freq(uint8_t row) {
     obj = lv_spinbox_create(grid);
 
     dialog_item(&dialog, obj);
-    lv_spinbox_set_value(obj, params.txo_offset.x);
-    lv_spinbox_set_range(obj, params.txo_offset.min, params.txo_offset.max);
+    lv_spinbox_set_value(obj, rf->txo_offset);
+    lv_spinbox_set_range(obj, -10000, 10000);
     lv_obj_add_event_cb(obj, txo_freq_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_spinbox_set_digit_format(obj, 6, 0);

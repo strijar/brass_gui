@@ -8,9 +8,10 @@
 
 #include "info.h"
 #include "styles.h"
-#include "params.h"
 #include "dsp/agc.h"
 #include "settings/modes.h"
+#include "settings/rf.h"
+#include "settings/op_work.h"
 
 typedef enum {
     INFO_SPLIT = 0,
@@ -58,9 +59,9 @@ lv_obj_t * info_init(lv_obj_t * parent) {
 }
 
 void info_atu_update() {
-    lv_label_set_text_fmt(items[INFO_ATU], "ATU%i", params.ant);
+    lv_label_set_text_fmt(items[INFO_ATU], "ATU%i", rf->ant);
 
-    if (!params.atu) {
+    if (!rf->atu) {
         lv_obj_set_style_text_color(items[INFO_ATU], lv_color_white(), 0);
         lv_obj_set_style_bg_color(items[INFO_ATU], lv_color_black(), 0);
         lv_obj_set_style_bg_opa(items[INFO_ATU], LV_OPA_0, 0);
@@ -69,7 +70,7 @@ void info_atu_update() {
             lv_obj_set_style_text_color(items[INFO_ATU], lv_color_hex(0xAAAAAA), 0);
             lv_obj_set_style_bg_opa(items[INFO_ATU], LV_OPA_20, 0);
         } else {
-            lv_obj_set_style_text_color(items[INFO_ATU], params.atu_loaded ? lv_color_black() : lv_color_hex(0xFF0000), 0);
+            lv_obj_set_style_text_color(items[INFO_ATU], rf->atu_loaded ? lv_color_black() : lv_color_hex(0xFF0000), 0);
             lv_obj_set_style_bg_opa(items[INFO_ATU], LV_OPA_50, 0);
         }
         lv_obj_set_style_bg_color(items[INFO_ATU], lv_color_white(), 0);

@@ -79,24 +79,13 @@ split_mode_t radio_change_split(int16_t d);
 void radio_change_mode(radio_change_mode_t select);
 
 uint16_t radio_change_rfg(int16_t df);
-uint16_t radio_change_sql(int16_t df);
 uint32_t radio_change_filter_low(int32_t freq);
 uint32_t radio_change_filter_high(int32_t freq);
 uint32_t radio_change_filter_transition(int32_t freq);
-uint16_t radio_change_moni(int16_t df);
 
 bool radio_change_pre();
 bool radio_change_att();
-void radio_change_atu();
 float radio_change_pwr(int16_t d);
-
-bool radio_change_dnf(int16_t d);
-uint16_t radio_change_dnf_center(int16_t d);
-uint16_t radio_change_dnf_width(int16_t d);
-bool radio_change_nb(int16_t d);
-uint8_t radio_change_nb_level(int16_t d);
-uint8_t radio_change_nb_width(int16_t d);
-bool radio_change_nr(int16_t d);
 
 void radio_start_atu();
 void radio_load_atu();

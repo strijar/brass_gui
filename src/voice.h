@@ -17,12 +17,6 @@ extern "C" {
 
 #define VOICES_NUM 4
 
-typedef enum {
-    VOICE_OFF = 0,
-    VOICE_LCD,
-    VOICE_ALWAYS
-} voice_mode_t;
-
 void voice_sure();
 void voice_change_mode();
 

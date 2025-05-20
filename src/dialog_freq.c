@@ -19,7 +19,6 @@
 #include "events.h"
 #include "util.h"
 #include "keyboard.h"
-#include "params.h"
 #include "bands/bands.h"
 #include "info.h"
 #include "pannel.h"

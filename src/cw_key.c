@@ -3,160 +3,102 @@
  *
  *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include "cw_key.h"
 #include "generator.h"
-#include "params.h"
 #include "util.h"
 #include "fpga/dac.h"
 
 static generator_tone_t tone;
 
 void cw_key_init() {
-    generator_tone_set_freq(&tone, params.key_tone, DAC_RATE);
+    generator_tone_set_freq(&tone, options->cw.key_tone, DAC_RATE);
 }
 
 uint16_t cw_key_change_speed(int16_t d) {
     if (d == 0) {
-        return params.key_speed;
+        return options->cw.key_speed;
     }
-    
-    params_lock();
-    params.key_speed = limit(params.key_speed + d, 5, 50);
-    params_unlock(&params.durty.key_speed);
 
-    return params.key_speed;
+    options->cw.key_speed = limit(options->cw.key_speed + d, 5, 50);
+
+    return options->cw.key_speed;
 }
 
-cw_key_mode_t cw_key_change_mode(int16_t d) {
+key_mode_t cw_key_change_mode(int16_t d) {
     if (d == 0) {
-        return params.key_mode;
+        return options->cw.key_mode;
     }
 
-    params_lock();
+    switch (options->cw.key_mode) {
+        case KEY_MODE_MANUAL:
+            options->cw.key_mode = d > 0 ? KEY_MODE_AUTO_LEFT : KEY_MODE_AUTO_RIGHT;
+            break;
 
-    switch (params.key_mode) {
-        case cw_key_manual:
-            params.key_mode = d > 0 ? cw_key_auto_left : cw_key_auto_right;
+        case KEY_MODE_AUTO_LEFT:
+            options->cw.key_mode = d > 0 ? KEY_MODE_AUTO_RIGHT : KEY_MODE_MANUAL;
             break;
-            
-        case cw_key_auto_left:
-            params.key_mode = d > 0 ? cw_key_auto_right : cw_key_manual;
-            break;
-            
-        case cw_key_auto_right:
-            params.key_mode = d > 0 ? cw_key_manual : cw_key_auto_left;
+
+        case KEY_MODE_AUTO_RIGHT:
+            options->cw.key_mode = d > 0 ? KEY_MODE_MANUAL : KEY_MODE_AUTO_LEFT;
             break;
     }
 
-    params_unlock(&params.durty.key_mode);
-
-    return params.key_mode;
+    return options->cw.key_mode;
 }
 
-cw_key_iambic_mode_t cw_key_change_iambic_mode(int16_t d) {
+iambic_mode_t cw_key_change_iambic_mode(int16_t d) {
     if (d == 0) {
-        return params.iambic_mode;
+        return options->cw.iambic_mode;
     }
 
-    params_lock();
+    options->cw.iambic_mode = (options->cw.iambic_mode == IAMBIC_A) ? IAMBIC_B : IAMBIC_A;
 
-    params.iambic_mode = (params.iambic_mode == cw_key_iambic_a) ? cw_key_iambic_b : cw_key_iambic_a;
-
-    params_unlock(&params.durty.iambic_mode);
-
-    return params.iambic_mode;
+    return options->cw.iambic_mode;
 }
 
 uint16_t cw_key_change_tone(int16_t d) {
     if (d == 0) {
-        return params.key_tone;
+        return options->cw.key_tone;
     }
 
-    params_lock();
+    options->cw.key_tone = limit(options->cw.key_tone + ((d > 0) ? 10 : -10), 400, 1200);
 
-    params.key_tone += (d > 0) ? 10 : -10;
+    generator_tone_set_freq(&tone, options->cw.key_tone, DAC_RATE);
 
-    if (params.key_tone < 400) {
-        params.key_tone = 400;
-    } else if (params.key_tone > 1200) {
-        params.key_tone = 1200;
-    }
-
-    params_unlock(&params.durty.key_tone);
-
-    generator_tone_set_freq(&tone, params.key_tone, DAC_RATE);
-
-    return params.key_tone;
-}
-
-uint16_t cw_key_change_vol(int16_t d) {
-    if (d == 0) {
-        return params.key_vol;
-    }
-
-    params_lock();
-
-    params.key_vol = limit(params.key_vol + d, 0, 32);
-    params_unlock(&params.durty.key_vol);
-
-    return params.key_vol;
+    return options->cw.key_tone;
 }
 
 bool cw_key_change_train(int16_t d) {
     if (d == 0) {
-        return params.key_train;
+        return options->cw.key_train;
     }
 
-    params_lock();
-    params.key_train = !params.key_train;
-    params_unlock(&params.durty.key_train);
+    options->cw.key_train = !options->cw.key_train;
 
-    return params.key_train;
+    return options->cw.key_train;
 }
 
 uint16_t cw_key_change_qsk_time(int16_t d) {
     if (d == 0) {
-        return params.qsk_time;
+        return options->cw.qsk_time;
     }
 
-    params_lock();
+    options->cw.qsk_time = limit(options->cw.qsk_time + (d > 0 ? 10: -10), 0, 1000);
 
-    int16_t x = params.qsk_time;
-    
-    if (d > 0) {
-        x += 10;
-    } else {
-        x -= 10;
-    }
-    
-    params.qsk_time = limit(x, 0, 1000);
-    params_unlock(&params.durty.qsk_time);
-
-    return params.qsk_time;
+    return options->cw.qsk_time;
 }
 
 uint8_t cw_key_change_ratio(int16_t d) {
     if (d == 0) {
-        return params.key_ratio;
+        return options->cw.key_ratio;
     }
 
-    params_lock();
+    options->cw.key_ratio = limit(options->cw.key_ratio + (d > 0 ? 5 : -5), 25, 45);
 
-    int16_t x = params.key_ratio;
-
-    if (d > 0) {
-        x += 5;
-    } else {
-        x -= 5;
-    }
-
-    params.key_ratio = limit(x, 25, 45);
-    params_unlock(&params.durty.key_ratio);
-
-    return params.key_ratio;
+    return options->cw.key_ratio;
 }
 
 size_t cw_key_generator(float complex *data, size_t max_size, bool reverse) {
@@ -165,6 +107,6 @@ size_t cw_key_generator(float complex *data, size_t max_size, bool reverse) {
     for (uint16_t i = 0; i < size; i++) {
         data[i] = generator_tone(&tone);
     }
-    
+
     return size;
 }

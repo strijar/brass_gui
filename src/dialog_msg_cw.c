@@ -15,7 +15,6 @@
 #include "dialog.h"
 #include "dialog_msg_cw.h"
 #include "styles.h"
-#include "params.h"
 #include "events.h"
 #include "util.h"
 #include "pannel.h"
@@ -26,6 +25,7 @@
 #include "buttons.h"
 #include "main_screen.h"
 #include "dsp.h"
+#include "settings/options.h"
 
 static uint32_t         *ids = NULL;
 
@@ -105,7 +105,7 @@ static void construct_cb(lv_obj_t *parent) {
     table_rows = 0;
     ids = NULL;
 
-    params_msg_cw_load();
+///    params_msg_cw_load();
     main_screen_lock_mode(true);
 }
 
@@ -149,7 +149,7 @@ static void textarea_window_close_cb() {
 }
 
 static void textarea_window_new_ok_cb() {
-    params_msg_cw_new(textarea_window_get());
+///    params_msg_cw_new(textarea_window_get());
     textarea_window_close_cb();
 }
 
@@ -160,7 +160,7 @@ static void textarea_window_edit_ok_cb() {
 
     lv_table_get_selected_cell(table, &row, &col);
     lv_table_set_cell_value(table, row, col, val);
-    params_msg_cw_edit(ids[row], val);
+///    params_msg_cw_edit(ids[row], val);
     textarea_window_close_cb();
 }
 
@@ -219,28 +219,25 @@ static void beacon_stop_cb(lv_event_t * e) {
 }
 
 void dialog_msg_cw_period_cb(lv_event_t * e) {
-    params_lock();
-
-    switch (params.cw_encoder_period) {
+    switch (options->msg.cw_period) {
         case 10:
-            params.cw_encoder_period = 30;
+            options->msg.cw_period = 30;
             break;
 
         case 30:
-            params.cw_encoder_period = 60;
+            options->msg.cw_period = 60;
             break;
 
         case 60:
-            params.cw_encoder_period = 120;
+            options->msg.cw_period = 120;
             break;
 
         case 120:
-            params.cw_encoder_period = 10;
+            options->msg.cw_period = 10;
             break;
     }
 
-    params_unlock(&params.durty.cw_encoder_period);
-    msg_set_text_fmt("Beacon period: %i s", params.cw_encoder_period);
+    msg_set_text_fmt("Beacon period: %i s", options->msg.cw_period);
 }
 
 void dialog_msg_cw_new_cb(lv_event_t * e) {
@@ -269,8 +266,8 @@ void dialog_msg_cw_delete_cb(lv_event_t * e) {
     lv_table_get_selected_cell(table, &row, &col);
 
     if (row != LV_TABLE_CELL_NONE) {
-        params_msg_cw_delete(ids[row]);
+///        params_msg_cw_delete(ids[row]);
         reset();
-        params_msg_cw_load();
+///        params_msg_cw_load();
     }
 }

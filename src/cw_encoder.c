@@ -14,10 +14,10 @@
 
 #include "cw_decoder.h"
 #include "cw_encoder.h"
-#include "params.h"
 #include "radio.h"
 #include "msg.h"
 #include "buttons.h"
+#include "settings/options.h"
 
 static cw_encoder_state_t   state = CW_ENCODER_IDLE;
 static pthread_t            thread;
@@ -73,8 +73,8 @@ static void * endecode_thread(void *arg) {
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
-    uint32_t    dit = 60 * 1000000 / (params.key_speed * 50);
-    uint32_t    dah = dit * params.key_ratio / 10;
+    uint32_t    dit = 60 * 1000000 / (options->cw.key_speed * 50);
+    uint32_t    dah = dit * options->cw.key_ratio / 10;
 
     while (true) {
         char    *morse;
@@ -104,8 +104,8 @@ static void * endecode_thread(void *arg) {
                 break;
             } else {
                 state = CW_ENCODER_BEACON_IDLE;
-                msg_set_text_fmt("Beacon pause: %i s", params.cw_encoder_period);
-                sleep(params.cw_encoder_period);
+                msg_set_text_fmt("Beacon pause: %i s", options->msg.cw_period);
+                sleep(options->msg.cw_period);
                 
                 state = CW_ENCODER_BEACON;
                 current_char = current_msg;

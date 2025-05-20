@@ -14,7 +14,7 @@ extern "C" {
 #include <lvgl.h>
 
 #include "audio.h"
-#include "params.h"
+#include "settings/options.h"
 #include "util.h"
 #include "backlight.h"
 #include "recorder.h"
@@ -100,7 +100,7 @@ static void * say_thread(void *arg) {
     
     run = true;
 
-    profile = eng->create_voice_profile(voice_item[params.voice_lang.x].name);
+    profile = eng->create_voice_profile(voice_item[options->voice.lang].name);
 
     char *ptr = strchr(buf, '|');
     
@@ -130,9 +130,9 @@ static void * say_thread(void *arg) {
     std::istreambuf_iterator<char>  text_end;
     std::unique_ptr<document>       doc = document::create_from_plain_text(eng, text_start, text_end, content_text, profile);
     
-    doc->speech_settings.relative.rate = params.voice_rate.x / 100.0;
-    doc->speech_settings.relative.pitch = params.voice_pitch.x / 100.0;
-    doc->speech_settings.relative.volume = params.voice_volume.x / 100.0;
+    doc->speech_settings.relative.rate = options->voice.rate / 100.0;
+    doc->speech_settings.relative.pitch = options->voice.pitch / 100.0;
+    doc->speech_settings.relative.volume = options->voice.volume / 100.0;
     doc->set_owner(player);
 
     doc->synthesize();
@@ -150,21 +150,21 @@ void voice_sure() {
 void voice_change_mode() {
     voice_sure();
 
-    switch (params.voice_mode.x) {
+    switch (options->voice.mode) {
         case VOICE_OFF:
-            params_uint8_set(&params.voice_mode, VOICE_LCD);
+            options->voice.mode = VOICE_LCD;
             msg_set_text_fmt("Voice mode: LCD");
             voice_say_text("Voice mode|", "is LCD");
             break;
-            
+
         case VOICE_LCD:
-            params_uint8_set(&params.voice_mode, VOICE_ALWAYS);
+            options->voice.mode =  VOICE_ALWAYS;
             msg_set_text_fmt("Voice mode: Always");
             voice_say_text("Voice mode|", "is always");
             break;
-            
+
         case VOICE_ALWAYS:
-            params_uint8_set(&params.voice_mode, VOICE_OFF);
+            options->voice.mode =  VOICE_OFF;
             msg_set_text_fmt("Voice mode: Off");
             voice_say_text("Voice mode|", "is off");
             break;
@@ -175,22 +175,22 @@ bool voice_enable() {
     if (run || recorder_is_on()) {
         return false;
     }
-    
+
     if (sure) {
         return true;
     }
-    
-    switch (params.voice_mode.x) {
+
+    switch (options->voice.mode) {
         case VOICE_OFF:
             return false;
-            
+
         case VOICE_ALWAYS:
             return true;
-            
+
         case VOICE_LCD:
             return !backlight_is_on();
     }
-    
+
     return false;
 }
 
@@ -279,14 +279,14 @@ const char * voice_change(int16_t diff) {
     uint8_t x;
 
     if (diff) {
-        x = params_uint8_change(&params.voice_lang, diff);
+        x = limit(options->voice.lang + diff, 0, VOICES_NUM - 1);
     } else {
-        x = params.voice_lang.x;
+        x = options->voice.lang;
     }
 
     return voice_item[x].label;
 }
 
 void voice_say_lang() {
-    voice_delay_say_text_fmt(voice_item[params.voice_lang.x].welcome);
+    voice_delay_say_text_fmt(voice_item[options->voice.lang].welcome);
 }
