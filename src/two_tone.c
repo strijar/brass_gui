@@ -22,7 +22,7 @@ size_t two_tone_generator(float complex *data, size_t max_size) {
     size_t size = 128;
 
     for (uint16_t i = 0; i < size; i++) {
-        data[i] = generator_tone(&tone[0]) * 0.48f + generator_tone(&tone[1]) * 0.48f;
+        data[i] = generator_tone(&tone[0]) * 0.5f + generator_tone(&tone[1]) * 0.5f;
     }
 
     return size;

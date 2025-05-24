@@ -33,6 +33,7 @@ typedef struct {
     xvrt_item_t     *xvrt;
     uint64_t        xvrt_count;
     int32_t         txo_offset;
+    float           ref_pwr;
     float           pwr;
     uint8_t         ant;
     bool            atu;

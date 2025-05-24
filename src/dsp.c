@@ -706,5 +706,10 @@ size_t dsp_dac(float complex *data, size_t max_size) {
         }
     }
 
+    float scale = sqrtf(rf->pwr / rf->ref_pwr);
+
+    for (size_t i = 0; i < size; i++)
+        data[i] *= scale;
+
     return size;
 }

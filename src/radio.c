@@ -561,8 +561,8 @@ float radio_change_pwr(int16_t d) {
 
     rf->pwr += d * 0.1f;
 
-    if (rf->pwr > 10.0f) {
-        rf->pwr = 10.0f;
+    if (rf->pwr > rf->ref_pwr) {
+        rf->pwr = rf->ref_pwr;
     } else if (rf->pwr < 0.1f) {
         rf->pwr = 0.1f;
     }

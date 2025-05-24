@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# Starts X6100 GUI daemon
+# Starts Brass GUI daemon
 #
 
-DAEMON="x6100_daemon"
+DAEMON="brass_daemon"
 PIDFILE="/var/run/$DAEMON.pid"
 
 # shellcheck source=/dev/null
@@ -11,7 +11,6 @@ PIDFILE="/var/run/$DAEMON.pid"
 
 start() {
 	printf 'Starting %s: ' "$DAEMON"
-	echo 0 > /sys/class/graphics/fbcon/cursor_blink
 	# shellcheck disable=SC2086 # we need the word splitting
 	start-stop-daemon -S -b -q -p "$PIDFILE" -x "/usr/sbin/$DAEMON"
 	status=$?

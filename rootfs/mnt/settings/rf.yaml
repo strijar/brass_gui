@@ -45,6 +45,7 @@ xvrt:
 - {start: 439000000, stop: 440000000, shift: 411500000, corr: -8000}
 
 txo_offset: 0
+ref_pwr: 10.0
 pwr: 10.0
 ant: 1
 atu: false

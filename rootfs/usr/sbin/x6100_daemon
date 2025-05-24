@@ -1,3 +1,0 @@
-#!/bin/sh
-
-while true; do /usr/sbin/x6100_gui; done
