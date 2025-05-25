@@ -60,18 +60,26 @@ static struct gpiod_line * init_line(struct gpiod_chip *chip, const char *name) 
     return line;
 }
 
+static bool set_value(struct gpiod_line *line, uint8_t val) {
+    if (line == NULL) {
+        return false;
+    }
+
+    gpiod_line_set_value(line, val);
+    return true;
+}
+
 static void main_init() {
     struct gpiod_chip    *chip = NULL;
 
     chip = gpiod_chip_open_by_number(0);
 
-    if (!chip) {
+    if (chip) {
+        line_preamp = init_line(chip, "preamp_on");
+        line_tx = init_line(chip, "tx_out");
+    } else {
         LV_LOG_ERROR("Unable to open gpio chip 0");
-        return;
     }
-
-    line_preamp = init_line(chip, "preamp_on");
-    line_tx = init_line(chip, "tx_out");
 }
 
 static void rf_2_init() {
@@ -79,18 +87,17 @@ static void rf_2_init() {
 
     chip = gpiod_chip_open_by_number(2);
 
-    if (!chip) {
+    if (chip) {
+        const char* bpf_gpio[BPF_NUM] = {
+            "bpf_lf", "bpf_160", "bpf_80", "bpf_40",
+            "bpf_30_20", "bpf_17_15", "bpf_12_10", "bpf_6"
+        };
+
+        for (uint8_t i = 0; i < BPF_NUM; i++)
+            bpf[i] = init_line(chip, bpf_gpio[i]);
+    } else {
         LV_LOG_ERROR("Unable to open gpio chip 2");
-        return;
     }
-
-    const char* bpf_gpio[BPF_NUM] = {
-        "bpf_lf", "bpf_160", "bpf_80", "bpf_40",
-        "bpf_30_20", "bpf_17_15", "bpf_12_10", "bpf_6"
-    };
-
-    for (uint8_t i = 0; i < BPF_NUM; i++)
-        bpf[i] = init_line(chip, bpf_gpio[i]);
 }
 
 static void rf_3_init() {
@@ -98,24 +105,23 @@ static void rf_3_init() {
 
     chip = gpiod_chip_open_by_number(3);
 
-    if (!chip) {
+    if (chip) {
+        adf_clk = init_line(chip, "adf_clk");
+        adf_data = init_line(chip, "adf_data");
+        adf_le = init_line(chip, "adf_le");
+
+        k39 = init_line(chip, "k39");
+        k37 = init_line(chip, "k37");
+        k38 = init_line(chip, "k38");
+        k32_k33 = init_line(chip, "k32_k33");
+        k34 = init_line(chip, "k34");
+        k41 = init_line(chip, "k41");
+        k23 = init_line(chip, "k23");
+        k22 = init_line(chip, "k22");
+        k40 = init_line(chip, "k40");
+    } else {
         LV_LOG_ERROR("Unable to open gpio chip 3");
-        return;
     }
-
-    adf_clk = init_line(chip, "adf_clk");
-    adf_data = init_line(chip, "adf_data");
-    adf_le = init_line(chip, "adf_le");
-
-    k39 = init_line(chip, "k39");
-    k37 = init_line(chip, "k37");
-    k38 = init_line(chip, "k38");
-    k32_k33 = init_line(chip, "k32_k33");
-    k34 = init_line(chip, "k34");
-    k41 = init_line(chip, "k41");
-    k23 = init_line(chip, "k23");
-    k22 = init_line(chip, "k22");
-    k40 = init_line(chip, "k40");
 }
 
 static void rf_4_init() {
@@ -123,20 +129,19 @@ static void rf_4_init() {
 
     chip = gpiod_chip_open_by_number(4);
 
-    if (!chip) {
+    if (chip) {
+        const char* lpf_gpio[LPF_NUM] = {
+            "lpf_160", "lpf_80", "lpf_40",
+            "lpf_20", "lpf_15", "lpf_10", "lpf_6"
+        };
+
+        for (uint8_t i = 0; i < LPF_NUM; i++)
+            lpf[i] = init_line(chip, lpf_gpio[i]);
+
+        hf_tx = init_line(chip, "hf_tx");
+    } else {
         LV_LOG_ERROR("Unable to open gpio chip 4");
-        return;
     }
-
-    const char* lpf_gpio[LPF_NUM] = {
-        "lpf_160", "lpf_80", "lpf_40",
-        "lpf_20", "lpf_15", "lpf_10", "lpf_6"
-    };
-
-    for (uint8_t i = 0; i < LPF_NUM; i++)
-        lpf[i] = init_line(chip, lpf_gpio[i]);
-
-    hf_tx = init_line(chip, "hf_tx");
 }
 
 void gpio_init() {
@@ -145,21 +150,21 @@ void gpio_init() {
     rf_3_init();
     rf_4_init();
 
-    gpiod_line_set_value(adf_le, 0); usleep(100);
-    gpiod_line_set_value(adf_le, 1); usleep(100);
+    set_value(adf_le, 0); usleep(100);
+    set_value(adf_le, 1); usleep(100);
 }
 
 void gpio_set_preamp(bool on) {
     if (line_preamp) {
-        gpiod_line_set_value(line_preamp, on ? 0 : 1);
+        set_value(line_preamp, on ? 0 : 1);
     }
 }
 
 void gpio_set_tx(bool on) {
     switch (current_rf_route) {
         case RF_ROUTE_HF:
-            gpiod_line_set_value(k22, on ? 1 : 0);
-            gpiod_line_set_value(hf_tx, on ? 1 : 0);
+            set_value(k22, on ? 1 : 0);
+            set_value(hf_tx, on ? 1 : 0);
             break;
 
         case RF_ROUTE_VHF:
@@ -169,7 +174,7 @@ void gpio_set_tx(bool on) {
             break;
     }
 
-    gpiod_line_set_value(line_tx, on ? 1 : 0);
+    set_value(line_tx, on ? 1 : 0);
 }
 
 void gpio_set_rf_route(rf_route_t route) {
@@ -178,24 +183,24 @@ void gpio_set_rf_route(rf_route_t route) {
 
     switch (route) {
         case RF_ROUTE_HF:
-            gpiod_line_set_value(k37, 1);
-            gpiod_line_set_value(k23, 0);
-            gpiod_line_set_value(k38, 0);
-            gpiod_line_set_value(k40, 0);
+            set_value(k37, 1);
+            set_value(k23, 0);
+            set_value(k38, 0);
+            set_value(k40, 0);
             break;
 
         case RF_ROUTE_VHF:
-            gpiod_line_set_value(k37, 0);
-            gpiod_line_set_value(k23, 1);
-            gpiod_line_set_value(k38, 0);
-            gpiod_line_set_value(k40, 0);
+            set_value(k37, 0);
+            set_value(k23, 1);
+            set_value(k38, 0);
+            set_value(k40, 0);
             break;
 
         case RF_ROUTE_UHF:
-            gpiod_line_set_value(k37, 0);
-            gpiod_line_set_value(k23, 1);
-            gpiod_line_set_value(k38, 1);
-            gpiod_line_set_value(k40, 1);
+            set_value(k37, 0);
+            set_value(k23, 1);
+            set_value(k38, 1);
+            set_value(k40, 1);
             break;
     }
 
@@ -207,7 +212,7 @@ void gpio_set_rf_bpf(uint8_t index) {
         return;
 
     for (uint8_t i = 0; i < BPF_NUM; i++)
-        gpiod_line_set_value(bpf[i], i == index ? 1 : 0);
+        set_value(bpf[i], i == index ? 1 : 0);
 
     current_bpf = index;
 }
@@ -217,26 +222,30 @@ void gpio_set_rf_lpf(uint8_t index) {
         return;
 
     for (uint8_t i = 0; i < LPF_NUM; i++)
-        gpiod_line_set_value(lpf[i], i == index ? 1 : 0);
+        set_value(lpf[i], i == index ? 1 : 0);
 
     current_lpf = index;
 }
 
 void gpio_send_adf(uint32_t data) {
-    gpiod_line_set_value(adf_le, 0); usleep(10);
+    if (!set_value(adf_le, 0)) {
+        return;
+    }
+
+    usleep(10);
 
     for (int16_t i = 31; i >= 0; i--) {
         uint32_t    mask = (1 << i);
         uint8_t     x = data & mask ? 1 : 0;
 
         for (int i = 0; i < 10; i++) {
-            gpiod_line_set_value(adf_data, x);
+            set_value(adf_data, x);
             usleep(1);
         }
 
-        gpiod_line_set_value(adf_clk, 1);
-        gpiod_line_set_value(adf_clk, 0);
+        set_value(adf_clk, 1);
+        set_value(adf_clk, 0);
     }
 
-    gpiod_line_set_value(adf_le, 1); usleep(10);
+    set_value(adf_le, 1); usleep(10);
 }

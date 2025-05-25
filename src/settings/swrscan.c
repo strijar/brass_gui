@@ -6,8 +6,6 @@
  *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
  */
 
-#pragma once
-
 #include "swrscan.h"
 
 settings_swrscan_t   *settings_swrscan;

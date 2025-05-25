@@ -49,53 +49,47 @@ void iio_init() {
 
     dev = iio_context_find_device(ctx, "mcp4725");
 
-    if (dev == NULL) {
+    if (dev != NULL) {
+        vref = iio_device_find_channel(dev, "voltage0", true);
+
+        if (vref == NULL) {
+            LV_LOG_ERROR("Find mcp4725 channel");
+        }
+    } else {
         LV_LOG_ERROR("Find mcp4725");
-        return;
     }
 
-    vref = iio_device_find_channel(dev, "voltage0", true);
-
-    if (vref == NULL) {
-        LV_LOG_ERROR("Find mcp4725 channel");
-        return;
-    }
 
     /* * */
 
     dev = iio_context_find_device(ctx, "ads1015");
 
-    if (dev == NULL) {
+    if (dev != NULL) {
+        hkeys_x = iio_device_find_channel(dev, "voltage0", false);
+
+        if (hkeys_x == NULL) {
+            LV_LOG_ERROR("Find ads1015 channel");
+        }
+
+        hkeys_y = iio_device_find_channel(dev, "voltage1", false);
+
+        if (hkeys_y == NULL) {
+            LV_LOG_ERROR("Find ads1015 channel");
+        }
+
+        pwr_ref = iio_device_find_channel(dev, "voltage2", false);
+
+        if (pwr_ref == NULL) {
+            LV_LOG_ERROR("Find ads1015 channel");
+        }
+
+        pwr_fwd = iio_device_find_channel(dev, "voltage3", false);
+
+        if (pwr_fwd == NULL) {
+            LV_LOG_ERROR("Find ads1015 channel");
+        }
+    } else {
         LV_LOG_ERROR("Find ads1015");
-        return;
-    }
-
-    hkeys_x = iio_device_find_channel(dev, "voltage0", false);
-
-    if (hkeys_x == NULL) {
-        LV_LOG_ERROR("Find ads1015 channel");
-        return;
-    }
-
-    hkeys_y = iio_device_find_channel(dev, "voltage1", false);
-
-    if (hkeys_y == NULL) {
-        LV_LOG_ERROR("Find ads1015 channel");
-        return;
-    }
-
-    pwr_ref = iio_device_find_channel(dev, "voltage2", false);
-
-    if (pwr_ref == NULL) {
-        LV_LOG_ERROR("Find ads1015 channel");
-        return;
-    }
-
-    pwr_fwd = iio_device_find_channel(dev, "voltage3", false);
-
-    if (pwr_fwd == NULL) {
-        LV_LOG_ERROR("Find ads1015 channel");
-        return;
     }
 
     /* Thread */
@@ -107,6 +101,10 @@ void iio_init() {
 }
 
 void iio_set_vref(uint16_t data) {
+    if (vref == NULL) {
+        return;
+    }
+
     if (iio_channel_attr_write_longlong(vref, "raw", data) < 0) {
         LV_LOG_ERROR("Write to VRef");
     }
