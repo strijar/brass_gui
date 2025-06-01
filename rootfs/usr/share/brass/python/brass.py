@@ -23,6 +23,10 @@ class MainScreen(lv.obj):
 
 		self.freqs = MainFreqs(self)
 
+#		self.spectrum3d = MainSpectrum3D(self)
+#		self.spectrum3d.makePalette()
+#		trx.connect_spectrum3d(self.spectrum3d)
+
 		self.waterfall = MainWaterfall(True, self)
 		self.waterfall.makePalette()
 		trx.connect_waterfall(self.waterfall)

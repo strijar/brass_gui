@@ -12,6 +12,7 @@
 #include "src/msgs.h"
 #include "src/events.h"
 #include "src/widgets/lv_spectrum.h"
+#include "src/widgets/lv_spectrum3d.h"
 #include "src/widgets/lv_waterfall.h"
 #include "src/widgets/lv_finder.h"
 #include "src/main.h"
@@ -64,6 +65,58 @@ static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
         lv_msg_subsribe(MSG_RATE_FFT_CHANGED, spectrum_msg_cb, spectrum);
         lv_msg_subsribe(MSG_SPECTRUM_AUTO, spectrum_msg_cb, spectrum);
         lv_msg_subsribe(MSG_SPECTRUM_DATA, spectrum_msg_cb, spectrum);
+    }
+
+    Py_RETURN_NONE;
+}
+
+/* Spectrum3D */
+
+static void spectrum3d_msg_cb(void *s, lv_msg_t *m) {
+    lv_obj_t *spectrum3d = lv_msg_get_user_data(m);
+
+    switch (lv_msg_get_id(m)) {
+        case MSG_FREQ_FFT_SHIFT: {
+            const int32_t *df = lv_msg_get_payload(m);
+
+            lv_spectrum3d_scroll_data(spectrum3d, *df);
+        } break;
+
+        case MSG_RATE_FFT_CHANGED: {
+            const uint8_t *zoom = lv_msg_get_payload(m);
+
+            lv_spectrum3d_set_span(spectrum3d, 100000 / *zoom);
+            lv_spectrum3d_clear_data(spectrum3d);
+        } break;
+
+        case MSG_WATERFALL_AUTO: {
+            const msgs_auto_t *msg = lv_msg_get_payload(m);
+
+            lv_spectrum3d_set_min(spectrum3d, msg->min + 3.0f);
+            lv_spectrum3d_set_max(spectrum3d, msg->max + 3.0f);
+        } break;
+
+        case MSG_WATERFALL_DATA: {
+            const msgs_floats_t *msg = lv_msg_get_payload(m);
+
+            lv_spectrum3d_add_data(spectrum3d, msg->data, msg->size);
+            lv_obj_invalidate(spectrum3d);
+        } break;
+    }
+}
+
+static PyObject * trx_connect_spectrum3d(PyObject *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        lv_obj_t *spectrum3d = python_lv_get_obj(obj);
+
+        lv_msg_subsribe(MSG_FREQ_FFT_SHIFT, spectrum3d_msg_cb, spectrum3d);
+        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, spectrum3d_msg_cb, spectrum3d);
+        lv_msg_subsribe(MSG_WATERFALL_AUTO, spectrum3d_msg_cb, spectrum3d);
+        lv_msg_subsribe(MSG_WATERFALL_DATA, spectrum3d_msg_cb, spectrum3d);
     }
 
     Py_RETURN_NONE;
@@ -239,6 +292,7 @@ static PyObject * trx_connect_tx_finder(PyObject *self, PyObject *args) {
 
 static PyMethodDef trx_methods[] = {
     { "connect_spectrum", (PyCFunction) trx_connect_spectrum, METH_VARARGS, "" },
+    { "connect_spectrum3d", (PyCFunction) trx_connect_spectrum3d, METH_VARARGS, "" },
     { "connect_waterfall", (PyCFunction) trx_connect_waterfall, METH_VARARGS, "" },
     { "connect_rx_finder", (PyCFunction) trx_connect_rx_finder, METH_VARARGS, "" },
     { "connect_tx_finder", (PyCFunction) trx_connect_tx_finder, METH_VARARGS, "" },
