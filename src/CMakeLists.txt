@@ -47,7 +47,7 @@ target_link_options(${PROJECT_NAME} PRIVATE -g -rdynamic)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 target_link_libraries(${PROJECT_NAME} PRIVATE lvgl lvgl::drivers)
-target_link_libraries(${PROJECT_NAME} PRIVATE liquid specbleach m)
+target_link_libraries(${PROJECT_NAME} PRIVATE liquid specbleach m fftw3)
 target_link_libraries(${PROJECT_NAME} PRIVATE pulse pulse-simple)
 target_link_libraries(${PROJECT_NAME} PRIVATE png)
 target_link_libraries(${PROJECT_NAME} PRIVATE gps)

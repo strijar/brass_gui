@@ -31,7 +31,7 @@ void dsp_set_vol(uint8_t x);
 uint16_t dsp_change_vol(int16_t df);
 uint8_t dsp_change_rx_agc(int16_t df);
 
-bool dsp_change_denoise(int16_t d);
+int dsp_change_denoise(int16_t d);
 void dsp_update_denoise();
 
 float complex dsp_modulate(float x, radio_mode_t mode);

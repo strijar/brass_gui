@@ -74,7 +74,7 @@ static button_item_t    buttons[] = {
     { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
     { .label = "Msg",               .press = button_app_page_cb,    .data = APP_MSG_VOICE },
 
-    { .label = "Denoise",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_DENOISE_ENABLE },
+    { .label = "Denoise",           .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_DENOISE_MODE },
     { .label = "Audio\nSettings",   .press = button_app_page_cb,    .data = APP_AUDIO_SETTINGS },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },

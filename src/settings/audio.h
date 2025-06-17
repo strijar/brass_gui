@@ -37,9 +37,13 @@ typedef enum {
     REC_FORMAT_MP3
 } rec_format_t;
 
+typedef enum {
+    DENOISE_OFF = 0,
+    DENOISE_NR,
+    DENOISE_EMNR,
+} denoise_mode_t;
+
 typedef struct {
-    bool                enable;
-    bool                before_agc;
     uint16_t            frame_size;
     int16_t             reduction_amount;
     int16_t             smoothing_factor;
@@ -47,6 +51,18 @@ typedef struct {
     int16_t             noise_scaling_type;
     int16_t             noise_rescale;
     int16_t             post_filter_threshold;
+} options_nr_t;
+
+typedef struct {
+    uint16_t            fft;
+    uint16_t            over;
+} options_emnr_t;
+
+typedef struct {
+    denoise_mode_t      mode;
+    bool                before_agc;
+    options_nr_t        nr;
+    options_emnr_t      emnr;
 } denoise_t;
 
 typedef struct {

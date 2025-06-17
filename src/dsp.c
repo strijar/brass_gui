@@ -38,6 +38,7 @@
 #include "settings/op_work.h"
 #include "olivia/olivia.h"
 #include "dsp/biquad.h"
+#include "dsp/emnr.h"
 #include "two_tone.h"
 
 const uint16_t                  fft_over = (FFT_SAMPLES - 800) / 2;
@@ -98,6 +99,7 @@ static float                    audio_buf[ADC_SAMPLES];
 static float                    denoised_buf[ADC_SAMPLES];
 static SpectralBleachHandle     denoise;
 static bool                     denoise_need_update = true;
+static emnr_t                   *emnr;
 
 static void calc_auto();
 static void spectrum_timer_cb(lv_timer_t *t);
@@ -148,7 +150,7 @@ void dsp_init() {
         0.001f,     /* tau_attack */
         0.250f,     /* tau_decay */
         4,          /* n_tau */
-        10000.0f,   /* max_gain */
+        100.0f,     /* max_gain */
         1.5f,       /* var_gain */
         4.0f,       /* fixed_gain */
         1.0f,       /* max_input */
@@ -173,7 +175,21 @@ void dsp_init() {
     auto_timer = lv_timer_create(auto_timer_cb, 1000 / 10, NULL);
     meter_timer = lv_timer_create(meter_timer_cb, 1000 / 10, NULL);
 
-    denoise = specbleach_adaptive_initialize(ADC_RATE, options->audio.denoise.frame_size);
+    denoise = specbleach_adaptive_initialize(ADC_RATE, options->audio.denoise.nr.frame_size);
+
+    emnr = emnr_create(
+        32,             /* samples */
+        audio_buf,
+        denoised_buf,
+        options->audio.denoise.emnr.fft,
+        options->audio.denoise.emnr.over,
+        ADC_RATE,
+        0,
+        1.0,
+        EMNR_GAIN_GAMMA,
+        EMNR_NPE_OSMS,
+        1
+    );
 
     two_tone_update();
 }
@@ -200,14 +216,14 @@ void dsp_set_rx_agc(uint8_t mode) {
     agc_set_mode(rx_agc, mode);
 }
 
-bool dsp_change_denoise(int16_t d) {
+int dsp_change_denoise(int16_t d) {
     if (d == 0) {
-        return options->audio.denoise.enable;
+        return options->audio.denoise.mode;
     }
 
-    options->audio.denoise.enable = !options->audio.denoise.enable;
+    options->audio.denoise.mode = limit(options->audio.denoise.mode + d, DENOISE_OFF, DENOISE_EMNR);
 
-    return options->audio.denoise.enable;
+    return options->audio.denoise.mode;
 }
 
 void dsp_update_denoise() {
@@ -470,12 +486,12 @@ void dsp_adc(float complex *data, uint16_t samples) {
         SpectralBleachParameters parameters;
 
         parameters.residual_listen = false;
-        parameters.reduction_amount = options->audio.denoise.reduction_amount;
-        parameters.smoothing_factor = options->audio.denoise.smoothing_factor;
-        parameters.whitening_factor = options->audio.denoise.whitening_factor;
-        parameters.noise_scaling_type = options->audio.denoise.noise_scaling_type;
-        parameters.noise_rescale = options->audio.denoise.noise_rescale;
-        parameters.post_filter_threshold = options->audio.denoise.post_filter_threshold;
+        parameters.reduction_amount = options->audio.denoise.nr.reduction_amount;
+        parameters.smoothing_factor = options->audio.denoise.nr.smoothing_factor;
+        parameters.whitening_factor = options->audio.denoise.nr.whitening_factor;
+        parameters.noise_scaling_type = options->audio.denoise.nr.noise_scaling_type;
+        parameters.noise_rescale = options->audio.denoise.nr.noise_rescale;
+        parameters.post_filter_threshold = options->audio.denoise.nr.post_filter_threshold;
 
         specbleach_adaptive_load_parameters(denoise, parameters);
         denoise_need_update = false;
@@ -483,11 +499,20 @@ void dsp_adc(float complex *data, uint16_t samples) {
 
     float *out_buf;
 
-    if (options->audio.denoise.enable) {
-        specbleach_adaptive_process(denoise, samples, audio_buf, denoised_buf);
-        out_buf = denoised_buf;
-    } else {
-        out_buf = audio_buf;
+    switch (options->audio.denoise.mode) {
+        case DENOISE_OFF:
+            out_buf = audio_buf;
+            break;
+
+        case DENOISE_NR:
+            specbleach_adaptive_process(denoise, samples, audio_buf, denoised_buf);
+            out_buf = denoised_buf;
+            break;
+
+        case DENOISE_EMNR:
+            emnr_apply(emnr);
+            out_buf = denoised_buf;
+            break;
     }
 
     for (int i = 0; i < samples; i++) {

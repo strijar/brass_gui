@@ -36,16 +36,34 @@ static const cyaml_strval_t rec_format_strings[] = {
     { "mp3",                REC_FORMAT_MP3 }
 };
 
+static const cyaml_strval_t denoise_mode_strings[] = {
+    { "off",                DENOISE_OFF },
+    { "nr",                 DENOISE_NR },
+    { "emnr",               DENOISE_EMNR },
+};
+
+static const cyaml_schema_field_t options_nr_schema[] = {
+    CYAML_FIELD_INT("frame_size",               CYAML_FLAG_OPTIONAL, options_nr_t, frame_size),
+    CYAML_FIELD_INT("reduction_amount",         CYAML_FLAG_OPTIONAL, options_nr_t, reduction_amount),
+    CYAML_FIELD_INT("smoothing_factor",         CYAML_FLAG_OPTIONAL, options_nr_t, smoothing_factor),
+    CYAML_FIELD_INT("whitening_factor",         CYAML_FLAG_OPTIONAL, options_nr_t, whitening_factor),
+    CYAML_FIELD_INT("noise_scaling_type",       CYAML_FLAG_OPTIONAL, options_nr_t, noise_scaling_type),
+    CYAML_FIELD_INT("noise_rescale",            CYAML_FLAG_OPTIONAL, options_nr_t, noise_rescale),
+    CYAML_FIELD_INT("post_filter_threshold",    CYAML_FLAG_OPTIONAL, options_nr_t, post_filter_threshold),
+    CYAML_FIELD_END
+};
+
+static const cyaml_schema_field_t options_emnr_schema[] = {
+    CYAML_FIELD_UINT("fft",                     CYAML_FLAG_OPTIONAL, options_emnr_t, fft),
+    CYAML_FIELD_UINT("over",                    CYAML_FLAG_OPTIONAL, options_emnr_t, over),
+    CYAML_FIELD_END
+};
+
 static const cyaml_schema_field_t denoise_fields_schema[] = {
-    CYAML_FIELD_BOOL("enable",                  CYAML_FLAG_OPTIONAL, denoise_t, enable),
+    CYAML_FIELD_ENUM("mode",                    CYAML_FLAG_OPTIONAL, denoise_t, mode, denoise_mode_strings, CYAML_ARRAY_LEN(denoise_mode_strings)),
     CYAML_FIELD_BOOL("before_agc",              CYAML_FLAG_OPTIONAL, denoise_t, before_agc),
-    CYAML_FIELD_UINT("frame_size",              CYAML_FLAG_OPTIONAL, denoise_t, frame_size),
-    CYAML_FIELD_INT("reduction_amount",         CYAML_FLAG_OPTIONAL, denoise_t, reduction_amount),
-    CYAML_FIELD_INT("smoothing_factor",         CYAML_FLAG_OPTIONAL, denoise_t, smoothing_factor),
-    CYAML_FIELD_INT("whitening_factor",         CYAML_FLAG_OPTIONAL, denoise_t, whitening_factor),
-    CYAML_FIELD_INT("noise_scaling_type",       CYAML_FLAG_OPTIONAL, denoise_t, noise_scaling_type),
-    CYAML_FIELD_INT("noise_rescale",            CYAML_FLAG_OPTIONAL, denoise_t, noise_rescale),
-    CYAML_FIELD_INT("post_filter_threshold",    CYAML_FLAG_OPTIONAL, denoise_t, post_filter_threshold),
+    CYAML_FIELD_MAPPING("nr",                   CYAML_FLAG_OPTIONAL, denoise_t, nr, options_nr_schema),
+    CYAML_FIELD_MAPPING("emnr",                 CYAML_FLAG_OPTIONAL, denoise_t, emnr, options_emnr_schema),
     CYAML_FIELD_END
 };
 

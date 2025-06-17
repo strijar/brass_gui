@@ -335,14 +335,29 @@ void mfk_update(int16_t diff, bool voice) {
             }
             break;
 
-        case MFK_DENOISE_ENABLE:
-            b = dsp_change_denoise(diff);
-            msg_set_text_fmt("#%3X Denoise: %s", color, b ? "On" : "Off");
+        case MFK_DENOISE_MODE:
+            i = dsp_change_denoise(diff);
+
+            switch (i) {
+                case DENOISE_OFF:
+                    str = "Off";
+                    break;
+
+                case DENOISE_NR:
+                    str = "NR";
+                    break;
+
+                case DENOISE_EMNR:
+                    str = "EMNR";
+                    break;
+            }
+
+            msg_set_text_fmt("#%3X Denoise: %s", color, str);
 
             if (diff) {
-                voice_say_bool("NR", b);
+                voice_say_text("Denoise mode", str);
             } else if (voice) {
-                voice_say_text_fmt("NR switcher");
+                voice_say_text_fmt("Denoise mode selector");
             }
             break;
 

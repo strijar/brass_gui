@@ -38,7 +38,7 @@ typedef enum {
     MFK_NB,
     MFK_NB_LEVEL,
     MFK_NB_WIDTH,
-    MFK_DENOISE_ENABLE,
+    MFK_DENOISE_MODE,
 
     MFK_CW_DECODER,
     MFK_CW_DECODER_SNR,
