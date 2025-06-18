@@ -56,6 +56,10 @@ static const cyaml_schema_field_t options_nr_schema[] = {
 static const cyaml_schema_field_t options_emnr_schema[] = {
     CYAML_FIELD_UINT("fft",                     CYAML_FLAG_OPTIONAL, options_emnr_t, fft),
     CYAML_FIELD_UINT("over",                    CYAML_FLAG_OPTIONAL, options_emnr_t, over),
+    CYAML_FIELD_UINT("gain_method",             CYAML_FLAG_OPTIONAL, options_emnr_t, gain_method),
+    CYAML_FIELD_UINT("npe_method",              CYAML_FLAG_OPTIONAL, options_emnr_t, npe_method),
+    CYAML_FIELD_FLOAT("trained_thresh",         CYAML_FLAG_OPTIONAL, options_emnr_t, trained_thresh),
+    CYAML_FIELD_FLOAT("trained_t2",             CYAML_FLAG_OPTIONAL, options_emnr_t, trained_t2),
     CYAML_FIELD_END
 };
 

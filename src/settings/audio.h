@@ -56,6 +56,10 @@ typedef struct {
 typedef struct {
     uint16_t            fft;
     uint16_t            over;
+    uint16_t            gain_method;
+    uint16_t            npe_method;
+    float               trained_thresh;
+    float               trained_t2;
 } options_emnr_t;
 
 typedef struct {

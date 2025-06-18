@@ -181,3 +181,8 @@ emnr_t *emnr_create(int size, float *in, float *out, int fsize, int ovrlp, int r
 void    emnr_apply(emnr_t *a);
 void    emnr_destroy(emnr_t *a);
 void    emnr_flush(emnr_t *a);
+
+void    emnr_set_gain_method(emnr_t *a, emnr_gain_t x);
+void    emnr_set_npe_method(emnr_t *a, emnr_npe_t x);
+void    emnr_set_trained_thresh(emnr_t *a, float x);
+void    emnr_set_trained_t2(emnr_t *a, float x);

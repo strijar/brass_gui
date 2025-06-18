@@ -1094,3 +1094,19 @@ void emnr_apply(emnr_t *a) {
         a->oaoutidx = (a->oaoutidx + 1) % a->oasize;
     }
 }
+
+void emnr_set_gain_method(emnr_t *a, emnr_gain_t x) {
+    a->g.gain_method = x;
+}
+
+void emnr_set_npe_method(emnr_t *a, emnr_npe_t x) {
+    a->g.npe_method = x;
+}
+
+void emnr_set_trained_thresh(emnr_t *a, float x) {
+    a->g.zeta_thresh = x;
+}
+
+void emnr_set_trained_t2(emnr_t *a, float x) {
+    a->ae.t2 = x;
+}

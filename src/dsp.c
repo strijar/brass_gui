@@ -186,8 +186,8 @@ void dsp_init() {
         ADC_RATE,
         0,
         1.0,
-        EMNR_GAIN_GAMMA,
-        EMNR_NPE_OSMS,
+        options->audio.denoise.emnr.gain_method,
+        options->audio.denoise.emnr.npe_method,
         1
     );
 
@@ -494,6 +494,12 @@ void dsp_adc(float complex *data, uint16_t samples) {
         parameters.post_filter_threshold = options->audio.denoise.nr.post_filter_threshold;
 
         specbleach_adaptive_load_parameters(denoise, parameters);
+
+        emnr_set_gain_method(emnr, options->audio.denoise.emnr.gain_method);
+        emnr_set_npe_method(emnr, options->audio.denoise.emnr.npe_method);
+        emnr_set_trained_thresh(emnr, options->audio.denoise.emnr.trained_thresh);
+        emnr_set_trained_t2(emnr, options->audio.denoise.emnr.trained_t2);
+
         denoise_need_update = false;
     }
 

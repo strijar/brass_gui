@@ -30,6 +30,10 @@ audio:
     emnr:
       fft: 512
       over: 8
+      gain_method: 2
+      npe_method: 0
+      trained_thresh: -0.5
+      trained_t2: 0.2
 
 spectrum:
   beta: 0.7
