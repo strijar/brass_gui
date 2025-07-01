@@ -168,7 +168,6 @@ static message_t*           decoded_hashtable[MAX_DECODED];
 static struct tm            timestamp;
 
 static void construct_cb(lv_obj_t *parent);
-static void key_cb(lv_event_t * e);
 static void destruct_cb();
 static void audio_cb(float complex *samples, size_t n);
 static void rotary_cb(int32_t diff);
@@ -215,7 +214,7 @@ static dialog_t             dialog = {
     .bands_change_cb = band_cb,
     .rotary_cb = rotary_cb,
     .buttons = true,
-    .key_cb = key_cb
+    .key_cb = dialog_key_cb
 };
 
 dialog_t                    *dialog_ft8 = &dialog;
@@ -823,26 +822,6 @@ static void selected_msg_cb(lv_event_t * e) {
     lv_table_get_selected_cell(table, &row, &col);
 }
 
-static void key_cb(lv_event_t * e) {
-    uint32_t key = *((uint32_t *) lv_event_get_param(e));
-
-    switch (key) {
-        case LV_KEY_ESC:
-            dialog_destruct();
-            break;
-
-        case KEY_VOL_LEFT_EDIT:
-        case KEY_VOL_LEFT_SELECT:
-            dsp_change_vol(-1);
-            break;
-
-        case KEY_VOL_RIGHT_EDIT:
-        case KEY_VOL_RIGHT_SELECT:
-            dsp_change_vol(1);
-            break;
-    }
-}
-
 static void destruct_cb() {
     done();
 
@@ -1167,7 +1146,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_event_cb(table, add_msg_cb, EVENT_FT8_MSG, NULL);
     lv_obj_add_event_cb(table, selected_msg_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(table, tx_call_dis_cb, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(table, key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(table, dialog_key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(table, table_draw_part_begin_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
     lv_obj_add_event_cb(table, table_draw_part_end_cb, LV_EVENT_DRAW_PART_END, NULL);
 

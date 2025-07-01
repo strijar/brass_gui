@@ -42,7 +42,6 @@ static uint64_t             freq_center;
 static uint64_t             freq_stop;
 
 static void construct_cb(lv_obj_t *parent);
-static void key_cb(lv_event_t * e);
 
 static dialog_t             dialog = {
     .run = false,
@@ -50,7 +49,7 @@ static dialog_t             dialog = {
     .destruct_cb = NULL,
     .audio_cb = NULL,
     .buttons = true,
-    .key_cb = key_cb
+    .key_cb = dialog_key_cb
 };
 
 dialog_t                    *dialog_swrscan = &dialog;
@@ -229,29 +228,9 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_set_style_border_width(chart, 0, LV_PART_MAIN);
 
     lv_group_add_obj(keyboard_group, chart);
-    lv_obj_add_event_cb(chart, key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(chart, dialog_key_cb, LV_EVENT_KEY, NULL);
 
     do_init();
-}
-
-static void key_cb(lv_event_t * e) {
-    uint32_t key = *((uint32_t *)lv_event_get_param(e));
-
-    switch (key) {
-        case LV_KEY_ESC:
-            dialog_destruct();
-            break;
-            
-        case KEY_VOL_LEFT_EDIT:
-        case KEY_VOL_LEFT_SELECT:
-            dsp_change_vol(-1);
-            break;
-
-        case KEY_VOL_RIGHT_EDIT:
-        case KEY_VOL_RIGHT_SELECT:
-            dsp_change_vol(1);
-            break;
-    }
 }
 
 void dialog_swrscan_run_cb(lv_event_t * e) {

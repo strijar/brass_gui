@@ -145,3 +145,27 @@ void dialog_rotary(int32_t diff) {
         current_dialog->rotary_cb(diff);
     }
 }
+
+void dialog_key_cb(lv_event_t * e) {
+    uint32_t    key = *((uint32_t *)lv_event_get_param(e));
+
+    switch (key) {
+        case HKEY_FINP:
+             lv_group_set_editing(keyboard_group, !lv_group_get_editing((const lv_group_t*) keyboard_group));
+             break;
+
+        case LV_KEY_ESC:
+            dialog_destruct();
+            break;
+
+        case KEY_VOL_LEFT_EDIT:
+        case KEY_VOL_LEFT_SELECT:
+            dsp_change_vol(-1);
+            break;
+
+        case KEY_VOL_RIGHT_EDIT:
+        case KEY_VOL_RIGHT_SELECT:
+            dsp_change_vol(1);
+            break;
+    }
+}

@@ -56,7 +56,6 @@ static lv_obj_t     *min;
 static lv_obj_t     *sec;
 
 static void construct_cb(lv_obj_t *parent);
-static void key_cb(lv_event_t * e);
 
 static dialog_t     dialog = {
     .run = false,
@@ -64,7 +63,7 @@ static dialog_t     dialog = {
     .destruct_cb = NULL,
     .audio_cb = NULL,
     .buttons = false,
-    .key_cb = key_cb
+    .key_cb = dialog_key_cb
 };
 
 dialog_t            *dialog_settings = &dialog;
@@ -913,28 +912,4 @@ static void construct_cb(lv_obj_t *parent) {
 
     row_dsc[row] = LV_GRID_TEMPLATE_LAST;
     lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
-}
-
-static void key_cb(lv_event_t * e) {
-    uint32_t    key = *((uint32_t *)lv_event_get_param(e));
-
-    switch (key) {
-        case HKEY_FINP:
-             lv_group_set_editing(keyboard_group, !lv_group_get_editing((const lv_group_t*) keyboard_group));
-             break;
-
-        case LV_KEY_ESC:
-            dialog_destruct();
-            break;
-            
-        case KEY_VOL_LEFT_EDIT:
-        case KEY_VOL_LEFT_SELECT:
-            dsp_change_vol(-1);
-            break;
-
-        case KEY_VOL_RIGHT_EDIT:
-        case KEY_VOL_RIGHT_SELECT:
-            dsp_change_vol(1);
-            break;
-    }
 }

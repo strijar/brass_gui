@@ -44,7 +44,6 @@ static int16_t              samples_buf[BUF_SIZE];
 
 static void construct_cb(lv_obj_t *parent);
 static void destruct_cb();
-static void key_cb(lv_event_t * e);
 static void rec_stop_cb(lv_event_t * e);
 static void play_stop_cb(lv_event_t * e);
 static void rec_start_cb(lv_event_t * e);
@@ -272,7 +271,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_event_cb(table, msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
     lv_msg_subsribe_obj(MSG_PTT, table, NULL);
 
-    lv_obj_add_event_cb(table, key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(table, dialog_key_cb, LV_EVENT_KEY, NULL);
     lv_group_add_obj(keyboard_group, table);
     lv_group_set_editing(keyboard_group, true);
 
@@ -292,26 +291,6 @@ static void construct_cb(lv_obj_t *parent) {
 static void destruct_cb() {
     play_state = false;
     textarea_window_close();
-}
-
-static void key_cb(lv_event_t * e) {
-    uint32_t key = *((uint32_t *)lv_event_get_param(e));
-
-    switch (key) {
-        case LV_KEY_ESC:
-            dialog_destruct();
-            break;
-
-        case KEY_VOL_LEFT_EDIT:
-        case KEY_VOL_LEFT_SELECT:
-            dsp_change_vol(-1);
-            break;
-
-        case KEY_VOL_RIGHT_EDIT:
-        case KEY_VOL_RIGHT_SELECT:
-            dsp_change_vol(1);
-            break;
-    }
 }
 
 static void rec_start_cb(lv_event_t * e) {

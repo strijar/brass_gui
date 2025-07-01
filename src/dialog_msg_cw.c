@@ -123,22 +123,12 @@ static void key_cb(lv_event_t * e) {
     uint32_t key = *((uint32_t *)lv_event_get_param(e));
 
     switch (key) {
-        case LV_KEY_ESC:
-            dialog_destruct();
-            break;
-
         case KEYBOARD_F4:
             dialog_msg_cw_edit_cb(e);
             break;
 
-        case KEY_VOL_LEFT_EDIT:
-        case KEY_VOL_LEFT_SELECT:
-            dsp_change_vol(-1);
-            break;
-
-        case KEY_VOL_RIGHT_EDIT:
-        case KEY_VOL_RIGHT_SELECT:
-            dsp_change_vol(1);
+        default:
+            dialog_key_cb(e);
             break;
     }
 }

@@ -759,20 +759,14 @@ static void main_screen_pressed_cb(lv_event_t * e) {
     mfk_update(0, false);
 }
 
-static void keys_enable_cb(lv_timer_t *t) {
-    lv_group_add_obj(keyboard_group, obj);
-    lv_group_set_editing(keyboard_group, true);
-}
-
-
 static void mode_changed_cb(void *s, lv_msg_t *m) {
     main_screen_update_finder();
 }
 
 void main_screen_keys_enable(bool value) {
     if (value) {
-        lv_timer_t *timer = lv_timer_create(keys_enable_cb, 100, NULL);
-        lv_timer_set_repeat_count(timer, 1);
+        lv_group_add_obj(keyboard_group, obj);
+        lv_group_set_editing(keyboard_group, true);
     } else {
         lv_group_remove_obj(obj);
         lv_group_set_editing(keyboard_group, false);
