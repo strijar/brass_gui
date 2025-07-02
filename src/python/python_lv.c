@@ -16,6 +16,85 @@
 #include "src/msgs.h"
 #include "src/fonts/jura.h"
 
+/* Gradient */
+
+typedef struct {
+    PyObject_HEAD
+    lv_grad_dsc_t  grad;
+} grad_object_t;
+
+static void grad_dealloc(grad_object_t *self) {
+    Py_TYPE(self)->tp_free((PyObject *) self);
+}
+
+static PyObject * grad_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
+    LV_LOG_INFO("begin");
+
+    grad_object_t *self = (grad_object_t *) type->tp_alloc(type, 0);
+
+    return (PyObject *) self;
+}
+
+static PyObject * grad_set_dir(grad_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_grad_dir_t value;
+
+    if (PyArg_ParseTuple(args, "b", &value)) {
+        self->grad.dir = value;
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * grad_set_stops_count(grad_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    uint8_t value;
+
+    if (PyArg_ParseTuple(args, "b", &value)) {
+        self->grad.stops_count = value;
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * grad_set_stop(grad_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    uint8_t     index;
+    uint8_t     frac;
+    lv_color_t  color;
+
+    if (PyArg_ParseTuple(args, "bbI", &index, &frac, &color)) {
+        self->grad.stops[index].frac = frac;
+        self->grad.stops[index].color = color;
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef grad_methods[] = {
+    { "set_dir", (PyCFunction) grad_set_dir, METH_VARARGS, "" },
+    { "set_stops_count", (PyCFunction) grad_set_stops_count, METH_VARARGS, "" },
+    { "set_stop", (PyCFunction) grad_set_stop, METH_VARARGS, "" },
+    { NULL }
+};
+
+static PyTypeObject grad_type = {
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "lv.grad",
+    .tp_doc = PyDoc_STR("LVGL gradient objects"),
+    .tp_basicsize = sizeof(grad_object_t),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_new = grad_new,
+    .tp_init = NULL,
+    .tp_dealloc = (destructor) grad_dealloc,
+    .tp_members = NULL,
+    .tp_methods = grad_methods,
+};
+
 /* Style */
 
 typedef struct {
@@ -46,6 +125,72 @@ static PyObject * style_set_bg_color(style_object_t *self, PyObject *args) {
 
     if (PyArg_ParseTuple(args, "I", &color)) {
         lv_style_set_bg_color(&self->style, color);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_bg_grad(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    PyObject *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        if (PyObject_TypeCheck(obj, &grad_type)) {
+            Py_INCREF(obj);
+
+            grad_object_t *grad = (grad_object_t *) obj;
+
+            lv_style_set_bg_grad(&self->style, &grad->grad);
+        }
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_bg_grad_color(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_color_t color;
+
+    if (PyArg_ParseTuple(args, "I", &color)) {
+        lv_style_set_bg_grad_color(&self->style, color);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_bg_grad_dir(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_grad_dir_t value;
+
+    if (PyArg_ParseTuple(args, "b", &value)) {
+        lv_style_set_bg_grad_dir(&self->style, value);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_bg_main_stop(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_coord_t value;
+
+    if (PyArg_ParseTuple(args, "i", &value)) {
+        lv_style_set_bg_main_stop(&self->style, value);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_bg_grad_stop(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_coord_t value;
+
+    if (PyArg_ParseTuple(args, "i", &value)) {
+        lv_style_set_bg_grad_stop(&self->style, value);
     }
 
     Py_RETURN_NONE;
@@ -284,6 +429,11 @@ static PyMethodDef style_methods[] = {
     { "set_bg_opa", (PyCFunction) style_set_bg_opa, METH_VARARGS, "" },
     { "set_bg_img_src", (PyCFunction) style_set_bg_img_src, METH_VARARGS, "" },
     { "set_bg_img_opa", (PyCFunction) style_set_bg_img_opa, METH_VARARGS, "" },
+    { "set_bg_grad", (PyCFunction) style_set_bg_grad, METH_VARARGS, "" },
+    { "set_bg_grad_color", (PyCFunction) style_set_bg_grad_color, METH_VARARGS, "" },
+    { "set_bg_grad_dir", (PyCFunction) style_set_bg_grad_dir, METH_VARARGS, "" },
+    { "set_bg_main_stop", (PyCFunction) style_set_bg_main_stop, METH_VARARGS, "" },
+    { "set_bg_grad_stop", (PyCFunction) style_set_bg_grad_stop, METH_VARARGS, "" },
     { "set_border_color", (PyCFunction) style_set_border_color, METH_VARARGS, "" },
     { "set_border_width", (PyCFunction) style_set_border_width, METH_VARARGS, "" },
     { "set_border_opa", (PyCFunction) style_set_border_opa, METH_VARARGS, "" },
@@ -1043,6 +1193,7 @@ static PyModuleDef lv_module = {
 };
 
 PyMODINIT_FUNC PyInit_lv() {
+    PyType_Ready(&grad_type);
     PyType_Ready(&style_type);
     PyType_Ready(&obj_type);
     PyType_Ready(&hiding_type);
@@ -1059,6 +1210,7 @@ PyMODINIT_FUNC PyInit_lv() {
         return NULL;
     }
 
+    PyModule_AddObjectRef(m, "grad", (PyObject *) &grad_type);
     PyModule_AddObjectRef(m, "style", (PyObject *) &style_type);
     PyModule_AddObjectRef(m, "obj", (PyObject *) &obj_type);
     PyModule_AddObjectRef(m, "hiding", (PyObject *) &hiding_type);
