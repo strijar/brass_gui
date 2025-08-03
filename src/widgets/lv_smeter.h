@@ -53,6 +53,7 @@ typedef struct {
     float               value;
     int16_t             slice_db;
     int16_t             slice_width;
+    int16_t             slice_pad;
     int16_t             part[3];
 } lv_smeter_t;
 
