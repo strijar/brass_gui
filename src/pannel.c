@@ -92,8 +92,12 @@ static void pannel_update_cb(lv_event_t * e) {
             check_lines();
         }
     } else {
-        lv_txt_get_size(&line_size, last_line, font_panel, 0, 0, LV_COORD_MAX, 0);
-        lv_txt_get_size(&text_size, text, font_panel, 0, 0, LV_COORD_MAX, 0);
+        lv_draw_label_dsc_t dsc_label;
+
+        lv_obj_init_draw_label_dsc(obj, LV_PART_MAIN, &dsc_label);
+
+        lv_txt_get_size(&line_size, last_line, dsc_label.font, 0, 0, LV_COORD_MAX, 0);
+        lv_txt_get_size(&text_size, text, dsc_label.font, 0, 0, LV_COORD_MAX, 0);
 
         if (line_size.x + text_size.x > (lv_obj_get_width(obj) - 40)) {
             strcat(last_line, "\n");
@@ -112,7 +116,7 @@ static void mode_changed_cb(void *s, lv_msg_t *m) {
 lv_obj_t * pannel_init(lv_obj_t *parent) {
     obj = lv_label_create(parent);
 
-    lv_obj_add_style(obj, &pannel_style, 0);
+    lv_obj_add_style(obj, pannel_style, LV_PART_MAIN);
     lv_obj_add_event_cb(obj, pannel_update_cb, EVENT_PANNEL_UPDATE, NULL);
     lv_obj_set_style_opa_layered(obj, LV_OPA_TRANSP, 0);
 

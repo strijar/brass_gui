@@ -809,7 +809,7 @@ lv_obj_t * main_screen() {
 
     main_screen_keys_enable(true);
 
-    buttons_init(obj);
+    buttons_init();
     pannel_init(obj);
 
     clock_init(obj);
@@ -826,7 +826,7 @@ lv_obj_t * main_screen() {
     info_params_set();
     dsp_auto_clear();
 
-    msg_set_text_fmt("TRX Brass de R1CBU " VERSION);
+    msg_set_text_fmt("TRX Brass " VERSION);
 
     return obj;
 }

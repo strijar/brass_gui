@@ -226,7 +226,7 @@ static PyObject * style_set_bg_img_src(style_object_t *self, PyObject *args) {
     const char *path;
 
     if (PyArg_ParseTuple(args, "s", &path)) {
-        lv_style_set_bg_img_src(&self->style, path);
+        lv_style_set_bg_img_src(&self->style, strdup(path));
     }
 
     Py_RETURN_NONE;
@@ -566,6 +566,12 @@ static PyObject * obj_msg_subscribe(obj_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * obj_remove_style_all(obj_object_t *self, PyObject *args) {
+    lv_obj_remove_style_all(self->obj);
+
+    Py_RETURN_NONE;
+}
+
 static PyObject * obj_add_style(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
@@ -664,6 +670,7 @@ static PyObject * obj_move_foreground(obj_object_t *self, PyObject *args) {
 
 static PyMethodDef obj_methods[] = {
     { "msg_subscribe", (PyCFunction) obj_msg_subscribe, METH_VARARGS, "" },
+    { "remove_style_all", (PyCFunction) obj_remove_style_all, METH_NOARGS, "" },
     { "add_style", (PyCFunction) obj_add_style, METH_VARARGS, "" },
     { "clear_flag", (PyCFunction) obj_clear_flag, METH_VARARGS, "" },
     { "set_pos", (PyCFunction) obj_set_pos, METH_VARARGS, "" },
@@ -753,8 +760,6 @@ static int label_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
     }
 
     self->obj = lv_label_create(parent);
-
-    lv_label_set_recolor(self->obj, true);
 
     return 0;
 }
@@ -1154,6 +1159,39 @@ static PyTypeObject bandinfo_type = {
     .tp_methods = bandinfo_methods,
 };
 
+/* Btn */
+
+static int btn_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+    lv_obj_t    *parent = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        parent = python_lv_get_obj(obj);
+    }
+
+    self->obj = lv_btn_create(parent);
+
+    return 0;
+}
+
+static PyMethodDef btn_methods[] = {
+    { NULL }
+};
+
+static PyTypeObject btn_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_base = &obj_type,
+    .tp_name = "lv.btn",
+    .tp_doc = PyDoc_STR("LVGL button"),
+    .tp_basicsize = sizeof(obj_object_t),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_init = (initproc) btn_init,
+    .tp_methods = btn_methods,
+};
+
 /* * */
 
 static PyObject * lv_load_font(PyObject *self, PyObject *args) {
@@ -1203,6 +1241,7 @@ PyMODINIT_FUNC PyInit_lv() {
     PyType_Ready(&waterfall_type);
     PyType_Ready(&finder_type);
     PyType_Ready(&bandinfo_type);
+    PyType_Ready(&btn_type);
 
     PyObject *m = PyModule_Create(&lv_module);
 
@@ -1220,6 +1259,7 @@ PyMODINIT_FUNC PyInit_lv() {
     PyModule_AddObjectRef(m, "waterfall", (PyObject *) &waterfall_type);
     PyModule_AddObjectRef(m, "finder", (PyObject *) &finder_type);
     PyModule_AddObjectRef(m, "bandinfo", (PyObject *) &bandinfo_type);
+    PyModule_AddObjectRef(m, "btn", (PyObject *) &btn_type);
 
     return m;
 }
@@ -1229,6 +1269,16 @@ lv_obj_t * python_lv_get_obj(PyObject *obj) {
         obj_object_t *self = (obj_object_t *) obj;
 
         return self->obj;
+    }
+
+    return NULL;
+}
+
+lv_style_t * python_lv_get_style(PyObject *obj) {
+    if (PyObject_TypeCheck(obj, &style_type)) {
+        style_object_t *self = (style_object_t *) obj;
+
+        return &self->style;
     }
 
     return NULL;

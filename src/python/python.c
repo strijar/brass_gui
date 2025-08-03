@@ -67,6 +67,25 @@ lv_obj_t * python_main_screen_get() {
     } else {
         LV_LOG_ERROR("Main screen object not found");
     }
-    
+
     return NULL;
+}
+
+lv_style_t * python_get_style(const char *style_name) {
+    if (module == NULL) {
+        return NULL;
+    }
+
+    PyObject *style = PyObject_GetAttrString(module, style_name);
+    lv_style_t *value = NULL;
+
+    if (style) {
+        value = python_lv_get_style(style);
+    } else {
+        LV_LOG_ERROR("Style %s not found", style_name);
+    }
+
+    Py_XDECREF(style);
+
+    return value;
 }

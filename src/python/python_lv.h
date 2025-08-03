@@ -15,3 +15,4 @@
 PyMODINIT_FUNC PyInit_lv();
 
 lv_obj_t * python_lv_get_obj(PyObject *obj);
+lv_style_t * python_lv_get_style(PyObject *obj);

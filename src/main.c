@@ -132,8 +132,8 @@ int main(void) {
     vol->left[VOL_SELECT] = KEY_VOL_LEFT_SELECT;
     vol->right[VOL_SELECT] = KEY_VOL_RIGHT_SELECT;
 
-    styles_init();
     python_init();
+    styles_init();
 
     lv_obj_t *main_obj = main_screen();
 

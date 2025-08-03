@@ -1,0 +1,12 @@
+import trx
+import lv
+from lv_const import *
+
+from style import *
+
+class Top(lv.obj):
+	def __init__(self, parent = None):
+		lv.obj.__init__(self, parent)
+
+		self.clear_flag(LV_OBJ_FLAG_SCROLLABLE)
+		self.add_style(top_style, LV_PART_MAIN)

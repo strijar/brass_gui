@@ -35,12 +35,12 @@ void mfk_update(int16_t diff, bool voice) {
     float       f;
     bool        update;
 
-    uint32_t    color = mfk_state == MFK_STATE_EDIT ? 0xFFFFFF : 0xBBBBBB;
+    char        mode = mfk_state == MFK_STATE_EDIT ? '^' : '#';
 
     switch (mfk_mode) {
         case MFK_FILTER_LOW:
             i = radio_change_filter_low(diff);
-            msg_set_text_fmt("#%3X Filter low: %i Hz", color, i);
+            msg_set_text_fmt("%c Filter low: %i Hz", mode, i);
 
             if (diff) {
                 voice_delay_say_text_fmt("%i", i);
@@ -51,7 +51,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_FILTER_HIGH:
             i = radio_change_filter_high(diff);
-            msg_set_text_fmt("#%3X Filter high: %i Hz", color, i);
+            msg_set_text_fmt("%c Filter high: %i Hz", mode, i);
 
             if (diff) {
                 voice_say_int("High filter limit", i);
@@ -62,7 +62,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_FILTER_TRANSITION:
             i = radio_change_filter_transition(diff);
-            msg_set_text_fmt("#%3X Filter transition: %i Hz", color, i);
+            msg_set_text_fmt("%c Filter transition: %i Hz", mode, i);
 
             if (diff) {
                 voice_say_int("Filter transition", i);
@@ -100,7 +100,7 @@ void mfk_update(int16_t diff, bool voice) {
                     break;
             }
 
-            msg_set_text_fmt("#%3X AGC mode: %s", color, str);
+            msg_set_text_fmt("%c AGC mode: %s", mode, str);
 
             if (diff) {
                 info_params_set();
@@ -129,7 +129,7 @@ void mfk_update(int16_t diff, bool voice) {
                     main_screen_update_range();
                 }
             }
-            msg_set_text_fmt("#%3X Spectrum zoom: x%i", color, op_mode->spectrum_factor);
+            msg_set_text_fmt("%c Spectrum zoom: x%i", mode, op_mode->spectrum_factor);
 
             if (diff) {
                 voice_say_int("Spectrum zoom", op_mode->spectrum_factor);
@@ -149,7 +149,7 @@ void mfk_update(int16_t diff, bool voice) {
                 }
                 options->spectrum.beta = f;
             }
-            msg_set_text_fmt("#%3X Spectrum beta: %.2f", color, options->spectrum.beta);
+            msg_set_text_fmt("%c Spectrum beta: %.2f", mode, options->spectrum.beta);
 
             if (diff) {
                 voice_say_float("Spectrum beta", options->spectrum.beta);
@@ -162,7 +162,7 @@ void mfk_update(int16_t diff, bool voice) {
             if (diff != 0) {
                 options->spectrum.filled = !options->spectrum.filled;
             }
-            msg_set_text_fmt("#%3X Spectrum fill: %s", color, options->spectrum.filled ? "On" : "Off");
+            msg_set_text_fmt("%c Spectrum fill: %s", mode, options->spectrum.filled ? "On" : "Off");
 
             if (diff) {
                 voice_say_bool("Spectrum fill", options->spectrum.filled);
@@ -175,7 +175,7 @@ void mfk_update(int16_t diff, bool voice) {
             if (diff != 0) {
                 options->spectrum.peak = !options->spectrum.peak;
             }
-            msg_set_text_fmt("#%3X Spectrum peak: %s", color, options->spectrum.peak ? "On" : "Off");
+            msg_set_text_fmt("%c Spectrum peak: %s", mode, options->spectrum.peak ? "On" : "Off");
 
             if (diff) {
                 voice_say_bool("Spectrum peak", options->spectrum.peak);
@@ -188,7 +188,7 @@ void mfk_update(int16_t diff, bool voice) {
             if (diff != 0) {
                 options->spectrum.peak_hold = limit(options->spectrum.peak_hold + diff * 1000, 1000, 10000);
             }
-            msg_set_text_fmt("#%3X Peak hold: %i s", color, options->spectrum.peak_hold / 1000);
+            msg_set_text_fmt("%c Peak hold: %i s", mode, options->spectrum.peak_hold / 1000);
 
             if (diff) {
                 voice_say_int("Peak hold time", options->spectrum.peak_hold / 1000);
@@ -209,7 +209,7 @@ void mfk_update(int16_t diff, bool voice) {
 
                 options->spectrum.peak_speed = f;
             }
-            msg_set_text_fmt("#%3X Peak speed: %.1f dB", color, options->spectrum.peak_speed);
+            msg_set_text_fmt("%c Peak speed: %.1f dB", mode, options->spectrum.peak_speed);
 
             if (diff) {
                 voice_say_float("Peak speed time", options->spectrum.peak_speed);
@@ -220,7 +220,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_KEY_SPEED:
             i = cw_key_change_speed(diff);
-            msg_set_text_fmt("#%3X Key speed: %i wpm", color, i);
+            msg_set_text_fmt("%c Key speed: %i wpm", mode, i);
 
             if (diff) {
                 voice_say_int("CW key speed", i);
@@ -245,7 +245,7 @@ void mfk_update(int16_t diff, bool voice) {
                     str = "Auto-R";
                     break;
             }
-            msg_set_text_fmt("#%3X Key mode: %s", color, str);
+            msg_set_text_fmt("%c Key mode: %s", mode, str);
 
             if (diff) {
                 voice_say_text("CW key mode", str);
@@ -266,7 +266,7 @@ void mfk_update(int16_t diff, bool voice) {
                     str = "B";
                     break;
             }
-            msg_set_text_fmt("#%3X Iambic mode: %s", color, str);
+            msg_set_text_fmt("%c Iambic mode: %s", mode, str);
 
             if (diff) {
                 voice_say_text("Iambic mode", str);
@@ -277,7 +277,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_KEY_TONE:
             i = cw_key_change_tone(diff);
-            msg_set_text_fmt("#%3X Key tone: %i Hz", color, i);
+            msg_set_text_fmt("%c Key tone: %i Hz", mode, i);
 
             if (diff) {
                 voice_say_int("CW key tone", i);
@@ -288,7 +288,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_KEY_TRAIN:
             b = cw_key_change_train(diff);
-            msg_set_text_fmt("#%3X Key train: %s", color, b ? "On" : "Off");
+            msg_set_text_fmt("%c Key train: %s", mode, b ? "On" : "Off");
 
             if (diff) {
                 voice_say_bool("CW key train", b);
@@ -299,7 +299,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_QSK_TIME:
             i = cw_key_change_qsk_time(diff);
-            msg_set_text_fmt("#%3X QSK time: %i ms", color, i);
+            msg_set_text_fmt("%c QSK time: %i ms", mode, i);
 
             if (diff) {
                 voice_say_int("CW key QSK time", i);
@@ -310,7 +310,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_KEY_RATIO:
             i = cw_key_change_ratio(diff);
-            msg_set_text_fmt("#%3X Key ratio: %.1f", color, i * 0.1f);
+            msg_set_text_fmt("%c Key ratio: %.1f", mode, i * 0.1f);
 
             if (diff) {
                 voice_say_float("CW key ratio", i * 0.1f);
@@ -326,7 +326,7 @@ void mfk_update(int16_t diff, bool voice) {
                 radio_load_atu();
                 info_atu_update();
             }
-            msg_set_text_fmt("#%3X Antenna : %i", color, rf->ant);
+            msg_set_text_fmt("%c Antenna : %i", mode, rf->ant);
 
             if (diff) {
                 voice_say_int("Antenna", rf->ant);
@@ -352,7 +352,7 @@ void mfk_update(int16_t diff, bool voice) {
                     break;
             }
 
-            msg_set_text_fmt("#%3X Denoise: %s", color, str);
+            msg_set_text_fmt("%c Denoise: %s", mode, str);
 
             if (diff) {
                 voice_say_text("Denoise mode", str);
@@ -363,7 +363,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_CW_DECODER:
             b = cw_change_decoder(diff);
-            msg_set_text_fmt("#%3X CW decoder: %s", color, b ? "On" : "Off");
+            msg_set_text_fmt("%c CW decoder: %s", mode, b ? "On" : "Off");
 
             if (diff) {
                 voice_say_bool("CW decoder", b);
@@ -374,7 +374,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_CW_DECODER_SNR:
             f = cw_change_snr(diff);
-            msg_set_text_fmt("#%3X CW decoder SNR: %.1f dB", color, f);
+            msg_set_text_fmt("%c CW decoder SNR: %.1f dB", mode, f);
 
             if (diff) {
                 voice_say_float("CW decoder SNR level", f);
@@ -385,7 +385,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_CW_DECODER_PEAK_BETA:
             f = cw_change_peak_beta(diff);
-            msg_set_text_fmt("#%3X CW decoder peak beta: %.2f", color, f);
+            msg_set_text_fmt("%c CW decoder peak beta: %.2f", mode, f);
 
             if (diff) {
                 voice_say_float("CW decoder peak beta", f);
@@ -396,7 +396,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_CW_DECODER_NOISE_BETA:
             f = cw_change_noise_beta(diff);
-            msg_set_text_fmt("#%3X CW decoder noise beta: %.2f", color, f);
+            msg_set_text_fmt("%c CW decoder noise beta: %.2f", mode, f);
 
             if (diff) {
                 voice_say_float("CW decoder noise beta", f);
@@ -407,7 +407,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_RTTY_RATE:
             f = rtty_change_rate(diff);
-            msg_set_text_fmt("#%3X RTTY rate: %.2f", color, f);
+            msg_set_text_fmt("%c RTTY rate: %.2f", mode, f);
 
             if (diff) {
                 voice_say_float2("Teletype rate", f);
@@ -418,7 +418,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_RTTY_SHIFT:
             i = rtty_change_shift(diff);
-            msg_set_text_fmt("#%3X RTTY shift: %i Hz", color, i);
+            msg_set_text_fmt("%c RTTY shift: %i Hz", mode, i);
 
             if (diff) {
                 voice_say_int("Teletype frequency shift", i);
@@ -429,7 +429,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_RTTY_CENTER:
             i = rtty_change_center(diff);
-            msg_set_text_fmt("#%3X RTTY center: %i Hz", color, i);
+            msg_set_text_fmt("%c RTTY center: %i Hz", mode, i);
 
             if (diff) {
                 voice_say_int("Teletype frequency center", i);
@@ -440,7 +440,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_RTTY_REVERSE:
             b = rtty_change_reverse(diff);
-            msg_set_text_fmt("#%3X RTTY reverse: %s", color, b ? "On" : "Off");
+            msg_set_text_fmt("%c RTTY reverse: %s", mode, b ? "On" : "Off");
 
             if (diff) {
                 voice_say_bool("Teletype reverse", b);
@@ -451,7 +451,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_OLIVIA_TONES:
             i = olivia_change_tones(diff);
-            msg_set_text_fmt("#%3X Olivia tones: %i", color, i);
+            msg_set_text_fmt("%c Olivia tones: %i", mode, i);
 
             if (diff) {
                 voice_say_int("Olivia tones", i);
@@ -462,7 +462,7 @@ void mfk_update(int16_t diff, bool voice) {
 
         case MFK_OLIVIA_WIDTH:
             i = olivia_change_width(diff);
-            msg_set_text_fmt("#%3X Olivia band width: %i Hz", color, i);
+            msg_set_text_fmt("%c Olivia band width: %i Hz", mode, i);
 
             if (diff) {
                 voice_say_int("Olivia band width", i);

@@ -24,12 +24,12 @@ void vol_update(int16_t diff, bool voice) {
     char        *str;
     bool        b;
 
-    uint32_t    color = vol->mode == VOL_EDIT ? 0xFFFFFF : 0xBBBBBB;
+    char        mode = vol->mode == VOL_EDIT ? '^' : '#';
 
     switch (vol_mode) {
         case VOL_VOL:
             i = dsp_change_vol(diff);
-            msg_set_text_fmt("#%3X Volume: %i", color, i);
+            msg_set_text_fmt("%c Volume: %i", mode, i);
 
             if (diff) {
                 voice_say_int("Audio level", i);
@@ -40,7 +40,7 @@ void vol_update(int16_t diff, bool voice) {
 
         case VOL_PWR:
             f = radio_change_pwr(diff);
-            msg_set_text_fmt("#%3X Power: %0.1f W", color, f);
+            msg_set_text_fmt("%c Power: %0.1f W", mode, f);
 
             if (diff) {
                 voice_say_float("Transmit power", f);
@@ -51,7 +51,7 @@ void vol_update(int16_t diff, bool voice) {
 
         case VOL_VOICE_LANG:
             str = voice_change(diff);
-            msg_set_text_fmt("#%3X Voice: %s", color, str);
+            msg_set_text_fmt("%c Voice: %s", mode, str);
 
             if (diff) {
                 voice_say_lang();
@@ -62,7 +62,7 @@ void vol_update(int16_t diff, bool voice) {
 
         case VOL_VOICE_RATE:
             i = limit(options->voice.rate + diff, 50, 150);
-            msg_set_text_fmt("#%3X Voice rate: %i", color, i);
+            msg_set_text_fmt("%c Voice rate: %i", mode, i);
             options->voice.rate = i;
 
             if (diff == 0 && voice) {
@@ -72,7 +72,7 @@ void vol_update(int16_t diff, bool voice) {
 
         case VOL_VOICE_PITCH:
             i = limit(options->voice.pitch + diff, 50, 150);
-            msg_set_text_fmt("#%3X Voice pitch: %i", color, i);
+            msg_set_text_fmt("%c Voice pitch: %i", mode, i);
             options->voice.pitch = i;
 
             if (diff == 0 && voice) {
@@ -82,7 +82,7 @@ void vol_update(int16_t diff, bool voice) {
 
         case VOL_VOICE_VOLUME:
             i = limit(options->voice.volume + diff, 50, 150);
-            msg_set_text_fmt("#%3X Voice volume: %i", color, i);
+            msg_set_text_fmt("%c Voice volume: %i", mode, i);
             options->voice.volume = i;
 
             if (diff == 0 && voice) {
@@ -111,7 +111,7 @@ void vol_update(int16_t diff, bool voice) {
                     break;
             }
 
-            msg_set_text_fmt("#%3X Freq mode: %s", color, str);
+            msg_set_text_fmt("%c Freq mode: %s", mode, str);
 
             if (diff) {
                 voice_say_text("Frequency mode", str);
@@ -136,7 +136,7 @@ void vol_update(int16_t diff, bool voice) {
                     str = "TX";
                     break;
             }
-            msg_set_text_fmt("#%3X Split: %s", color, str);
+            msg_set_text_fmt("%c Split: %s", mode, str);
 
             if (diff) {
                 info_params_set();

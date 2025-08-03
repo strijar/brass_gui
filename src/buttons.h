@@ -40,7 +40,8 @@ typedef struct {
     uint16_t        data;
 } button_item_t;
 
-void buttons_init(lv_obj_t *parent);
+void buttons_init();
+bool buttons_insert(int index, lv_obj_t *button);
 void buttons_load(uint8_t n, button_item_t *item);
 void buttons_load_page(button_page_t page);
 void buttons_unload_page();

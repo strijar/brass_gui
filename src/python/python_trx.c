@@ -17,6 +17,8 @@
 #include "src/widgets/lv_finder.h"
 #include "src/main.h"
 #include "src/msgs.h"
+#include "src/radio.h"
+#include "src/buttons.h"
 
 /* Spectrum */
 
@@ -288,6 +290,21 @@ static PyObject * trx_connect_tx_finder(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * trx_connect_button(PyObject *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    int         index = -1;
+    PyObject    *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "iO", &index, &obj)) {
+        lv_obj_t *button = python_lv_get_obj(obj);
+
+        buttons_insert(index, button);
+    }
+
+    Py_RETURN_NONE;
+}
+
 /* * */
 
 static PyMethodDef trx_methods[] = {
@@ -296,6 +313,7 @@ static PyMethodDef trx_methods[] = {
     { "connect_waterfall", (PyCFunction) trx_connect_waterfall, METH_VARARGS, "" },
     { "connect_rx_finder", (PyCFunction) trx_connect_rx_finder, METH_VARARGS, "" },
     { "connect_tx_finder", (PyCFunction) trx_connect_tx_finder, METH_VARARGS, "" },
+    { "connect_button", (PyCFunction) trx_connect_button, METH_VARARGS, "" },
     { NULL }
 };
 

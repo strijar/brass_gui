@@ -1,65 +1,40 @@
 import trx
 import lv
-
 from lv_const import *
-from gui_const import *
 
-class MainFreqs():
+from style import *
+from layout import *
+
+class MainFreqs(lv.obj):
 	def __init__(self, parent = None):
+		lv.obj.__init__(self, parent)
+
+		self.clear_flag(LV_OBJ_FLAG_SCROLLABLE)
+		self.add_style(main_freqs_style, LV_PART_MAIN)
+
 		self.rx = None
 		self.tx = None
 		self.fft = None
 		self.zoom = None
 
-		self.makeFreq(parent)
-		self.makeRange(parent)
+		self.makeFreq()
+		self.makeRange()
 
-	def makeFreq(self, parent):
-		font = lv.load_font("/usr/share/brass/font/Jura-Bold.ttf", 32)
-		style = lv.style()
-
-		style.set_text_color(0xffffff)
-		style.set_text_font(font)
-		style.set_pad_ver(0)
-		style.set_width(500)
-		style.set_height(FREQ_HEIGHT)
-		style.set_text_align(LV_TEXT_ALIGN_CENTER)
-		style.set_x(150)
-		style.set_y(SPECTRUM_HEIGHT)
-
-		freq = lv.label(parent)
-		freq.add_style(style, LV_PART_MAIN)
+	def makeFreq(self):
+		freq = lv.label(self)
+		freq.add_style(main_freqs_center_style, LV_PART_MAIN)
 
 		freq.msg_subscribe(trx.MSG_FREQ_RX_CHANGED, self.msg_freq_rx)
 		freq.msg_subscribe(trx.MSG_FREQ_TX_CHANGED, self.msg_freq_tx)
 		self.freq = freq
 
-	def makeRange(self, parent):
-		font = lv.load_font("/usr/share/brass/font/Jura.ttf", 28)
-		style = lv.style()
-
-		style.set_text_color(0xffffff)
-		style.set_text_font(font)
-		style.set_pad_ver(2)
-		style.set_width(150)
-		style.set_height(FREQ_HEIGHT)
-
-		style_left = lv.style()
-		style_left.set_text_align(LV_TEXT_ALIGN_LEFT)
-
-		left = lv.label(parent)
-		left.set_pos(0, SPECTRUM_HEIGHT)
-		left.add_style(style, LV_PART_MAIN)
-		left.add_style(style_left, LV_PART_MAIN)
+	def makeRange(self):
+		left = lv.label(self)
+		left.add_style(main_freqs_left_style, LV_PART_MAIN)
 		self.left = left
 
-		style_right = lv.style()
-		style_right.set_text_align(LV_TEXT_ALIGN_RIGHT)
-
-		right = lv.label(parent)
-		right.set_pos(500 + 150, SPECTRUM_HEIGHT)
-		right.add_style(style, LV_PART_MAIN)
-		right.add_style(style_right, LV_PART_MAIN)
+		right = lv.label(self)
+		right.add_style(main_freqs_right_style, LV_PART_MAIN)
 		self.right = right
 
 		left.msg_subscribe(trx.MSG_FREQ_FFT_CHANGED, self.msg_fft_changed)

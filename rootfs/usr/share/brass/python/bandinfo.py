@@ -1,7 +1,9 @@
 import trx
 import lv
-
 from lv_const import *
+
+from style import *
+from layout import *
 
 class BandInfo(lv.bandinfo):
 	def __init__(self, parent = None):
@@ -10,13 +12,9 @@ class BandInfo(lv.bandinfo):
 		self.clear_flag(LV_OBJ_FLAG_SCROLLABLE)
 		self.set_timeout(1000)
 
-		style = lv.style()
-
-		style.set_radius(0)
-		style.set_border_width(0)
-		style.set_bg_opa(LV_OPA_0)
-
-		self.add_style(style, LV_PART_MAIN)
+		self.add_style(bandinfo_style, LV_PART_MAIN)
+		self.add_style(bandinfo_indicator_style, LV_PART_INDICATOR)
+		self.add_style(bandinfo_marker_style, LV_PART_TICKS)
 
 		self.msg_subscribe(trx.MSG_FREQ_FFT_CHANGED, self.msg_fft_changed)
 		self.msg_subscribe(trx.MSG_RATE_FFT_CHANGED, self.msg_rate_fft)
@@ -31,28 +29,3 @@ class BandInfo(lv.bandinfo):
 
 	def msg_freq(self, msg, payload = None):
 		self.touch()
-
-	def makeBandStyle(self):
-		font = lv.load_font("/usr/share/brass/font/Jura.ttf", 22)
-		style = lv.style()
-
-		style.set_bg_color(0x002550)
-		style.set_bg_opa(LV_OPA_50)
-		style.set_border_width(2)
-		style.set_border_color(0xFFFFFF)
-		style.set_border_opa(LV_OPA_50)
-		style.set_text_color(0xFFFFFF)
-		style.set_text_font(font)
-
-		self.add_style(style, LV_PART_INDICATOR)
-
-	def makeMarkerStyle(self, color, opa):
-		font = lv.load_font("/usr/share/brass/font/Jura-Bold.ttf", 22)
-		style = lv.style()
-
-		style.set_bg_color(color)
-		style.set_bg_opa(opa)
-		style.set_text_color(0x000000)
-		style.set_text_font(font)
-
-		self.add_style(style, LV_PART_TICKS)

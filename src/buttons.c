@@ -38,9 +38,8 @@ typedef struct {
     button_item_t   *item;
 } button_t;
 
-static uint8_t      btn_height = 62;
+static uint8_t      btn_height = 59;
 static button_t     btn[6];
-static lv_obj_t     *parent_obj = NULL;
 
 static void button_app_page_cb(lv_event_t * e);
 static void button_vol_update_cb(lv_event_t * e);
@@ -189,32 +188,23 @@ static void button_exit_cb(lv_event_t * e) {
     main_exit();
 }
 
-void buttons_init(lv_obj_t *parent) {
-    uint16_t y = 480 - btn_height;
-    uint16_t x = 0;
-    uint16_t width = 133;
-
-    for (uint8_t i = 0; i < BUTTONS; i++) {
-        lv_obj_t *f = lv_btn_create(parent);
-
-        lv_obj_remove_style_all(f); 
-        lv_obj_add_style(f, &btn_style, 0);
-
-        lv_obj_set_pos(f, x, y);
-        lv_obj_set_size(f, width, btn_height);
-
-        x += width;
-
-        lv_obj_t *label = lv_label_create(f);
+bool buttons_insert(int index, lv_obj_t *button) {
+    if (index >= 0 && index < BUTTONS) {
+        lv_obj_t *label = lv_label_create(button);
 
         lv_obj_center(label);
-        lv_obj_set_user_data(f, label);
+        lv_obj_set_user_data(button, label);
         lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
 
-        btn[i].obj = f;
+        btn[index].obj = button;
+
+        return true;
     }
 
-    parent_obj = parent;
+    return false;
+}
+
+void buttons_init() {
     lv_msg_subsribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
 }
 
