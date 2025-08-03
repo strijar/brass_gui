@@ -119,6 +119,13 @@ buttons_style.set_pad_ver(0)
 button_style.set_width(133)
 button_style.set_height(59)
 
+# # #
+
+smeter_style.set_x(250)
+smeter_style.set_y(10)
+smeter_style.set_width(340)
+smeter_style.set_height(40)
+
 # # # # #
 
 pannel_style.set_x(0)

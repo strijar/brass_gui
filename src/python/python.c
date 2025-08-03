@@ -8,6 +8,7 @@
 
 #include "python.h"
 #include "python_lv.h"
+#include "python_lv_object.h"
 #include "python_trx.h"
 
 static PyObject *module;

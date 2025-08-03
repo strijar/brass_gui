@@ -15,10 +15,10 @@
 #include "util.h"
 #include "cw_decoder.h"
 #include "pannel.h"
-#include "meter.h"
 #include "fpga/adc.h"
 #include "settings/modes.h"
 #include "settings/options.h"
+#include "widgets/lv_smeter.h"
 
 typedef struct {
     uint16_t    n;

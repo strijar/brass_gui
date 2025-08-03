@@ -48,4 +48,5 @@ typedef enum {
     MSG_RECORDER,               /* bool */
     MSG_MSG,                    /* char */
     MSG_MSG_TINY,               /* char */
+    MSG_SMETER,                 /* float */
 } msgs_t;

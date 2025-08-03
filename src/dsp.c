@@ -11,10 +11,10 @@
 #include <math.h>
 #include <specbleach_adenoiser.h>
 
+#include "widgets/lv_smeter.h"
 #include "dsp.h"
 #include "util.h"
 #include "radio.h"
-#include "meter.h"
 #include "audio.h"
 #include "cw.h"
 #include "cw_key.h"
@@ -77,7 +77,8 @@ static lv_timer_t               *auto_timer = NULL;
 static pthread_mutex_t          auto_mux;
 
 static uint8_t                  meter_count = 0;
-static float                    meter_db = 0.0f;
+static float                    meter_sum_db = 0.0f;
+static float                    meter_avr_db = 0.0f;
 static lv_timer_t               *meter_timer = NULL;
 static pthread_mutex_t          meter_mux;
 
@@ -418,11 +419,13 @@ static void meter_timer_cb(lv_timer_t *t) {
     pthread_mutex_lock(&meter_mux);
 
     if (dialog_msg_voice_get_state() != MSG_VOICE_RECORD) {
-        meter_update(meter_db / meter_count, 0.5f);
+        lpf(&meter_avr_db, meter_sum_db / meter_count, 0.5f);
+
+        lv_msg_send(MSG_SMETER, &meter_avr_db);
     }
 
     meter_count = 0;
-    meter_db = 0;
+    meter_sum_db = 0;
 
     pthread_mutex_unlock(&meter_mux);
 }
@@ -554,7 +557,7 @@ void dsp_adc(float complex *data, uint16_t samples) {
     }
 
     pthread_mutex_lock(&meter_mux);
-    meter_db += 20.0f * log10f(peak) - meter_correct_db;
+    meter_sum_db += 20.0f * log10f(peak) - meter_correct_db;
     meter_count++;
     pthread_mutex_unlock(&meter_mux);
 

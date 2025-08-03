@@ -13,8 +13,8 @@ msg_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 36)
 msg_tiny_font = lv.load_font("/usr/share/brass/font/Jura.ttf", 52)
 
 button_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 15)
-
 pannel_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 18)
+smeter_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 20)
 
 # # #
 
@@ -211,6 +211,36 @@ button_style.set_border_width(0)
 button_style.set_text_color(0xFFCF85)
 button_style.set_text_font(button_font)
 button_style.set_bg_opa(LV_OPA_TRANSP)
+
+# # #
+
+smeter_style = lv.style()
+
+smeter_style.set_radius(0)
+smeter_style.set_border_width(0)
+smeter_style.set_bg_opa(LV_OPA_TRANSP)
+smeter_style.set_text_color(0xFFCF85)
+smeter_style.set_text_font(smeter_font)
+
+smeter_part1_style = lv.style()
+
+smeter_part1_style.set_bg_color(0x2E3442)
+smeter_part1_style.set_bg_opa(LV_OPA_COVER)
+
+smeter_part2_style = lv.style()
+
+smeter_part2_style.set_bg_color(0x3F526C)
+smeter_part2_style.set_bg_opa(LV_OPA_COVER)
+
+smeter_part3_style = lv.style()
+
+smeter_part3_style.set_bg_color(0x5D769A)
+smeter_part3_style.set_bg_opa(LV_OPA_COVER)
+
+smeter_part4_style = lv.style()
+
+smeter_part4_style.set_bg_color(0xFFC940)
+smeter_part4_style.set_bg_opa(LV_OPA_COVER)
 
 # # # # #
 

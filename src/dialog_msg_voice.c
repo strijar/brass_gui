@@ -28,10 +28,10 @@
 #include "textarea_window.h"
 #include "msg.h"
 #include "msgs.h"
-#include "meter.h"
 #include "buttons.h"
 #include "dsp.h"
 #include "fpga/dac.h"
+#include "widgets/lv_smeter.h"
 
 #define DECIM       441
 #define INTER       128
@@ -683,6 +683,6 @@ void dialog_msg_voice_put_audio_samples(float *samples, size_t nsamples) {
     }
 
     peak = S1 + peak * (S9_40 - S1);
-    meter_update(peak, 0.25f);
+//    meter_update(peak, 0.25f);
     sf_write_float(file, samples, nsamples);
 }

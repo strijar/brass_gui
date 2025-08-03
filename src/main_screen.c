@@ -20,7 +20,6 @@
 #include "dsp.h"
 #include "clock.h"
 #include "info.h"
-#include "meter.h"
 #include "tx_info.h"
 #include "mfk.h"
 #include "vol.h"
@@ -51,13 +50,13 @@
 #include "settings/bands.h"
 #include "settings/modes.h"
 #include "bands/bands.h"
+#include "widgets/lv_smeter.h"
 
 static lv_obj_t     *obj = NULL;
 static bool         freq_lock = false;
 static bool         mode_lock = false;
 static bool         band_lock = false;
 
-static lv_obj_t     *meter;
 static lv_obj_t     *tx_info;
 
 static void freq_shift(int16_t diff);
@@ -815,7 +814,6 @@ lv_obj_t * main_screen() {
     clock_init(obj);
     info_init(obj);
 
-    meter = meter_init(obj);
     tx_info = tx_info_init(obj);
 
     lv_msg_send(MSG_MODE_CHANGED, &op_work->mode);

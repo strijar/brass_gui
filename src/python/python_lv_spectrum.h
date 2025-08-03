@@ -12,4 +12,4 @@
 
 #include "lvgl/lvgl.h"
 
-PyMODINIT_FUNC PyInit_lv();
+extern PyTypeObject spectrum_type;

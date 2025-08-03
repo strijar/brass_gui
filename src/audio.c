@@ -17,7 +17,6 @@
 
 #include "lvgl/lvgl.h"
 #include "audio.h"
-#include "meter.h"
 #include "dsp.h"
 #include "mic.h"
 #include "fpga/adc.h"

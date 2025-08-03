@@ -8,6 +8,7 @@
 
 #include "lvgl/lvgl.h"
 #include "python_lv.h"
+#include "python_lv_object.h"
 #include "python_trx.h"
 #include "src/msgs.h"
 #include "src/events.h"
@@ -15,6 +16,7 @@
 #include "src/widgets/lv_spectrum3d.h"
 #include "src/widgets/lv_waterfall.h"
 #include "src/widgets/lv_finder.h"
+#include "src/widgets/lv_smeter.h"
 #include "src/main.h"
 #include "src/msgs.h"
 #include "src/radio.h"
@@ -290,6 +292,43 @@ static PyObject * trx_connect_tx_finder(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+/* S-Meter */
+
+static void smeter_msg_cb(void *s, lv_msg_t *m) {
+    lv_obj_t *smeter = lv_msg_get_user_data(m);
+
+    switch (lv_msg_get_id(m)) {
+        case MSG_SPECTRUM_AUTO: {
+            const msgs_auto_t *msg = lv_msg_get_payload(m);
+
+            lv_smeter_set_part(smeter, 0, msg->min);
+        } break;
+
+        case MSG_SMETER: {
+            const float *msg = lv_msg_get_payload(m);
+
+            lv_smeter_set_value(smeter, *msg);
+        }
+    }
+}
+
+static PyObject * trx_connect_smeter(PyObject *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        lv_obj_t *smeter = python_lv_get_obj(obj);
+
+        lv_msg_subsribe(MSG_SPECTRUM_AUTO, smeter_msg_cb, smeter);
+        lv_msg_subsribe(MSG_SMETER, smeter_msg_cb, smeter);
+    }
+
+    Py_RETURN_NONE;
+}
+
+/* * */
+
 static PyObject * trx_connect_button(PyObject *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
@@ -314,6 +353,7 @@ static PyMethodDef trx_methods[] = {
     { "connect_rx_finder", (PyCFunction) trx_connect_rx_finder, METH_VARARGS, "" },
     { "connect_tx_finder", (PyCFunction) trx_connect_tx_finder, METH_VARARGS, "" },
     { "connect_button", (PyCFunction) trx_connect_button, METH_VARARGS, "" },
+    { "connect_smeter", (PyCFunction) trx_connect_smeter, METH_VARARGS, "" },
     { NULL }
 };
 
@@ -351,6 +391,7 @@ PyMODINIT_FUNC PyInit_trx() {
     PyModule_AddObjectRef(m, "MSG_RECORDER",            PyLong_FromLong(MSG_RECORDER));
     PyModule_AddObjectRef(m, "MSG_MSG",                 PyLong_FromLong(MSG_MSG));
     PyModule_AddObjectRef(m, "MSG_MSG_TINY",            PyLong_FromLong(MSG_MSG_TINY));
+    PyModule_AddObjectRef(m, "MSG_SMETER",              PyLong_FromLong(MSG_SMETER));
 
     return m;
 }

@@ -19,7 +19,6 @@
 #include "main_screen.h"
 #include "hkey.h"
 #include "tx_info.h"
-#include "meter.h"
 #include "events.h"
 #include "clock.h"
 #include "info.h"

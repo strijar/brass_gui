@@ -12,4 +12,9 @@
 
 #include "lvgl/lvgl.h"
 
-PyMODINIT_FUNC PyInit_lv();
+typedef struct {
+    PyObject_HEAD
+    lv_grad_dsc_t  grad;
+} grad_object_t;
+
+extern PyTypeObject grad_type;

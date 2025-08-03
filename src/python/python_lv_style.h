@@ -12,4 +12,11 @@
 
 #include "lvgl/lvgl.h"
 
-PyMODINIT_FUNC PyInit_lv();
+typedef struct {
+    PyObject_HEAD
+    lv_style_t  style;
+} style_object_t;
+
+extern PyTypeObject style_type;
+
+lv_style_t * python_lv_get_style(PyObject *obj);
