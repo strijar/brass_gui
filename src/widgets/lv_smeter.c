@@ -95,8 +95,6 @@ static void lv_smeter_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj
 
     meter->value = S_MIN;
     meter->slice_db = 3;
-    meter->slice_width = 10;
-    meter->slice_pad = 3;
 
     meter->min = S1;
     meter->max = S9_40;
@@ -123,13 +121,16 @@ static void lv_smeter_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         lv_draw_label_dsc_t label_dsc;
         lv_area_t           area;
 
+        int16_t     slice_width = lv_obj_get_style_width(obj, LV_PART_INDICATOR);
+        int16_t     slice_pad = lv_obj_get_style_pad_column(obj, LV_PART_INDICATOR);
+
         lv_coord_t  x1 = obj->coords.x1 + 18;
         lv_coord_t  y1 = obj->coords.y1;
 
         lv_coord_t  w = lv_obj_get_width(obj);
         lv_coord_t  h = lv_obj_get_height(obj);
 
-        lv_coord_t  len = meter->slice_width * (meter->max - meter->min) / meter->slice_db;
+        lv_coord_t  len = slice_width * (meter->max - meter->min) / meter->slice_db;
 
         /* Rects */
 
@@ -152,12 +153,12 @@ static void lv_smeter_event(const lv_obj_class_t * class_p, lv_event_t * e) {
                 lv_obj_init_draw_rect_dsc(obj, LV_PART_METER_4, &rect_dsc);
             }
 
-            area.x2 = area.x1 + meter->slice_width - meter->slice_pad;
+            area.x2 = area.x1 + slice_width - slice_pad;
 
             lv_draw_rect(draw_ctx, &rect_dsc, &area);
 
             db += meter->slice_db;
-            area.x1 += meter->slice_width;
+            area.x1 += slice_width;
         }
 
         /* Labels */

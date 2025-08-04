@@ -222,6 +222,11 @@ smeter_style.set_bg_opa(LV_OPA_TRANSP)
 smeter_style.set_text_color(0xFFCF85)
 smeter_style.set_text_font(smeter_font)
 
+smeter_slice_style = lv.style()
+
+smeter_slice_style.set_width(10)
+smeter_slice_style.set_pad_column(3)
+
 smeter_part1_style = lv.style()
 
 smeter_part1_style.set_bg_color(0x2E3442)

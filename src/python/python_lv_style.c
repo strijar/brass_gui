@@ -259,6 +259,18 @@ static PyObject * style_set_pad_ver(style_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * style_set_pad_column(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_coord_t pad;
+
+    if (PyArg_ParseTuple(args, "i", &pad)) {
+        lv_style_set_pad_column(&self->style, pad);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject * style_set_line_width(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
@@ -351,6 +363,7 @@ static PyMethodDef style_methods[] = {
     { "set_height", (PyCFunction) style_set_height, METH_VARARGS, "" },
     { "set_pad_hor", (PyCFunction) style_set_pad_hor, METH_VARARGS, "" },
     { "set_pad_ver", (PyCFunction) style_set_pad_ver, METH_VARARGS, "" },
+    { "set_pad_column", (PyCFunction) style_set_pad_column, METH_VARARGS, "" },
     { "set_line_width", (PyCFunction) style_set_line_width, METH_VARARGS, "" },
     { "set_line_color", (PyCFunction) style_set_line_color, METH_VARARGS, "" },
     { "set_line_opa", (PyCFunction) style_set_line_opa, METH_VARARGS, "" },
