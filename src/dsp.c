@@ -215,6 +215,7 @@ void dsp_set_filter(filter_t *filter) {
 
 void dsp_set_rx_agc(uint8_t mode) {
     agc_set_mode(rx_agc, mode);
+    lv_msg_send(MSG_AGC_CHANGED, &mode);
 }
 
 int dsp_change_denoise(int16_t d) {

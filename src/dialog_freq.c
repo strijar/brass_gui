@@ -20,7 +20,6 @@
 #include "util.h"
 #include "keyboard.h"
 #include "bands/bands.h"
-#include "info.h"
 #include "pannel.h"
 #include "main_screen.h"
 #include "msg.h"

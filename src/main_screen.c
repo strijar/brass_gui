@@ -19,7 +19,6 @@
 #include "msg_tiny.h"
 #include "dsp.h"
 #include "clock.h"
-#include "info.h"
 #include "tx_info.h"
 #include "mfk.h"
 #include "vol.h"
@@ -49,6 +48,7 @@
 #include "msgs.h"
 #include "settings/bands.h"
 #include "settings/modes.h"
+#include "settings/rf.h"
 #include "bands/bands.h"
 #include "widgets/lv_smeter.h"
 
@@ -83,7 +83,6 @@ void mem_load(uint16_t id) {
     settings_mode_update(op_work->mode);
 
     radio_load_atu();
-    info_params_set();
 
     dsp_auto_clear();
     freq_update();
@@ -349,11 +348,11 @@ static void main_screen_keypad_cb(lv_event_t * e) {
                 radio_change_mode(RADIO_MODE_SUBSET);
             }
 
-            info_params_set();
-
+            /* FIXME
             if (options->mag.info) {
                 msg_tiny_set_text_fmt("%s", info_params_mode());
             }
+            */
             break;
 
         case KEYPAD_F1:
@@ -503,15 +502,6 @@ static void main_screen_hkey_cb(lv_event_t * e) {
         default:
             break;
     }
-}
-
-static void main_screen_update_cb(lv_event_t * e) {
-    info_params_set();
-    dsp_auto_clear();
-}
-
-static void main_screen_atu_update_cb(lv_event_t * e) {
-    info_atu_update();
 }
 
 static uint16_t freq_accel(uint16_t diff) {
@@ -782,13 +772,13 @@ void main_screen_lock_band(bool lock) {
 
 void main_screen_lock_mode(bool lock) {
     mode_lock = lock;
-    info_lock_mode(lock);
+    /* FIXME info lock mode */
 }
 
 void main_screen_set_freq(uint64_t freq) {
     radio_set_freqs(freq, freq);
     radio_set_freq_fft(freq);
-    lv_event_send(lv_scr_act(), EVENT_SCREEN_UPDATE, NULL);
+    dsp_auto_clear();
 }
 
 lv_obj_t * main_screen() {
@@ -797,8 +787,6 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_rotary_cb, EVENT_ROTARY, NULL);
     lv_obj_add_event_cb(obj, main_screen_keypad_cb, EVENT_KEYPAD, NULL);
     lv_obj_add_event_cb(obj, main_screen_hkey_cb, EVENT_HKEY, NULL);
-    lv_obj_add_event_cb(obj, main_screen_update_cb, EVENT_SCREEN_UPDATE, NULL);
-    lv_obj_add_event_cb(obj, main_screen_atu_update_cb, EVENT_ATU_UPDATE, NULL);
 
     lv_obj_add_event_cb(obj, main_screen_key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(obj, main_screen_pressed_cb, LV_EVENT_PRESSED, NULL);
@@ -812,7 +800,6 @@ lv_obj_t * main_screen() {
     pannel_init(obj);
 
     clock_init(obj);
-    info_init(obj);
 
     tx_info = tx_info_init(obj);
 
@@ -821,7 +808,10 @@ lv_obj_t * main_screen() {
     lv_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
     lv_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
 
-    info_params_set();
+    lv_msg_send(MSG_AGC_CHANGED, &op_mode->agc);
+    lv_msg_send(MSG_ANT_CHANGED, &rf->ant);
+    lv_msg_send(MSG_SPLIT_CHANGED, &op_work->split);
+
     dsp_auto_clear();
 
     msg_set_text_fmt("TRX Brass " VERSION);
@@ -834,7 +824,9 @@ bool main_screen_ready() {
 }
 
 static void band_changed_cb(void *s, lv_msg_t *m) {
-    info_params_set();
+    lv_msg_send(MSG_ANT_CHANGED, &rf->ant);
+    lv_msg_send(MSG_SPLIT_CHANGED, &op_work->split);
+
     dsp_auto_clear();
 
     switch (options->freq.mode) {

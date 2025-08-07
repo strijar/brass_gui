@@ -21,7 +21,6 @@
 #include "tx_info.h"
 #include "events.h"
 #include "clock.h"
-#include "info.h"
 #include "dialog_swrscan.h"
 #include "voice.h"
 #include "fpga/control.h"

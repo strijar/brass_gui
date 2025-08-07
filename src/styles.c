@@ -16,15 +16,9 @@ lv_style_t  waterfall_style;
 lv_style_t  msg_style;
 lv_style_t  msg_tiny_style;
 lv_style_t  clock_style;
-lv_style_t  info_style;
-lv_style_t  info_item_style;
-lv_style_t  meter_style;
 lv_style_t  tx_info_style;
 lv_style_t  rx_finder_style;
 
-lv_style_t  panel_top_style;
-lv_style_t  panel_mid_style;
-lv_style_t  panel_bottom_style;
 lv_style_t  *pannel_style;
 
 lv_style_t  dialog_style;
@@ -40,15 +34,12 @@ lv_font_t   *font_clock_time = &jura_36;
 lv_font_t   *font_clock_power = &jura_28;
 lv_font_t   *font_dialog_freq = &jura_44;
 lv_font_t   *font_swrscan = &jura_28;
-lv_font_t   *font_meter = &jura_22;
 lv_font_t   *font_textarea = &jura_40;
 lv_font_t   *font_tx_info = &jura_22;
 
-lv_font_t   *font_btn = &jura_bold_18;
 lv_font_t   *font_msg = &jura_38;
 lv_font_t   *font_dialog = &jura_bold_26;
 lv_font_t   *font_dialog_list = &jura_bold_26;
-lv_font_t   *font_info_item = &jura_bold_18;
 
 static lv_font_t * load_font(const char *path, lv_coord_t font_size) {
     lv_ft_info_t    info;
@@ -150,30 +141,6 @@ void styles_init() {
     lv_style_set_width(&clock_style, 206);
     lv_style_set_height(&clock_style, 61);
     lv_style_set_x(&clock_style, 800 - 206);
-
-    lv_style_init(&info_style);
-    lv_style_set_radius(&info_style, 0);
-    lv_style_set_width(&info_style, 206);
-    lv_style_set_height(&info_style, 61);
-    lv_style_set_x(&info_style, 0);
-    lv_style_set_y(&info_style, 0);
-    lv_style_set_pad_ver(&info_style, 0);
-    lv_style_set_border_width(&info_style, 0);
-    lv_style_set_bg_opa(&info_style, LV_OPA_0);
-
-    lv_style_init(&info_item_style);
-    lv_style_set_text_font(&info_item_style, font_info_item); // 20
-    lv_style_set_pad_ver(&info_item_style, 5);
-    lv_style_set_radius(&info_item_style, 0);
-
-    lv_style_init(&meter_style);
-    lv_style_set_radius(&meter_style, 0);
-    lv_style_set_x(&meter_style, 250);
-    lv_style_set_y(&meter_style, 10);
-    lv_style_set_width(&meter_style, 340);
-    lv_style_set_height(&meter_style, 40);
-    lv_style_set_bg_opa(&meter_style, LV_OPA_0);
-    lv_style_set_border_width(&meter_style, 0);
 
     lv_style_init(&tx_info_style);
     lv_style_set_radius(&tx_info_style, 0);

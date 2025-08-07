@@ -27,7 +27,7 @@ typedef struct {
 } msg_finder_cursor_t;
 
 typedef enum {
-    MSG_MODE_CHANGED = 1,
+    MSG_MODE_CHANGED = 1,       /* op_work->mode */
     MSG_FILTER_CHANGED,
     MSG_BAND_CHANGED,
     MSG_FREQ_RX_PRE_CHANGED,    /* uint64_t */
@@ -49,4 +49,7 @@ typedef enum {
     MSG_MSG,                    /* char */
     MSG_MSG_TINY,               /* char */
     MSG_SMETER,                 /* float */
+    MSG_AGC_CHANGED,            /* op_mode->agc */
+    MSG_ANT_CHANGED,            /* rf->ant */
+    MSG_SPLIT_CHANGED,          /* op_work->split */
 } msgs_t;

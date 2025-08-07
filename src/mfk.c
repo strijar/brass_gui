@@ -10,13 +10,13 @@
 #include "mfk.h"
 #include "main_screen.h"
 #include "msg.h"
+#include "msgs.h"
 #include "dsp.h"
 #include "radio.h"
 #include "cw_key.h"
 #include "cw.h"
 #include "rtty.h"
 #include "util.h"
-#include "info.h"
 #include "backlight.h"
 #include "voice.h"
 #include "dsp/agc.h"
@@ -103,7 +103,6 @@ void mfk_update(int16_t diff, bool voice) {
             msg_set_text_fmt("%c AGC mode: %s", mode, str);
 
             if (diff) {
-                info_params_set();
                 voice_say_text("AGC mode", str);
             } else if (voice) {
                 voice_say_text_fmt("AGC mode");
@@ -323,8 +322,7 @@ void mfk_update(int16_t diff, bool voice) {
             if (diff != 0) {
                 rf->ant = limit(rf->ant + diff, 1, 5);
 
-                radio_load_atu();
-                info_atu_update();
+                lv_msg_send(MSG_ANT_CHANGED, &rf->ant);
             }
             msg_set_text_fmt("%c Antenna : %i", mode, rf->ant);
 

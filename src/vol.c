@@ -8,13 +8,14 @@
 
 #include "vol.h"
 #include "msg.h"
+#include "msgs.h"
 #include "radio.h"
 #include "main.h"
 #include "voice.h"
 #include "dsp.h"
-#include "info.h"
 #include "util.h"
 #include "settings/options.h"
+#include "settings/op_work.h"
 
 static vol_mode_t   vol_mode = VOL_VOL;
 
@@ -139,7 +140,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("%c Split: %s", mode, str);
 
             if (diff) {
-                info_params_set();
+                lv_msg_send(MSG_SPLIT_CHANGED, &op_work->split);
                 voice_say_text("Split mode", str);
             } else if (voice) {
                 voice_say_text_fmt("Split mode selector");

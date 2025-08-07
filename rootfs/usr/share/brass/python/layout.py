@@ -121,6 +121,57 @@ button_style.set_height(59)
 
 # # #
 
+info_style.set_x(20)
+info_style.set_y(7)
+info_style.set_width(194)
+info_style.set_height(45)
+info_style.set_pad_hor(0)
+info_style.set_pad_ver(0)
+
+info_split_style = lv.style()
+
+info_split_style.set_x(0)
+info_split_style.set_y(0)
+info_split_style.set_width(59)
+info_split_style.set_height(22)
+
+info_mode_style = lv.style()
+
+info_mode_style.set_x(67)
+info_mode_style.set_y(0)
+info_mode_style.set_width(59)
+info_mode_style.set_height(22)
+
+info_agc_style = lv.style()
+
+info_agc_style.set_x(135)
+info_agc_style.set_y(0)
+info_agc_style.set_width(59)
+info_agc_style.set_height(22)
+
+info_pre_style = lv.style()
+
+info_pre_style.set_x(0)
+info_pre_style.set_y(23)
+info_pre_style.set_width(59)
+info_pre_style.set_height(22)
+
+info_att_style = lv.style()
+
+info_att_style.set_x(67)
+info_att_style.set_y(23)
+info_att_style.set_width(59)
+info_att_style.set_height(22)
+
+info_atu_style = lv.style()
+
+info_atu_style.set_x(135)
+info_atu_style.set_y(23)
+info_atu_style.set_width(59)
+info_atu_style.set_height(22)
+
+# # #
+
 smeter_style.set_x(250)
 smeter_style.set_y(10)
 smeter_style.set_width(340)

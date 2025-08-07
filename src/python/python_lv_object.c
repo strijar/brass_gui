@@ -48,28 +48,32 @@ static void obj_msg_cb(void *s, lv_msg_t *m) {
         case MSG_FREQ_FFT_CHANGED:
         case MSG_FREQ_TX_CHANGED:
         case MSG_FREQ_RX_CHANGED: {
-            const uint64_t *freq = lv_msg_get_payload(m);
+            const uint64_t *x = lv_msg_get_payload(m);
 
-            arg = Py_BuildValue("IL", msg, *freq);
-        } break;
-
-        case MSG_RATE_FFT_CHANGED: {
-            const uint8_t *zoom = lv_msg_get_payload(m);
-
-            arg = Py_BuildValue("Ib", msg, *zoom);
+            arg = Py_BuildValue("IL", msg, *x);
         } break;
 
         case MSG_RECORDER: {
-            const bool *on = lv_msg_get_payload(m);
+            const bool *x = lv_msg_get_payload(m);
 
-            arg = Py_BuildValue("Ib", msg, *on);
+            arg = Py_BuildValue("Ib", msg, *x);
         } break;
 
         case MSG_MSG:
         case MSG_MSG_TINY: {
-            const char *text = lv_msg_get_payload(m);
+            const char *x = lv_msg_get_payload(m);
 
-            arg = Py_BuildValue("Is", msg, text);
+            arg = Py_BuildValue("Is", msg, x);
+        } break;
+
+        case MSG_RATE_FFT_CHANGED:
+        case MSG_AGC_CHANGED:
+        case MSG_ANT_CHANGED:
+        case MSG_SPLIT_CHANGED:
+        case MSG_MODE_CHANGED: {
+            const uint8_t *x = lv_msg_get_payload(m);
+
+            arg = Py_BuildValue("Ib", msg, *x);
         } break;
 
         default:

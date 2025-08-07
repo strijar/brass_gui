@@ -21,6 +21,7 @@
 #include "src/msgs.h"
 #include "src/radio.h"
 #include "src/buttons.h"
+#include "src/dsp/agc.h"
 
 /* Spectrum */
 
@@ -392,6 +393,35 @@ PyMODINIT_FUNC PyInit_trx() {
     PyModule_AddObjectRef(m, "MSG_MSG",                 PyLong_FromLong(MSG_MSG));
     PyModule_AddObjectRef(m, "MSG_MSG_TINY",            PyLong_FromLong(MSG_MSG_TINY));
     PyModule_AddObjectRef(m, "MSG_SMETER",              PyLong_FromLong(MSG_SMETER));
+    PyModule_AddObjectRef(m, "MSG_AGC_CHANGED",         PyLong_FromLong(MSG_AGC_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_ANT_CHANGED",         PyLong_FromLong(MSG_ANT_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_SPLIT_CHANGED",       PyLong_FromLong(MSG_SPLIT_CHANGED));
+
+    /* Modes */
+
+    PyModule_AddObjectRef(m, "RADIO_MODE_LSB",          PyLong_FromLong(RADIO_MODE_LSB));
+    PyModule_AddObjectRef(m, "RADIO_MODE_USB",          PyLong_FromLong(RADIO_MODE_USB));
+    PyModule_AddObjectRef(m, "RADIO_MODE_CW",           PyLong_FromLong(RADIO_MODE_CW));
+    PyModule_AddObjectRef(m, "RADIO_MODE_CWR",          PyLong_FromLong(RADIO_MODE_CWR));
+    PyModule_AddObjectRef(m, "RADIO_MODE_AM",           PyLong_FromLong(RADIO_MODE_AM));
+    PyModule_AddObjectRef(m, "RADIO_MODE_NFM",          PyLong_FromLong(RADIO_MODE_NFM));
+    PyModule_AddObjectRef(m, "RADIO_MODE_RTTY",         PyLong_FromLong(RADIO_MODE_RTTY));
+    PyModule_AddObjectRef(m, "RADIO_MODE_OLIVIA",       PyLong_FromLong(RADIO_MODE_OLIVIA));
+
+    /* Split */
+
+    PyModule_AddObjectRef(m, "SPLIT_NONE",              PyLong_FromLong(SPLIT_NONE));
+    PyModule_AddObjectRef(m, "SPLIT_RX",                PyLong_FromLong(SPLIT_RX));
+    PyModule_AddObjectRef(m, "SPLIT_TX",                PyLong_FromLong(SPLIT_TX));
+
+    /* AGC */
+
+    PyModule_AddObjectRef(m, "AGC_OFF",                 PyLong_FromLong(AGC_OFF));
+    PyModule_AddObjectRef(m, "AGC_LONG",                PyLong_FromLong(AGC_LONG));
+    PyModule_AddObjectRef(m, "AGC_SLOW",                PyLong_FromLong(AGC_SLOW));
+    PyModule_AddObjectRef(m, "AGC_MED",                 PyLong_FromLong(AGC_MED));
+    PyModule_AddObjectRef(m, "AGC_FAST",                PyLong_FromLong(AGC_FAST));
+    PyModule_AddObjectRef(m, "AGC_CUSTOM",              PyLong_FromLong(AGC_CUSTOM));
 
     return m;
 }

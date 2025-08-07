@@ -14,6 +14,7 @@ msg_tiny_font = lv.load_font("/usr/share/brass/font/Jura.ttf", 52)
 
 button_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 15)
 pannel_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 18)
+info_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 15)
 smeter_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 20)
 
 # # #
@@ -211,6 +212,20 @@ button_style.set_border_width(0)
 button_style.set_text_color(0xFFCF85)
 button_style.set_text_font(button_font)
 button_style.set_bg_opa(LV_OPA_TRANSP)
+
+# # #
+
+info_style = lv.style()
+
+info_style.set_radius(0)
+info_style.set_border_width(0)
+info_style.set_text_color(0xFFCF85)
+info_style.set_text_font(info_font)
+info_style.set_bg_opa(LV_OPA_TRANSP)
+info_style.set_text_align(LV_TEXT_ALIGN_CENTER)
+
+info_off_style = lv.style()
+info_off_style.set_text_color(0x845000)
 
 # # #
 
