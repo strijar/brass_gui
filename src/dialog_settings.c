@@ -22,7 +22,6 @@
 #include "radio.h"
 #include "events.h"
 #include "keyboard.h"
-#include "clock.h"
 #include "voice.h"
 #include "dsp.h"
 #include "fpga/control.h"
@@ -432,25 +431,25 @@ static uint8_t make_mag(uint8_t row) {
 static void clock_view_update_cb(lv_event_t * e) {
     lv_obj_t *obj = lv_event_get_target(e);
 
-    clock_set_view(lv_dropdown_get_selected(obj));
+/* FIXME    clock_set_view(lv_dropdown_get_selected(obj)); */
 }
 
 static void clock_time_timeout_update_cb(lv_event_t * e) {
     lv_obj_t *obj = lv_event_get_target(e);
 
-    clock_set_time_timeout(lv_spinbox_get_value(obj));
+/* FIXME    clock_set_time_timeout(lv_spinbox_get_value(obj)); */
 }
 
 static void clock_power_timeout_update_cb(lv_event_t * e) {
     lv_obj_t *obj = lv_event_get_target(e);
 
-    clock_set_power_timeout(lv_spinbox_get_value(obj));
+/* FIXME    clock_set_power_timeout(lv_spinbox_get_value(obj)); */
 }
 
 static void clock_tx_timeout_update_cb(lv_event_t * e) {
     lv_obj_t *obj = lv_event_get_target(e);
 
-    clock_set_tx_timeout(lv_spinbox_get_value(obj));
+/* FIXME    clock_set_tx_timeout(lv_spinbox_get_value(obj)); */
 }
 
 static uint8_t make_clock(uint8_t row) {

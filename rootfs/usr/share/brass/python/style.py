@@ -16,6 +16,7 @@ button_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 15)
 pannel_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 18)
 info_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 15)
 smeter_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 20)
+clock_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 20)
 
 # # #
 
@@ -261,6 +262,25 @@ smeter_part4_style = lv.style()
 
 smeter_part4_style.set_bg_color(0xFFC940)
 smeter_part4_style.set_bg_opa(LV_OPA_COVER)
+
+# # #
+
+clock_style = lv.style()
+
+clock_style.set_radius(0)
+clock_style.set_border_width(0)
+clock_style.set_text_color(0xFFCF85)
+clock_style.set_text_font(clock_font)
+clock_style.set_bg_opa(LV_OPA_TRANSP)
+clock_style.set_text_align(LV_TEXT_ALIGN_LEFT)
+
+bat_style = lv.style()
+
+bat_style.set_radius(0)
+bat_style.set_border_width(0)
+bat_style.set_bg_opa(LV_OPA_TRANSP)
+bat_style.set_bg_img_src("A:/usr/share/brass/images/bat_100.bin")
+bat_style.set_bg_img_opa(LV_OPA_COVER)
 
 # # # # #
 

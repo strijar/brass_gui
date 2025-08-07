@@ -105,6 +105,30 @@ static PyObject * obj_msg_subscribe(obj_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static void obj_timer_cb(lv_timer_t *timer) {
+    PyObject    *call = (PyObject *) timer->user_data;
+    PyObject    *res = PyObject_CallNoArgs(call);
+
+    if (res) {
+        Py_XDECREF(res);
+    }
+}
+
+static PyObject * obj_timer_create(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    uint32_t    period;
+    PyObject    *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "Oi", &obj, &period)) {
+        Py_XINCREF(obj);
+
+        lv_timer_create(obj_timer_cb, period, obj);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject * obj_remove_style_all(obj_object_t *self, PyObject *args) {
     lv_obj_remove_style_all(self->obj);
 
@@ -209,6 +233,7 @@ static PyObject * obj_move_foreground(obj_object_t *self, PyObject *args) {
 
 static PyMethodDef obj_methods[] = {
     { "msg_subscribe", (PyCFunction) obj_msg_subscribe, METH_VARARGS, "" },
+    { "timer_create", (PyCFunction) obj_timer_create, METH_VARARGS, "" },
     { "remove_style_all", (PyCFunction) obj_remove_style_all, METH_NOARGS, "" },
     { "add_style", (PyCFunction) obj_add_style, METH_VARARGS, "" },
     { "clear_flag", (PyCFunction) obj_clear_flag, METH_VARARGS, "" },

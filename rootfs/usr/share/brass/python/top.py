@@ -4,6 +4,7 @@ from lv_const import *
 
 from info import *
 from smeter import *
+from clock import *
 
 class Top(lv.obj):
 	def __init__(self, parent = None):
@@ -17,3 +18,6 @@ class Top(lv.obj):
 
 		smeter = SMeter(self)
 		self.smeter = smeter
+
+		clock = Clock(self)
+		self.clock = clock

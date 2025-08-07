@@ -18,7 +18,6 @@
 #include "msg.h"
 #include "msg_tiny.h"
 #include "dsp.h"
-#include "clock.h"
 #include "tx_info.h"
 #include "mfk.h"
 #include "vol.h"
@@ -798,8 +797,6 @@ lv_obj_t * main_screen() {
 
     buttons_init();
     pannel_init(obj);
-
-    clock_init(obj);
 
     tx_info = tx_info_init(obj);
 

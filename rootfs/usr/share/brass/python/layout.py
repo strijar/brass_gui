@@ -177,6 +177,27 @@ smeter_style.set_y(10)
 smeter_style.set_width(340)
 smeter_style.set_height(40)
 
+# # #
+
+clock_style.set_x(629)
+clock_style.set_y(17)
+clock_style.set_width(153)
+clock_style.set_height(26)
+clock_style.set_pad_hor(0)
+clock_style.set_pad_ver(0)
+
+clock_label_style = lv.style()
+
+clock_label_style.set_x(0)
+clock_label_style.set_y(0)
+clock_label_style.set_width(96)
+clock_label_style.set_height(26)
+
+bat_style.set_x(116)
+bat_style.set_y(4)
+bat_style.set_width(37)
+bat_style.set_height(18)
+
 # # # # #
 
 pannel_style.set_x(0)
