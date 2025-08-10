@@ -24,6 +24,10 @@ typedef void (*dialog_bands_change_cb_t)(bool up);
 
 typedef struct {
     lv_obj_t                    *obj;
+    lv_obj_t                    *grid;
+    uint8_t                     row;
+    uint8_t                     col;
+
     dialog_construct_cb_t       construct_cb;
     dialog_destruct_cb_t        destruct_cb;
     dialog_audio_cb_t           audio_cb;
@@ -45,7 +49,17 @@ void dialog_send(lv_event_code_t event_code, void *param);
 bool dialog_is_run();
 
 void dialog_init(lv_obj_t *parent, dialog_t *dialog);
-void dialog_item(dialog_t *dialog, lv_obj_t *obj);
+void dialog_grid(lv_obj_t *parent, dialog_t *dialog);
+
+void dialog_item(dialog_t *dialog, lv_obj_t *obj, uint8_t span);
+
+lv_obj_t * dialog_dropdown(dialog_t *dialog, uint8_t span);
+lv_obj_t * dialog_slider(dialog_t *dialog, uint8_t span);
+lv_obj_t * dialog_switch(dialog_t *dialog, uint8_t span);
+
+void dialog_title(dialog_t *dialog, const char *text);
+void dialog_label(dialog_t *dialog, bool title, const char *fmt, ...);
+
 void dialog_rotary(int32_t diff);
 bool dialog_keypad(event_keypad_t *keypad);
 bool dialog_modulate_state();

@@ -61,3 +61,5 @@ LV_TEXT_ALIGN_RIGHT             = 3
 LV_GRAD_DIR_NONE                = 0
 LV_GRAD_DIR_VERT                = 1
 LV_GRAD_DIR_HOR                 = 2
+
+LV_RADIUS_CIRCLE                = 0x7FFF

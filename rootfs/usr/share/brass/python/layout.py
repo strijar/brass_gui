@@ -206,3 +206,14 @@ pannel_style.set_width(800)
 pannel_style.set_height(210)
 pannel_style.set_pad_ver(20)
 pannel_style.set_pad_hor(16)
+
+# # # # #
+
+dialog_style.set_width(800)
+dialog_style.set_height(384)
+dialog_style.set_x(0)
+dialog_style.set_y(48)
+dialog_style.set_pad_ver(0)
+dialog_style.set_pad_hor(0)
+
+dialog_no_buttons_style.set_height(432)

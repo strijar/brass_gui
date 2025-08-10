@@ -17,6 +17,8 @@ pannel_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 18
 info_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 15)
 smeter_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 20)
 clock_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 20)
+dialog_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 22)
+dialog_title_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 16)
 
 # # #
 
@@ -291,3 +293,175 @@ pannel_style.set_text_color(0xFFCF85)
 pannel_style.set_text_font(pannel_font)
 pannel_style.set_bg_img_src("A:/usr/share/brass/images/pannel.bin")
 pannel_style.set_bg_img_opa(LV_OPA_COVER)
+
+# # # # #
+
+dialog_style = lv.style()
+
+dialog_style.set_radius(0)
+dialog_style.set_text_color(0xFFCF85)
+dialog_style.set_text_font(dialog_font)
+dialog_style.set_bg_img_src("A:/usr/share/brass/images/dialog.bin")
+dialog_style.set_bg_img_opa(LV_OPA_COVER)
+
+# # # # #
+
+dialog_no_buttons_style = lv.style()
+
+dialog_no_buttons_style.set_bg_img_src("A:/usr/share/brass/images/dialog_no_buttons.bin")
+
+# # # # #
+
+dialog_grid_style = lv.style()
+
+dialog_grid_style.set_x(0)
+dialog_grid_style.set_y(20)
+dialog_grid_style.set_width(780)
+dialog_grid_style.set_height(330 + 68)
+dialog_grid_style.set_bg_opa(LV_OPA_TRANSP)
+dialog_grid_style.set_border_width(0)
+dialog_grid_style.set_pad_column(5)
+dialog_grid_style.set_pad_row(5)
+
+# # # # #
+
+dialog_title_style = lv.style()
+
+dialog_title_style.set_max_height(21)
+dialog_title_style.set_text_color(0xFFA600)
+dialog_title_style.set_bg_img_opa(LV_OPA_TRANSP)
+dialog_title_style.set_pad_hor(0)
+dialog_title_style.set_pad_ver(0)
+dialog_title_style.set_text_font(dialog_title_font)
+
+# # # # #
+
+dialog_title_label_style = lv.style()
+
+dialog_title_label_style.set_max_height(29)
+dialog_title_label_style.set_text_color(0xFFCF85)
+dialog_title_label_style.set_bg_img_opa(LV_OPA_TRANSP)
+dialog_title_label_style.set_pad_hor(20)
+
+# # # # #
+
+dialog_label_style = lv.style()
+
+dialog_label_style.set_max_height(29)
+dialog_label_style.set_text_color(0xFFCF85)
+dialog_label_style.set_bg_img_opa(LV_OPA_TRANSP)
+dialog_label_style.set_pad_hor(0)
+
+# # # # #
+
+dialog_item_style = lv.style()
+
+dialog_item_style.set_radius(5)
+dialog_item_style.set_max_height(38)
+dialog_item_style.set_text_color(0x131E35)
+dialog_item_style.set_bg_color(0xFFFFFF)
+dialog_item_style.set_bg_opa(LV_OPA_COVER)
+dialog_item_style.set_pad_ver(4)
+dialog_item_style.set_pad_hor(8)
+
+# # # # #
+
+dialog_item_focus_style = lv.style()
+
+dialog_item_focus_style.set_text_color(0x131E35)
+dialog_item_focus_style.set_bg_color(0xFFD18B)
+dialog_item_focus_style.set_bg_opa(LV_OPA_COVER)
+
+# # # # #
+
+dialog_item_edited_style = lv.style()
+
+dialog_item_edited_style.set_text_color(0xFFFFFF)
+dialog_item_edited_style.set_bg_color(0x5D769A)
+dialog_item_edited_style.set_bg_opa(LV_OPA_COVER)
+
+# # # # #
+
+dialog_item_cursor_style = lv.style()
+
+dialog_item_cursor_style.set_text_color(0x5D769A)
+dialog_item_cursor_style.set_bg_color(0xFFFFFF)
+dialog_item_cursor_style.set_bg_opa(LV_OPA_COVER)
+
+# # # # #
+
+dropdown_list_style = lv.style()
+
+dropdown_list_style.set_radius(5)
+dropdown_list_style.set_text_font(dialog_font)
+dropdown_list_style.set_bg_color(0xFFFFFF)
+dropdown_list_style.set_bg_opa(LV_OPA_COVER)
+
+# # # # #
+
+slider_style = lv.style()
+
+slider_style.set_pad_ver(12)
+slider_style.set_pad_hor(20)
+
+slider_indicator_style = lv.style()
+
+slider_indicator_style.set_bg_color(0x5D769A)
+slider_indicator_style.set_bg_opa(LV_OPA_COVER)
+slider_indicator_style.set_radius(0)
+
+slider_knob_style = lv.style()
+
+slider_knob_style.set_border_width(1)
+slider_knob_style.set_border_color(0xFFFFFF)
+slider_knob_style.set_bg_color(0x5D769A)
+slider_knob_style.set_bg_opa(LV_OPA_COVER)
+slider_knob_style.set_radius(LV_RADIUS_CIRCLE)
+slider_knob_style.set_pad_ver(-7)
+slider_knob_style.set_pad_hor(-7)
+
+slider_indicator_edited_style = lv.style()
+
+slider_indicator_edited_style.set_bg_color(0xFFFFFF)
+slider_indicator_edited_style.set_bg_opa(LV_OPA_COVER)
+
+slider_knob_edited_style = lv.style()
+
+slider_knob_edited_style.set_bg_color(0xFFFFFF)
+slider_knob_edited_style.set_bg_opa(LV_OPA_COVER)
+
+# # # # #
+
+switch_style = lv.style()
+
+switch_style.set_pad_ver(12)
+switch_style.set_pad_hor(10)
+
+#
+
+switch_indicator_style = lv.style()
+
+switch_indicator_style.set_bg_opa(LV_OPA_TRANSP)
+switch_indicator_style.set_radius(LV_RADIUS_CIRCLE)
+
+switch_indicator_checked_style = lv.style()
+
+switch_indicator_checked_style.set_bg_color(0x5D769A)
+switch_indicator_checked_style.set_bg_opa(LV_OPA_COVER)
+
+#
+
+switch_knob_style = lv.style()
+
+switch_knob_style.set_border_width(1)
+switch_knob_style.set_border_color(0xFFFFFF)
+switch_knob_style.set_bg_color(0x5D769A)
+switch_knob_style.set_bg_opa(LV_OPA_COVER)
+switch_knob_style.set_radius(LV_RADIUS_CIRCLE)
+switch_knob_style.set_pad_ver(-7)
+switch_knob_style.set_pad_hor(-7)
+
+switch_knob_checked_style = lv.style()
+
+switch_knob_checked_style.set_bg_color(0x5D769A)
+switch_knob_checked_style.set_bg_opa(LV_OPA_COVER)

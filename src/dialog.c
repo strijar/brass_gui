@@ -14,6 +14,21 @@
 #include "events.h"
 #include "main.h"
 #include "buttons.h"
+#include "dsp.h"
+
+#define SMALL_PAD   5
+
+#define SMALL_1     57
+#define SMALL_2     (SMALL_1 * 2 + SMALL_PAD * 1)
+#define SMALL_3     (SMALL_1 * 3 + SMALL_PAD * 2)
+#define SMALL_4     (SMALL_1 * 4 + SMALL_PAD * 3)
+#define SMALL_5     (SMALL_1 * 5 + SMALL_PAD * 4)
+#define SMALL_6     (SMALL_1 * 6 + SMALL_PAD * 5)
+
+#define SMALL_WIDTH 57
+
+static lv_coord_t   col_dsc[] = { 740 - (SMALL_1 + SMALL_PAD) * 6, SMALL_1, SMALL_1, SMALL_1, SMALL_1, SMALL_1, SMALL_1, LV_GRID_TEMPLATE_LAST };
+static lv_coord_t   row_dsc[64] = { 1 };
 
 static lv_obj_t     *obj;
 static dialog_t     *current_dialog = NULL;
@@ -25,6 +40,11 @@ void dialog_construct(dialog_t *dialog, lv_obj_t *parent) {
 
         if (!dialog->buttons) {
             buttons_visible(false);
+        }
+
+        if (dialog->grid) {
+            row_dsc[dialog->row + 1] = LV_GRID_TEMPLATE_LAST;
+            lv_obj_set_grid_dsc_array(dialog->grid, col_dsc, row_dsc);
         }
 
         dialog->run = true;
@@ -101,29 +121,37 @@ void dialog_init(lv_obj_t *parent, dialog_t *dialog) {
     obj = lv_obj_create(parent);
 
     lv_obj_remove_style_all(obj);
-    lv_obj_add_style(obj, &dialog_style, 0);
+    lv_obj_add_style(obj, dialog_style, LV_PART_MAIN);
 
     if (!dialog->buttons) {
-        lv_obj_add_style(obj, &dialog_no_buttons_style, 0);
+        lv_obj_add_style(obj, dialog_no_buttons_style, LV_PART_MAIN);
     }
 
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     dialog->obj = obj;
+    dialog->grid = NULL;
 }
 
-void dialog_item(dialog_t *dialog, lv_obj_t *obj) {
-    lv_obj_add_style(obj, &dialog_item_style, LV_STATE_DEFAULT);
-    lv_obj_add_style(obj, &dialog_item_focus_style, LV_STATE_FOCUSED);
-    lv_obj_add_style(obj, &dialog_item_edited_style, LV_STATE_EDITED);
+void dialog_grid(lv_obj_t *parent, dialog_t *dialog) {
+    dialog_init(parent, dialog);
 
-    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_CURSOR);
-    lv_obj_set_style_text_color(obj, lv_color_white(), LV_PART_CURSOR);
-    lv_obj_set_style_text_color(obj, lv_color_black(), LV_PART_CURSOR | LV_STATE_FOCUSED);
-    lv_obj_set_style_bg_opa(obj, 128, LV_PART_CURSOR | LV_STATE_EDITED);
+    lv_obj_t *grid = lv_obj_create(dialog->obj);
 
-    lv_obj_set_style_border_width(obj, 2, LV_STATE_FOCUS_KEY | LV_PART_INDICATOR);
-    lv_obj_set_style_border_color(obj, lv_color_white(), LV_STATE_FOCUS_KEY | LV_PART_INDICATOR);
+    lv_obj_set_layout(grid, LV_LAYOUT_GRID);
+    lv_obj_add_style(grid, dialog_grid_style, LV_PART_MAIN);
+
+    dialog->grid = grid;
+    dialog->row = 0;
+}
+
+void dialog_item(dialog_t *dialog, lv_obj_t *obj, uint8_t span) {
+    lv_obj_remove_style_all(obj);
+
+    lv_obj_add_style(obj, dialog_item_style, LV_STATE_DEFAULT);
+    lv_obj_add_style(obj, dialog_item_focus_style, LV_STATE_FOCUSED);
+    lv_obj_add_style(obj, dialog_item_edited_style, LV_STATE_EDITED);
+    lv_obj_add_style(obj, dialog_item_cursor_style, LV_STATE_EDITED | LV_PART_CURSOR);
 
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
 
@@ -132,6 +160,94 @@ void dialog_item(dialog_t *dialog, lv_obj_t *obj) {
     if (dialog->key_cb) {
         lv_obj_add_event_cb(obj, dialog->key_cb, LV_EVENT_KEY, NULL);
     }
+
+    lv_obj_set_size(obj, SMALL_1 * span + SMALL_PAD * (span - 1), 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, dialog->col, span, LV_GRID_ALIGN_CENTER, dialog->row, 1);
+
+    dialog->col += span;
+}
+
+lv_obj_t * dialog_dropdown(dialog_t *dialog, uint8_t span) {
+    lv_obj_t *obj = lv_dropdown_create(dialog->grid);
+
+    dialog_item(dialog, obj, span);
+    lv_dropdown_set_symbol(obj, NULL);
+
+    lv_obj_center(obj);
+
+    lv_obj_t *list = lv_dropdown_get_list(obj);
+
+    lv_obj_remove_style_all(list);
+
+    lv_obj_add_style(list, dropdown_list_style, LV_PART_MAIN);
+    lv_obj_add_style(list, dialog_item_focus_style, LV_PART_SELECTED);
+
+    return obj;
+}
+
+lv_obj_t * dialog_slider(dialog_t *dialog, uint8_t span) {
+    lv_obj_t *obj = lv_slider_create(dialog->grid);
+
+    dialog_item(dialog, obj, span);
+    lv_obj_center(obj);
+
+    lv_obj_add_style(obj, slider_style, LV_PART_MAIN);
+
+    lv_obj_add_style(obj, slider_indicator_style, LV_PART_INDICATOR);
+    lv_obj_add_style(obj, slider_knob_style, LV_PART_KNOB);
+
+    lv_obj_add_style(obj, slider_indicator_edited_style, LV_STATE_EDITED | LV_PART_INDICATOR);
+    lv_obj_add_style(obj, slider_knob_edited_style, LV_STATE_EDITED | LV_PART_KNOB);
+
+    return obj;
+}
+
+lv_obj_t * dialog_switch(dialog_t *dialog, uint8_t span) {
+    lv_obj_t *obj = lv_switch_create(dialog->grid);
+
+    dialog_item(dialog, obj, span);
+    lv_obj_center(obj);
+
+    lv_obj_add_style(obj, switch_style, LV_PART_MAIN);
+
+    lv_obj_add_style(obj, switch_indicator_style, LV_PART_INDICATOR);
+    lv_obj_add_style(obj, switch_knob_style, LV_PART_KNOB);
+
+    lv_obj_add_style(obj, switch_indicator_checked_style, LV_STATE_CHECKED | LV_PART_INDICATOR);
+    lv_obj_add_style(obj, switch_knob_checked_style, LV_STATE_CHECKED | LV_PART_KNOB);
+
+    return obj;
+}
+
+void dialog_title(dialog_t *dialog, const char *text) {
+    dialog->col = 1;
+    dialog->row++;
+    row_dsc[dialog->row] = LV_GRID_CONTENT;
+
+    lv_obj_t *obj = lv_label_create(dialog->grid);
+    lv_obj_add_style(obj, dialog_title_style, LV_PART_MAIN);
+
+    lv_label_set_text(obj, text);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, dialog->row, 1);
+}
+
+void dialog_label(dialog_t *dialog, bool title, const char *fmt, ...) {
+    char    buf[128];
+    va_list args;
+
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+
+    dialog->col = 1;
+    dialog->row++;
+    row_dsc[dialog->row] = LV_GRID_CONTENT;
+
+    lv_obj_t *obj = lv_label_create(dialog->grid);
+    lv_obj_add_style(obj, title ? dialog_title_label_style : dialog_label_style, LV_PART_MAIN);
+
+    lv_label_set_text(obj, buf);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, dialog->row, 1);
 }
 
 void dialog_audio_samples(float complex *samples, size_t n) {

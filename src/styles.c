@@ -15,23 +15,38 @@
 lv_style_t  waterfall_style;
 lv_style_t  msg_style;
 lv_style_t  msg_tiny_style;
-lv_style_t  clock_style;
 lv_style_t  tx_info_style;
 lv_style_t  rx_finder_style;
 
 lv_style_t  *pannel_style;
 
-lv_style_t  dialog_style;
-lv_style_t  dialog_no_buttons_style;
-lv_style_t  dialog_item_style;
-lv_style_t  dialog_item_focus_style;
-lv_style_t  dialog_item_edited_style;
-lv_style_t  dialog_dropdown_list_style;
+lv_style_t  *dialog_style;
+lv_style_t  *dialog_no_buttons_style;
+lv_style_t  *dialog_grid_style;
+lv_style_t  *dialog_item_style;
+lv_style_t  *dialog_title_style;
+lv_style_t  *dialog_title_label_style;
+lv_style_t  *dialog_label_style;
+lv_style_t  *dialog_item_focus_style;
+lv_style_t  *dialog_item_edited_style;
+lv_style_t  *dialog_item_cursor_style;
+
+lv_style_t  *dropdown_list_style;
+
+lv_style_t  *slider_style;
+lv_style_t  *slider_indicator_style;
+lv_style_t  *slider_knob_style;
+lv_style_t  *slider_indicator_edited_style;
+lv_style_t  *slider_knob_edited_style;
+
+lv_style_t  *switch_style;
+lv_style_t  *switch_indicator_style;
+lv_style_t  *switch_knob_style;
+lv_style_t  *switch_indicator_checked_style;
+lv_style_t  *switch_knob_checked_style;
 
 lv_color_t  bg_color;
 
-lv_font_t   *font_clock_time = &jura_36;
-lv_font_t   *font_clock_power = &jura_28;
 lv_font_t   *font_dialog_freq = &jura_44;
 lv_font_t   *font_swrscan = &jura_28;
 lv_font_t   *font_textarea = &jura_40;
@@ -100,47 +115,30 @@ void styles_init() {
     lv_style_set_bg_img_src(&msg_tiny_style, PATH "images/msg_tiny.bin");
 
     pannel_style = python_get_style("pannel_style");
+    dialog_style = python_get_style("dialog_style");
+    dialog_no_buttons_style = python_get_style("dialog_no_buttons_style");
+    dialog_grid_style = python_get_style("dialog_grid_style");
+    dialog_title_style = python_get_style("dialog_title_style");
+    dialog_title_label_style = python_get_style("dialog_title_label_style");
+    dialog_label_style = python_get_style("dialog_label_style");
+    dialog_item_style = python_get_style("dialog_item_style");
+    dialog_item_focus_style = python_get_style("dialog_item_focus_style");
+    dialog_item_edited_style = python_get_style("dialog_item_edited_style");
+    dialog_item_cursor_style = python_get_style("dialog_item_cursor_style");
 
-    lv_style_init(&dialog_style);
-    lv_style_set_text_color(&dialog_style, lv_color_white());
-    lv_style_set_text_font(&dialog_style, font_dialog);    // 36
-    lv_style_set_width(&dialog_style, 796);
-    lv_style_set_height(&dialog_style, 348);
-    lv_style_set_x(&dialog_style, 800 / 2 - (796 / 2));
-    lv_style_set_y(&dialog_style, 66);
-    lv_style_set_radius(&dialog_style, 0);
-    lv_style_set_bg_img_src(&dialog_style, PATH "images/dialog.bin");
-    lv_style_set_bg_img_opa(&dialog_style, LV_OPA_COVER);
-    lv_style_set_pad_ver(&dialog_style, 0);
-    lv_style_set_pad_hor(&dialog_style, 0);
+    dropdown_list_style = python_get_style("dropdown_list_style");
 
-    lv_style_init(&dialog_no_buttons_style);
-    lv_style_set_height(&dialog_no_buttons_style, 348 + 68);
-    lv_style_set_bg_img_src(&dialog_no_buttons_style, PATH "images/dialog_no_buttons.bin");
+    slider_style = python_get_style("slider_style");
+    slider_indicator_style = python_get_style("slider_indicator_style");
+    slider_knob_style = python_get_style("slider_knob_style");
+    slider_indicator_edited_style = python_get_style("slider_indicator_edited_style");
+    slider_knob_edited_style = python_get_style("slider_knob_edited_style");
 
-    lv_style_init(&dialog_item_style);
-    lv_style_set_bg_opa(&dialog_item_style, LV_OPA_TRANSP);
-    lv_style_set_text_color(&dialog_item_style, lv_color_white());
-
-    lv_style_init(&dialog_item_focus_style);
-    lv_style_set_bg_opa(&dialog_item_focus_style, 128);
-    lv_style_set_text_color(&dialog_item_focus_style, lv_color_black());
-    lv_style_set_border_color(&dialog_item_focus_style, lv_color_white());
-    lv_style_set_border_width(&dialog_item_focus_style, 2);
-
-    lv_style_init(&dialog_item_edited_style);
-    lv_style_set_bg_opa(&dialog_item_edited_style, LV_OPA_COVER);
-    lv_style_set_text_color(&dialog_item_edited_style, lv_color_black());
-
-    lv_style_init(&dialog_dropdown_list_style);
-    lv_style_set_text_font(&dialog_dropdown_list_style, font_dialog_list);  // 30
-
-    lv_style_init(&clock_style);
-    lv_style_set_text_color(&clock_style, lv_color_white());
-    lv_style_set_radius(&clock_style, 0);
-    lv_style_set_width(&clock_style, 206);
-    lv_style_set_height(&clock_style, 61);
-    lv_style_set_x(&clock_style, 800 - 206);
+    switch_style = python_get_style("switch_style");
+    switch_indicator_style = python_get_style("switch_indicator_style");
+    switch_knob_style = python_get_style("switch_knob_style");
+    switch_indicator_checked_style = python_get_style("switch_indicator_checked_style");
+    switch_knob_checked_style = python_get_style("switch_knob_checked_style");
 
     lv_style_init(&tx_info_style);
     lv_style_set_radius(&tx_info_style, 0);
