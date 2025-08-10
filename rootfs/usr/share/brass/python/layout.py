@@ -88,15 +88,17 @@ msg_label_normal_style.set_height(48)
 
 # # #
 
-msg_tiny_style.set_x(int(800/2 - (324/2)))
-msg_tiny_style.set_y(int(160 - 66/2 + 36/2))
-msg_tiny_style.set_width(324)
-msg_tiny_style.set_height(76)
+msg_tiny_style.set_x(200 - 15)
+msg_tiny_style.set_y(147 - 15)
+msg_tiny_style.set_width(430)
+msg_tiny_style.set_height(100)
 
-msg_tiny_label_style.set_x(0)
-msg_tiny_label_style.set_y(0)
-msg_tiny_label_style.set_width(324)
-msg_tiny_label_style.set_height(76)
+msg_tiny_label_style = lv.style()
+
+msg_tiny_label_style.set_x(15)
+msg_tiny_label_style.set_y(15)
+msg_tiny_label_style.set_width(400)
+msg_tiny_label_style.set_height(70)
 
 # # #
 

@@ -10,7 +10,7 @@ freqs_center_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Bold.ttf",
 freqs_range_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 20)
 
 msg_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 36)
-msg_tiny_font = lv.load_font("/usr/share/brass/font/Jura.ttf", 52)
+msg_tiny_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Bold.ttf", 50)
 
 button_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 15)
 pannel_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 18)
@@ -175,16 +175,11 @@ msg_label_select_style.set_text_color(0x845000)
 
 msg_tiny_style = lv.style()
 
+msg_tiny_style.set_text_color(0xFFCF85)
+msg_tiny_style.set_text_font(msg_tiny_font)
 msg_tiny_style.set_bg_img_src("A:/usr/share/brass/images/msg_tiny.bin")
 msg_tiny_style.set_bg_img_opa(LV_OPA_COVER)
-
-# # #
-
-msg_tiny_label_style = lv.style()
-
-msg_tiny_label_style.set_text_color(0xFFFFFF)
-msg_tiny_label_style.set_text_font(msg_tiny_font)
-msg_tiny_label_style.set_text_align(LV_TEXT_ALIGN_CENTER)
+msg_tiny_style.set_text_align(LV_TEXT_ALIGN_CENTER)
 
 # # #
 

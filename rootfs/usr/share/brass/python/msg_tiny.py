@@ -3,6 +3,7 @@ import lv
 from lv_const import *
 
 from style import *
+from layout import *
 
 class MsgTiny(lv.hiding):
 	def __init__(self, parent = None):
