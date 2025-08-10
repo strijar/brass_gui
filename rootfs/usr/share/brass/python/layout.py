@@ -109,6 +109,16 @@ top_style.set_height(79)
 top_style.set_pad_hor(0)
 top_style.set_pad_ver(0)
 
+tx_reflex_style = lv.style()
+
+tx_reflex_style.set_x(0)
+tx_reflex_style.set_y(59)
+tx_reflex_style.set_width(800)
+tx_reflex_style.set_height(2)
+
+tx_reflex_indicator_style.set_pad_left(-10)
+tx_reflex_indicator_style.set_pad_right(10)
+
 # # #
 
 buttons_style.set_x(0)

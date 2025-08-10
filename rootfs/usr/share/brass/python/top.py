@@ -5,6 +5,7 @@ from lv_const import *
 from info import *
 from smeter import *
 from clock import *
+from tx_reflex import *
 
 class Top(lv.obj):
 	def __init__(self, parent = None):
@@ -21,3 +22,6 @@ class Top(lv.obj):
 
 		clock = Clock(self)
 		self.clock = clock
+
+		self.reflex = TXReflex(self)
+		trx.connect_tx_finder(self.reflex)

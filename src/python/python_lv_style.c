@@ -271,6 +271,30 @@ static PyObject * style_set_pad_hor(style_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * style_set_pad_left(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_coord_t pad;
+
+    if (PyArg_ParseTuple(args, "i", &pad)) {
+        lv_style_set_pad_left(&self->style, pad);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * style_set_pad_right(style_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_coord_t pad;
+
+    if (PyArg_ParseTuple(args, "i", &pad)) {
+        lv_style_set_pad_right(&self->style, pad);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject * style_set_pad_ver(style_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
@@ -400,6 +424,8 @@ static PyMethodDef style_methods[] = {
     { "set_max_width", (PyCFunction) style_set_max_width, METH_VARARGS, "" },
     { "set_max_height", (PyCFunction) style_set_max_height, METH_VARARGS, "" },
     { "set_pad_hor", (PyCFunction) style_set_pad_hor, METH_VARARGS, "" },
+    { "set_pad_left", (PyCFunction) style_set_pad_left, METH_VARARGS, "" },
+    { "set_pad_right", (PyCFunction) style_set_pad_right, METH_VARARGS, "" },
     { "set_pad_ver", (PyCFunction) style_set_pad_ver, METH_VARARGS, "" },
     { "set_pad_column", (PyCFunction) style_set_pad_column, METH_VARARGS, "" },
     { "set_pad_row", (PyCFunction) style_set_pad_row, METH_VARARGS, "" },

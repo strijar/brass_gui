@@ -191,6 +191,20 @@ top_style.set_bg_opa(LV_OPA_TRANSP)
 top_style.set_bg_img_src("A:/usr/share/brass/images/top.bin")
 top_style.set_bg_img_opa(LV_OPA_COVER)
 
+tx_reflex_grad = lv.grad()
+
+tx_reflex_grad.set_dir(LV_GRAD_DIR_HOR)
+tx_reflex_grad.set_stops_count(4)
+tx_reflex_grad.set_stop(0, 0, 0x131E35)
+tx_reflex_grad.set_stop(1, 128 - 16, 0xDF1B73)
+tx_reflex_grad.set_stop(2, 128 + 16, 0xDF1B73)
+tx_reflex_grad.set_stop(3, 255, 0x131E35)
+
+tx_reflex_indicator_style = lv.style()
+
+tx_reflex_indicator_style.set_bg_grad(tx_reflex_grad)
+tx_reflex_indicator_style.set_bg_opa(LV_OPA_70)
+
 # # #
 
 buttons_style = lv.style()

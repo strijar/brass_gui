@@ -230,9 +230,9 @@ static void lv_finder_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         int64_t         f1 = w * (f + finder->offset_min) / size_hz;
         int64_t         f2 = w * (f + finder->offset_max) / size_hz;
 
-        area.x1 = x1 + f1;
+        area.x1 = x1 + f1 + lv_obj_get_style_pad_left(obj, LV_PART_INDICATOR);
         area.y1 = y1 + border;
-        area.x2 = x1 + f2;
+        area.x2 = x1 + f2 + lv_obj_get_style_pad_right(obj, LV_PART_INDICATOR);
         area.y2 = area.y1 + h - border * 2;
 
         /* Rectangle */
