@@ -14,12 +14,14 @@
 extern lv_color_t   bg_color;
 
 extern lv_style_t   waterfall_style;
-extern lv_style_t   msg_style;
-extern lv_style_t   msg_tiny_style;
 extern lv_style_t   tx_info_style;
 extern lv_style_t   rx_finder_style;
 
 extern lv_style_t   *pannel_style;
+
+extern lv_style_t   *msg_style;
+extern lv_style_t   *msg_label_normal_style;
+extern lv_style_t   *msg_label_select_style;
 
 extern lv_style_t   *dialog_style;
 extern lv_style_t   *dialog_no_buttons_style;

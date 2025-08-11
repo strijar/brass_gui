@@ -13,12 +13,14 @@
 #define PATH "A:/usr/share/brass/"
 
 lv_style_t  waterfall_style;
-lv_style_t  msg_style;
-lv_style_t  msg_tiny_style;
 lv_style_t  tx_info_style;
 lv_style_t  rx_finder_style;
 
 lv_style_t  *pannel_style;
+
+lv_style_t  *msg_style;
+lv_style_t  *msg_label_normal_style;
+lv_style_t  *msg_label_select_style;
 
 lv_style_t  *dialog_style;
 lv_style_t  *dialog_no_buttons_style;
@@ -92,27 +94,9 @@ void styles_init() {
     lv_style_set_pad_hor(&waterfall_style, 0);
     lv_style_set_pad_ver(&waterfall_style, 0);
 
-    lv_style_init(&msg_style);
-    lv_style_set_text_color(&msg_style, lv_color_white());
-    lv_style_set_text_font(&msg_style, font_msg); // 38
-    lv_style_set_width(&msg_style, 603);
-    lv_style_set_height(&msg_style, 76);
-    lv_style_set_x(&msg_style, 800 / 2 - (603 / 2));
-    lv_style_set_y(&msg_style, 300);
-    lv_style_set_radius(&msg_style, 0);
-    lv_style_set_bg_img_src(&msg_style, PATH "images/msg.bin");
-    lv_style_set_bg_img_opa(&msg_style, LV_OPA_COVER);
-    lv_style_set_pad_ver(&msg_style, 18);
-
-    lv_style_init(&msg_tiny_style);
-    lv_style_set_text_color(&msg_tiny_style, lv_color_white());
-    lv_style_set_text_font(&msg_tiny_style, load_font("/usr/share/brass/font/Jura.ttf", 40));
-    lv_style_set_width(&msg_tiny_style, 324);
-    lv_style_set_height(&msg_tiny_style, 76);
-    lv_style_set_x(&msg_tiny_style, 800 / 2 - (324 / 2));
-    lv_style_set_y(&msg_tiny_style, 160 - 66/2 + 36/2);
-    lv_style_set_radius(&msg_tiny_style, 0);
-    lv_style_set_bg_img_src(&msg_tiny_style, PATH "images/msg_tiny.bin");
+    msg_style = python_get_style("msg_style");
+    msg_label_normal_style = python_get_style("msg_label_normal_style");
+    msg_label_select_style = python_get_style("msg_label_select_style");
 
     pannel_style = python_get_style("pannel_style");
     dialog_style = python_get_style("dialog_style");

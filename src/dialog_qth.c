@@ -10,6 +10,7 @@
 #include "main_screen.h"
 #include "qth.h"
 #include "msg.h"
+#include "main.h"
 #include "dialog.h"
 #include "events.h"
 #include "dsp.h"
@@ -17,7 +18,6 @@
 
 static void construct_cb(lv_obj_t *parent);
 static void destruct_cb();
-static void key_cb(lv_event_t * e);
 
 static dialog_t             dialog = {
     .run = false,
@@ -25,7 +25,7 @@ static dialog_t             dialog = {
     .destruct_cb = destruct_cb,
     .audio_cb = NULL,
     .buttons = true,
-    .key_cb = key_cb
+    .key_cb = dialog_key_cb
 };
 
 dialog_t                    *dialog_qth = &dialog;
@@ -39,9 +39,13 @@ static void edit_ok() {
     } else {
         msg_set_text_fmt("Incorrect QTH Grid");
     }
+
+    dialog.obj = NULL;
+    dialog_destruct();
 }
 
 static void edit_cancel() {
+    dialog.obj = NULL;
     dialog_destruct();
 }
 
@@ -58,7 +62,7 @@ static void construct_cb(lv_obj_t *parent) {
 
     lv_textarea_set_max_length(text, 6);
     lv_textarea_set_placeholder_text(text, "QTH Grid");
-    lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(text, dialog_key_cb, LV_EVENT_KEY, NULL);
 
     textarea_window_set(options->op.qth);
 }
@@ -66,19 +70,4 @@ static void construct_cb(lv_obj_t *parent) {
 static void destruct_cb() {
     textarea_window_close();
     dialog.obj = NULL;
-}
-
-static void key_cb(lv_event_t * e) {
-    uint32_t key = *((uint32_t *)lv_event_get_param(e));
-
-    switch (key) {
-        case LV_KEY_ENTER:
-            edit_ok();
-            dialog_destruct();
-            break;
-
-        default:
-            dialog_key_cb(e);
-            break;
-    }
 }

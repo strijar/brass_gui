@@ -23,16 +23,18 @@
 #include "pannel.h"
 #include "main_screen.h"
 #include "msg.h"
+#include "textarea_window.h"
 
 static lv_obj_t *text;
 
 static void construct_cb(lv_obj_t *parent);
+static void destruct_cb();
 static void key_cb(lv_event_t * e);
 
 static dialog_t             dialog = {
     .run = false,
     .construct_cb = construct_cb,
-    .destruct_cb = NULL,
+    .destruct_cb = destruct_cb,
     .audio_cb = NULL,
     .buttons = true,
     .key_cb = key_cb
@@ -40,43 +42,8 @@ static dialog_t             dialog = {
 
 dialog_t                    *dialog_freq = &dialog;
 
-static void construct_cb(lv_obj_t *parent) {
-    lv_obj_t *obj = lv_obj_create(parent);
-
-    lv_obj_remove_style_all(obj);
-
-    lv_obj_add_style(obj, &msg_tiny_style, 0);
-    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-
-    dialog.obj = obj;
-
-    text = lv_textarea_create(dialog.obj);
-
-    lv_obj_remove_style(text, NULL, LV_STATE_ANY | LV_PART_MAIN);
-
-    lv_obj_set_style_text_color(text, lv_color_white(), 0);
-    lv_obj_set_style_bg_color(text, lv_color_white(), LV_PART_CURSOR);
-    lv_obj_set_style_bg_opa(text, 255, LV_PART_CURSOR);
-
-    lv_textarea_set_one_line(text, true);
-    lv_textarea_set_accepted_chars(text, "0123456789.");
-    lv_textarea_set_max_length(text, 9);
-    lv_textarea_set_placeholder_text(text, "Freq in MHz");
-
-    lv_obj_clear_flag(text, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_group_add_obj(keyboard_group, text);
-    lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
-
-    lv_obj_set_x(text, 0);
-    lv_obj_set_y(text, 0);
-    lv_obj_set_height(text, 60);
-    lv_obj_set_width(text, 250);
-    lv_obj_center(text);
-}
-
-static void enter_freq() {
-    const char* str = lv_textarea_get_text(text);
+static void edit_ok() {
+    const char* str = textarea_window_get();
 
     if (strlen(str) == 0) {
         voice_say_text_fmt("Frequency window has been closed");
@@ -92,6 +59,32 @@ static void enter_freq() {
         msg_set_text_fmt("Incorrect freq");
         voice_say_text_fmt("Incorrect frequency");
     }
+
+    dialog.obj = NULL;
+    dialog_destruct();
+}
+
+static edit_cancel() {
+    dialog.obj = NULL;
+    dialog_destruct();
+}
+
+static void construct_cb(lv_obj_t *parent) {
+    dialog.obj = textarea_window_open(edit_ok, edit_cancel);
+
+    lv_obj_t *text = textarea_window_text();
+
+    lv_textarea_set_accepted_chars(text, "0123456789.");
+    lv_textarea_set_max_length(text, 9);
+    lv_textarea_set_placeholder_text(text, "Freq in MHz");
+    lv_obj_add_event_cb(text, key_cb, LV_EVENT_KEY, NULL);
+
+    lv_group_add_obj(keyboard_group, text);
+}
+
+static void destruct_cb() {
+    textarea_window_close();
+    dialog.obj = NULL;
 }
 
 static void key_cb(lv_event_t * e) {
@@ -112,12 +105,6 @@ static void key_cb(lv_event_t * e) {
 
         case LV_KEY_ESC:
             voice_say_text_fmt("Frequency window has been closed");
-            dialog_destruct();
-            break;
-
-        case HKEY_FINP:
-        case LV_KEY_ENTER:
-            enter_freq();
             dialog_destruct();
             break;
 

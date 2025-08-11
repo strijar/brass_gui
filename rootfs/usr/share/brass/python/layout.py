@@ -77,7 +77,7 @@ waterfall_bandinfo_style.set_height(24)
 # # #
 
 msg_style.set_x(101 - 15)
-msg_style.set_y(300)
+msg_style.set_y(65)
 msg_style.set_width(616)
 msg_style.set_height(89)
 

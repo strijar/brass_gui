@@ -1,9 +1,9 @@
 /*
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  *
- *  Xiegu X6100 LVGL GUI
+ *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2023 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include "events.h"
@@ -46,11 +46,11 @@ static void text_cb(lv_event_t * e) {
         case LV_KEY_ENTER:
             ok();
             break;
-            
+
         case LV_KEY_ESC:
             cancel();
             break;
-            
+
         case KEY_VOL_LEFT_EDIT:
         case KEY_VOL_LEFT_SELECT:
             dsp_change_vol(-1);
@@ -80,6 +80,10 @@ static void keyboard_cb(lv_event_t * e) {
                 case KEY_VOL_RIGHT_SELECT:
                     dsp_change_vol(1);
                     break;
+
+                case LV_KEY_ESC:
+                    cancel();
+                    break;
             }
         } break;
 
@@ -100,33 +104,24 @@ lv_obj_t * textarea_window_open(textarea_window_cb_t ok, textarea_window_cb_t ca
     window = lv_obj_create(lv_scr_act());
 
     lv_obj_remove_style_all(window);
-
-    lv_obj_add_style(window, &msg_style, 0);
+    lv_obj_add_style(window, msg_style, 0);
     lv_obj_clear_flag(window, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_y(window, 80);
 
     text = lv_textarea_create(window);
 
-    lv_obj_remove_style(text, NULL, LV_STATE_ANY | LV_PART_MAIN);
+    lv_obj_remove_style_all(text);
+    lv_obj_add_style(text, msg_label_normal_style, LV_PART_MAIN);
+    lv_obj_add_style(text, msg_label_select_style, LV_PART_TEXTAREA_PLACEHOLDER);
+    lv_obj_add_style(text, dialog_item_focus_style, LV_PART_CURSOR);
+    lv_obj_clear_flag(text, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_set_style_text_color(text, lv_color_white(), 0);
-    lv_obj_set_style_bg_color(text, lv_color_white(), LV_PART_CURSOR);
-    lv_obj_set_style_bg_opa(text, 255, LV_PART_CURSOR);
-    
     lv_textarea_set_one_line(text, true);
     lv_textarea_set_max_length(text, 40);
-    
-    lv_obj_clear_flag(text, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_text_font(text, font_textarea, 0);
 
     if (ok || cancel) {
         lv_obj_add_event_cb(text, text_cb, LV_EVENT_KEY, NULL);
     }
 
-    lv_obj_set_height(text, 35);
-    lv_obj_set_width(text, 529);
-    lv_obj_center(text);
-    
     if (!keyboard_ready()) {
         keyboard = lv_keyboard_create(lv_scr_act());
 
@@ -145,7 +140,7 @@ lv_obj_t * textarea_window_open(textarea_window_cb_t ok, textarea_window_cb_t ca
     }
 
     lv_group_add_obj(keyboard_group, text);
-    
+
     return window;
 }
 
