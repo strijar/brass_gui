@@ -20,6 +20,8 @@ clock_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 20)
 dialog_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 22)
 dialog_title_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 16)
 
+keyboard_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Bold.ttf", 16)
+
 # # #
 
 spectrum_style = lv.style()
@@ -474,3 +476,13 @@ switch_knob_checked_style = lv.style()
 
 switch_knob_checked_style.set_bg_color(0x5D769A)
 switch_knob_checked_style.set_bg_opa(LV_OPA_COVER)
+
+# # # # #
+
+keyboard_style = lv.style()
+
+keyboard_style.set_radius(0)
+keyboard_style.set_pad_column(5)
+keyboard_style.set_pad_row(5)
+keyboard_style.set_bg_img_src("A:/usr/share/brass/images/pannel.bin")
+keyboard_style.set_bg_img_opa(LV_OPA_COVER)

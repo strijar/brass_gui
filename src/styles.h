@@ -49,9 +49,9 @@ extern lv_style_t   *switch_knob_style;
 extern lv_style_t   *switch_indicator_checked_style;
 extern lv_style_t   *switch_knob_checked_style;
 
-extern lv_font_t    *font_dialog_freq;
+extern lv_style_t   *keyboard_style;
+
 extern lv_font_t    *font_swrscan;
-extern lv_font_t    *font_panel;
 extern lv_font_t    *font_textarea;
 extern lv_font_t    *font_tx_info;
 

@@ -229,3 +229,12 @@ dialog_style.set_pad_ver(0)
 dialog_style.set_pad_hor(0)
 
 dialog_no_buttons_style.set_height(432)
+
+# # # # #
+
+keyboard_style.set_x(0)
+keyboard_style.set_y(480 - 59 - 210 + 8)
+keyboard_style.set_width(800)
+keyboard_style.set_height(210)
+keyboard_style.set_pad_ver(20)
+keyboard_style.set_pad_hor(16)

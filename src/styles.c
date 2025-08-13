@@ -47,16 +47,13 @@ lv_style_t  *switch_knob_style;
 lv_style_t  *switch_indicator_checked_style;
 lv_style_t  *switch_knob_checked_style;
 
+lv_style_t  *keyboard_style;
+
 lv_color_t  bg_color;
 
-lv_font_t   *font_dialog_freq = &jura_44;
 lv_font_t   *font_swrscan = &jura_28;
 lv_font_t   *font_textarea = &jura_40;
 lv_font_t   *font_tx_info = &jura_22;
-
-lv_font_t   *font_msg = &jura_38;
-lv_font_t   *font_dialog = &jura_bold_26;
-lv_font_t   *font_dialog_list = &jura_bold_26;
 
 static lv_font_t * load_font(const char *path, lv_coord_t font_size) {
     lv_ft_info_t    info;
@@ -123,6 +120,8 @@ void styles_init() {
     switch_knob_style = python_get_style("switch_knob_style");
     switch_indicator_checked_style = python_get_style("switch_indicator_checked_style");
     switch_knob_checked_style = python_get_style("switch_knob_checked_style");
+
+    keyboard_style = python_get_style("keyboard_style");
 
     lv_style_init(&tx_info_style);
     lv_style_set_radius(&tx_info_style, 0);

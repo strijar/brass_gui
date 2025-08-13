@@ -127,11 +127,14 @@ lv_obj_t * textarea_window_open(textarea_window_cb_t ok, textarea_window_cb_t ca
 
         lv_keyboard_set_textarea(keyboard, text);
         lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_TEXT_UPPER);
+
         lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_READY, NULL);
         lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_CANCEL, NULL);
         lv_obj_add_event_cb(keyboard, keyboard_cb, LV_EVENT_KEY, NULL);
 
-        lv_obj_set_style_bg_color(keyboard, bg_color, LV_PART_MAIN);
+        lv_obj_remove_style_all(keyboard);
+        lv_obj_add_style(keyboard, keyboard_style, LV_PART_MAIN);
+        lv_obj_add_style(keyboard, dialog_item_style, LV_PART_ITEMS);
         lv_obj_add_style(keyboard, dialog_item_focus_style, LV_STATE_FOCUSED | LV_PART_ITEMS);
 
         lv_group_add_obj(keyboard_group, keyboard);
