@@ -5,236 +5,118 @@ from style import *
 
 # # #
 
-spectrum_style.set_x(0)
-spectrum_style.set_y(59)
-spectrum_style.set_width(800)
-spectrum_style.set_height(101)
-spectrum_style.set_pad_hor(0)
+spectrum_style.set_geom(x=0, y=59, width=800, height=101)
+spectrum_style.set_pad(all=0)
 
 spectrum_tx_finder_style = lv.style()
-
-spectrum_tx_finder_style.set_x(0)
-spectrum_tx_finder_style.set_y(0)
-spectrum_tx_finder_style.set_width(800)
-spectrum_tx_finder_style.set_height(50)
+spectrum_tx_finder_style.set_geom(x=0, y=0, width=800, height=50)
 
 spectrum_rx_finder_style = lv.style()
-
-spectrum_rx_finder_style.set_x(0)
-spectrum_rx_finder_style.set_y(50)
-spectrum_rx_finder_style.set_width(800)
-spectrum_rx_finder_style.set_height(50)
+spectrum_rx_finder_style.set_geom(x=0, y=50, width=800, height=50)
 
 # # #
 
-main_freqs_style.set_x(0)
-main_freqs_style.set_y(160 - 20)
-main_freqs_style.set_width(800)
-main_freqs_style.set_height(82)
-main_freqs_style.set_pad_hor(0)
-main_freqs_style.set_pad_ver(0)
+main_freqs_style.set_geom(x=0, y = 160-20, width=800, height=82)
+main_freqs_style.set_pad(all=0)
 
-main_freqs_center_style.set_x(150)
-main_freqs_center_style.set_y(20)
-main_freqs_center_style.set_width(500)
-main_freqs_center_style.set_height(40)
+main_freqs_center_style.set_geom(x=150, y=20, width=500, height=40)
 
-main_freqs_left_style.set_x(20)
-main_freqs_left_style.set_y(20)
-main_freqs_left_style.set_pad_ver(8)
-main_freqs_left_style.set_width(150)
-main_freqs_left_style.set_height(60)
+main_freqs_left_style.set_geom(x=20, y=20, width=150, height=60)
+main_freqs_left_style.set_pad(ver=8)
 
-main_freqs_right_style.set_x(800 - 150 - 20)
-main_freqs_right_style.set_y(20)
-main_freqs_right_style.set_pad_ver(8)
-main_freqs_right_style.set_width(150)
-main_freqs_right_style.set_height(60)
+main_freqs_right_style.set_geom(x=800 - 150 - 20, y=20, width=150, height=60)
 
 # # #
 
-waterfall_style.set_x(0)
-waterfall_style.set_y(161 + 42 - 1)
-waterfall_style.set_width(800)
-waterfall_style.set_height(221)
-waterfall_style.set_pad_hor(0)
-waterfall_style.set_pad_ver(0)
+waterfall_style.set_geom(x=0, y=161 + 42 - 1, width=800, height=221)
+waterfall_style.set_pad(all=0)
 
 waterfall_rx_finder_style = lv.style()
-
-waterfall_rx_finder_style.set_x(0)
-waterfall_rx_finder_style.set_y(0)
-waterfall_rx_finder_style.set_width(800)
-waterfall_rx_finder_style.set_height(221)
+waterfall_rx_finder_style.set_geom(x=0, y=0, width=800, height=221)
 
 waterfall_bandinfo_style = lv.style()
-
-waterfall_bandinfo_style.set_x(0)
-waterfall_bandinfo_style.set_y(2)
-waterfall_bandinfo_style.set_width(800)
-waterfall_bandinfo_style.set_height(24)
+waterfall_bandinfo_style.set_geom(x=0, y=2, width=800, height=24)
 
 # # #
 
-msg_style.set_x(101 - 15)
-msg_style.set_y(65)
-msg_style.set_width(616)
-msg_style.set_height(89)
+msg_style.set_geom(x = 101 - 15, y=65, width=616, height=89)
 
-msg_label_normal_style.set_x(0)
-msg_label_normal_style.set_y(20)
-msg_label_normal_style.set_width(586)
-msg_label_normal_style.set_height(48)
+msg_label_normal_style.set_geom(x=0, y=20, width=586, height=48)
 
 # # #
 
-msg_tiny_style.set_x(200 - 15)
-msg_tiny_style.set_y(147 - 15)
-msg_tiny_style.set_width(430)
-msg_tiny_style.set_height(100)
+msg_tiny_style.set_geom(x=200 - 15, y=147 - 15, width=430, height=100)
 
 msg_tiny_label_style = lv.style()
-
-msg_tiny_label_style.set_x(15)
-msg_tiny_label_style.set_y(15)
-msg_tiny_label_style.set_width(400)
-msg_tiny_label_style.set_height(70)
+msg_tiny_label_style.set_geom(x=15, y=15, width=400, height=70)
 
 # # #
 
-top_style.set_x(0)
-top_style.set_y(0)
-top_style.set_width(800)
-top_style.set_height(79)
-top_style.set_pad_hor(0)
-top_style.set_pad_ver(0)
+top_style.set_geom(x=0, y=0, width=800, height=79)
+top_style.set_pad(all=0)
 
 tx_reflex_style = lv.style()
+tx_reflex_style.set_geom(x=0, y=59, width=800, height=2)
 
-tx_reflex_style.set_x(0)
-tx_reflex_style.set_y(59)
-tx_reflex_style.set_width(800)
-tx_reflex_style.set_height(2)
-
-tx_reflex_indicator_style.set_pad_left(-10)
-tx_reflex_indicator_style.set_pad_right(10)
+tx_reflex_indicator_style.set_pad(left=-10, right=10)
 
 # # #
 
-buttons_style.set_x(0)
-buttons_style.set_y(480 - 79)
-buttons_style.set_width(800)
-buttons_style.set_height(79)
-buttons_style.set_pad_hor(0)
-buttons_style.set_pad_ver(0)
+buttons_style.set_geom(x=0, y=480 - 79, width=800, height=79)
+buttons_style.set_pad(all=0)
 
-button_style.set_width(133)
-button_style.set_height(59)
+button_style.set_geom(width=133, height=59)
 
 # # #
 
-info_style.set_x(20)
-info_style.set_y(7)
-info_style.set_width(194)
-info_style.set_height(45)
-info_style.set_pad_hor(0)
-info_style.set_pad_ver(0)
+info_style.set_geom(x=20, y=7, width=194, height=45)
+info_style.set_pad(all=0)
 
 info_split_style = lv.style()
-
-info_split_style.set_x(0)
-info_split_style.set_y(0)
-info_split_style.set_width(59)
-info_split_style.set_height(22)
+info_split_style.set_geom(x=0, y=0, width=59, height=22)
 
 info_mode_style = lv.style()
-
-info_mode_style.set_x(67)
-info_mode_style.set_y(0)
-info_mode_style.set_width(59)
-info_mode_style.set_height(22)
+info_mode_style.set_geom(x=67, y=0, width=59, height=22)
 
 info_agc_style = lv.style()
-
-info_agc_style.set_x(135)
-info_agc_style.set_y(0)
-info_agc_style.set_width(59)
-info_agc_style.set_height(22)
+info_agc_style.set_geom(x=135, y=0, width=59, height=22)
 
 info_pre_style = lv.style()
-
-info_pre_style.set_x(0)
-info_pre_style.set_y(23)
-info_pre_style.set_width(59)
-info_pre_style.set_height(22)
+info_pre_style.set_geom(x=0, y=23, width=59, height=22)
 
 info_att_style = lv.style()
-
-info_att_style.set_x(67)
-info_att_style.set_y(23)
-info_att_style.set_width(59)
-info_att_style.set_height(22)
+info_att_style.set_geom(x=67, y=23, width=59, height=22)
 
 info_atu_style = lv.style()
-
-info_atu_style.set_x(135)
-info_atu_style.set_y(23)
-info_atu_style.set_width(59)
-info_atu_style.set_height(22)
+info_atu_style.set_geom(x=135, y=23, width=59, height=22)
 
 # # #
 
-smeter_style.set_x(250)
-smeter_style.set_y(10)
-smeter_style.set_width(340)
-smeter_style.set_height(40)
+smeter_style.set_geom(x=250, y=10, width=340, height=40)
 
 # # #
 
-clock_style.set_x(629)
-clock_style.set_y(17)
-clock_style.set_width(153)
-clock_style.set_height(26)
-clock_style.set_pad_hor(0)
-clock_style.set_pad_ver(0)
+clock_style.set_geom(x=629, y=17, width=153, height=26)
+clock_style.set_pad(all=0)
 
 clock_label_style = lv.style()
+clock_label_style.set_geom(x=0, y=0, width=96, height=26)
 
-clock_label_style.set_x(0)
-clock_label_style.set_y(0)
-clock_label_style.set_width(96)
-clock_label_style.set_height(26)
-
-bat_style.set_x(116)
-bat_style.set_y(4)
-bat_style.set_width(37)
-bat_style.set_height(18)
+bat_style.set_geom(x=116, y=4, width=37, height=18)
 
 # # # # #
 
-pannel_style.set_x(0)
-pannel_style.set_y(480 - 59 - 210 + 8)
-pannel_style.set_width(800)
-pannel_style.set_height(210)
-pannel_style.set_pad_ver(20)
-pannel_style.set_pad_hor(16)
+pannel_style.set_geom(x=0, y = 480 - 59 - 210 + 8, width=800, height=210)
+pannel_style.set_pad(ver=20, hor=16)
 
 # # # # #
 
-dialog_style.set_width(800)
-dialog_style.set_height(384)
-dialog_style.set_x(0)
-dialog_style.set_y(48)
-dialog_style.set_pad_ver(0)
-dialog_style.set_pad_hor(0)
+dialog_style.set_geom(x=0, y=48, width=800, height=384)
+dialog_style.set_pad(all=0)
 
-dialog_no_buttons_style.set_height(432)
+dialog_no_buttons_style.set_geom(height=432)
 
 # # # # #
 
-keyboard_style.set_x(0)
-keyboard_style.set_y(480 - 59 - 210 + 8)
-keyboard_style.set_width(800)
-keyboard_style.set_height(210)
-keyboard_style.set_pad_ver(20)
-keyboard_style.set_pad_hor(16)
+keyboard_style.set_geom(x=0, y=480 - 59 - 210 + 8, width=800, height=210)
+keyboard_style.set_pad(ver=20, hor=16)

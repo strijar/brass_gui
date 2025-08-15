@@ -25,152 +25,55 @@ static PyObject * style_new(PyTypeObject *type, PyObject *args, PyObject *kwds) 
     return (PyObject *) self;
 }
 
-static PyObject * style_set_bg_color(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
+static PyObject * style_set_bg(style_object_t *self, PyObject *args, PyObject *kwargs) {
+    long int        color = -1L;
+    long int        opa = -1L;
+    char            *img_src = NULL;
+    long int        img_opa = -1L;
+    PyObject        *grad = NULL;
+    long int        grad_color = -1L;
+    long int        grad_dir = -1L;
+    long int        main_stop = -1L;
+    long int        grad_stop = -1L;
+    char            *kwlist[] = {"color", "opa", "img_src", "img_opa", "grad", "grad_color", "grad_dir", "main_stop", "grad_stop", NULL};
 
-    lv_color_t color;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|$llslOllll", kwlist, &color, &opa, &img_src, &img_opa, &grad, &grad_color, &grad_dir, &main_stop, &grad_stop)) {
+        return NULL;
+    }
 
-    if (PyArg_ParseTuple(args, "I", &color)) {
-        lv_style_set_bg_color(&self->style, color);
+    if (color != -1)        lv_style_set_bg_color(&self->style, lv_color_hex(color));
+    if (opa != -1)          lv_style_set_bg_opa(&self->style, (lv_opa_t) opa);
+    if (img_src != NULL)    lv_style_set_bg_img_src(&self->style, strdup(img_src));
+    if (img_opa != -1)      lv_style_set_bg_img_opa(&self->style, (lv_opa_t) img_opa);
+    if (grad_color != -1)   lv_style_set_bg_grad_color(&self->style, lv_color_hex(grad_color));
+    if (grad_dir != -1)     lv_style_set_bg_grad_dir(&self->style, (lv_grad_dir_t) grad_dir);
+    if (main_stop != -1)    lv_style_set_bg_main_stop(&self->style, main_stop);
+    if (grad_stop != -1)    lv_style_set_bg_grad_stop(&self->style, grad_stop);
+
+    if (grad != NULL && PyObject_TypeCheck(grad, &grad_type)) {
+        Py_INCREF(grad);
+
+        grad_object_t *grad_obj = (grad_object_t *) grad;
+
+        lv_style_set_bg_grad(&self->style, &grad_obj->grad);
     }
 
     Py_RETURN_NONE;
 }
 
-static PyObject * style_set_bg_grad(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
+static PyObject * style_set_border(style_object_t *self, PyObject *args, PyObject *kwargs) {
+    long int    color = -1L;
+    long int    opa = -1L;
+    long int    width = -1L;
+    char        *kwlist[] = {"color", "opa", "width", NULL};
 
-    PyObject *obj = NULL;
-
-    if (PyArg_ParseTuple(args, "O", &obj)) {
-        if (PyObject_TypeCheck(obj, &grad_type)) {
-            Py_INCREF(obj);
-
-            grad_object_t *grad = (grad_object_t *) obj;
-
-            lv_style_set_bg_grad(&self->style, &grad->grad);
-        }
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|$lll", kwlist, &color, &opa, &width)) {
+        return NULL;
     }
 
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_bg_grad_color(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_color_t color;
-
-    if (PyArg_ParseTuple(args, "I", &color)) {
-        lv_style_set_bg_grad_color(&self->style, color);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_bg_grad_dir(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_grad_dir_t value;
-
-    if (PyArg_ParseTuple(args, "b", &value)) {
-        lv_style_set_bg_grad_dir(&self->style, value);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_bg_main_stop(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t value;
-
-    if (PyArg_ParseTuple(args, "i", &value)) {
-        lv_style_set_bg_main_stop(&self->style, value);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_bg_grad_stop(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t value;
-
-    if (PyArg_ParseTuple(args, "i", &value)) {
-        lv_style_set_bg_grad_stop(&self->style, value);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_bg_opa(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_opa_t opa;
-
-    if (PyArg_ParseTuple(args, "b", &opa)) {
-        lv_style_set_bg_opa(&self->style, opa);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_bg_img_opa(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_opa_t opa;
-
-    if (PyArg_ParseTuple(args, "b", &opa)) {
-        lv_style_set_bg_img_opa(&self->style, opa);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_bg_img_src(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    const char *path;
-
-    if (PyArg_ParseTuple(args, "s", &path)) {
-        lv_style_set_bg_img_src(&self->style, strdup(path));
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_border_color(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_color_t color;
-
-    if (PyArg_ParseTuple(args, "I", &color)) {
-        lv_style_set_border_color(&self->style, color);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_border_opa(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_opa_t opa;
-
-    if (PyArg_ParseTuple(args, "b", &opa)) {
-        lv_style_set_border_opa(&self->style, opa);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_border_width(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t width;
-
-    if (PyArg_ParseTuple(args, "i", &width)) {
-        lv_style_set_border_width(&self->style, width);
-    }
+    if (color != -1)    lv_style_set_border_color(&self->style, lv_color_hex(color));
+    if (opa != -1)      lv_style_set_border_opa(&self->style, (lv_opa_t) opa);
+    if (width != -1)    lv_style_set_border_width(&self->style, (lv_coord_t) width);
 
     Py_RETURN_NONE;
 }
@@ -187,254 +90,113 @@ static PyObject * style_set_radius(style_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-static PyObject * style_set_x(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
+static PyObject * style_set_geom(style_object_t *self, PyObject *args, PyObject *kwargs) {
+    lv_coord_t  x = -1;
+    lv_coord_t  y = -1;
+    lv_coord_t  width = -1;
+    lv_coord_t  height = -1;
+    char        *kwlist[] = { "x", "y", "width", "height", NULL};
 
-    lv_coord_t x;
-
-    if (PyArg_ParseTuple(args, "i", &x)) {
-        lv_style_set_x(&self->style, x);
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|$iiii", kwlist, &x, &y, &width, &height)) {
+        return NULL;
     }
+
+    if (x != -1)        lv_style_set_x(&self->style, x);
+    if (y != -1)        lv_style_set_y(&self->style, y);
+    if (width != -1)    lv_style_set_width(&self->style, width);
+    if (height != -1)   lv_style_set_height(&self->style, height);
 
     Py_RETURN_NONE;
 }
 
-static PyObject * style_set_y(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
+static PyObject * style_set_pad(style_object_t *self, PyObject *args, PyObject *kwargs) {
+    lv_coord_t  all = -1;
+    lv_coord_t  hor = -1;
+    lv_coord_t  ver = -1;
+    lv_coord_t  left = -1;
+    lv_coord_t  right = -1;
+    lv_coord_t  top = -1;
+    lv_coord_t  bottom = -1;
+    lv_coord_t  column = -1;
+    lv_coord_t  row = -1;
+    char        *kwlist[] = { "all", "hor", "ver", "left", "right", "top", "bottom", "column", "row", NULL};
 
-    lv_coord_t y;
-
-    if (PyArg_ParseTuple(args, "i", &y)) {
-        lv_style_set_y(&self->style, y);
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|$iiiiiiiii", kwlist, &all, &hor, &ver, &left, &right, &top, &bottom, &column, &row)) {
+        return NULL;
     }
+
+    if (all != -1)      lv_style_set_pad_all(&self->style, all);
+    if (hor != -1)      lv_style_set_pad_hor(&self->style, hor);
+    if (ver != -1)      lv_style_set_pad_ver(&self->style, ver);
+    if (left != -1)     lv_style_set_pad_left(&self->style, left);
+    if (right != -1)    lv_style_set_pad_right(&self->style, right);
+    if (top != -1)      lv_style_set_pad_top(&self->style, top);
+    if (bottom != -1)   lv_style_set_pad_bottom(&self->style, bottom);
+    if (column != -1)   lv_style_set_pad_column(&self->style, column);
+    if (row != -1)      lv_style_set_pad_row(&self->style, row);
 
     Py_RETURN_NONE;
 }
 
-static PyObject * style_set_width(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
+static PyObject * style_set_line(style_object_t *self, PyObject *args, PyObject *kwargs) {
+    long int        width = -1L;
+    long int        color = -1L;
+    long int        opa = -1L;
 
-    lv_coord_t width;
+    char            *kwlist[] = { "width", "color", "opa", NULL};
 
-    if (PyArg_ParseTuple(args, "i", &width)) {
-        lv_style_set_width(&self->style, width);
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|$lll", kwlist, &width, &color, &opa)) {
+        return NULL;
     }
+
+    if (width != -1)    lv_style_set_line_width(&self->style, (lv_coord_t) width);
+    if (color != -1)    lv_style_set_line_color(&self->style, lv_color_hex(color));
+    if (opa != -1)      lv_style_set_line_opa(&self->style, (lv_opa_t) opa);
 
     Py_RETURN_NONE;
 }
 
-static PyObject * style_set_height(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
+static PyObject * style_set_text(style_object_t *self, PyObject *args, PyObject *kwargs) {
+    long int        color = -1;
+    long int        align = -1;
+    void            *font = NULL;
+    char            *kwlist[] = { "color", "align", "font", NULL};
 
-    lv_coord_t height;
-
-    if (PyArg_ParseTuple(args, "i", &height)) {
-        lv_style_set_height(&self->style, height);
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|$llk", kwlist, &color, &align, &font)) {
+        return NULL;
     }
+
+    if (color != -1)    lv_style_set_text_color(&self->style, lv_color_hex(color));
+    if (align != -1)    lv_style_set_text_align(&self->style, (lv_text_align_t) align);
+    if (font != NULL)   lv_style_set_text_font(&self->style, font);
 
     Py_RETURN_NONE;
 }
 
-static PyObject * style_set_max_width(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
+static PyObject * style_set_max(style_object_t *self, PyObject *args, PyObject *kwargs) {
+    long int        width = -1;
+    long int        height = -1;
+    char            *kwlist[] = { "width", "height",  NULL};
 
-    lv_coord_t width;
-
-    if (PyArg_ParseTuple(args, "i", &width)) {
-        lv_style_set_max_width(&self->style, width);
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|$ll", kwlist, &width, &height)) {
+        return NULL;
     }
 
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_max_height(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t height;
-
-    if (PyArg_ParseTuple(args, "i", &height)) {
-        lv_style_set_max_height(&self->style, height);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_pad_hor(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t pad;
-
-    if (PyArg_ParseTuple(args, "i", &pad)) {
-        lv_style_set_pad_hor(&self->style, pad);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_pad_left(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t pad;
-
-    if (PyArg_ParseTuple(args, "i", &pad)) {
-        lv_style_set_pad_left(&self->style, pad);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_pad_right(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t pad;
-
-    if (PyArg_ParseTuple(args, "i", &pad)) {
-        lv_style_set_pad_right(&self->style, pad);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_pad_ver(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t pad;
-
-    if (PyArg_ParseTuple(args, "i", &pad)) {
-        lv_style_set_pad_ver(&self->style, pad);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_pad_column(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t pad;
-
-    if (PyArg_ParseTuple(args, "i", &pad)) {
-        lv_style_set_pad_column(&self->style, pad);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_pad_row(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t pad;
-
-    if (PyArg_ParseTuple(args, "i", &pad)) {
-        lv_style_set_pad_row(&self->style, pad);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_line_width(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_coord_t width;
-
-    if (PyArg_ParseTuple(args, "i", &width)) {
-        lv_style_set_line_width(&self->style, width);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_line_color(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_color_t color;
-
-    if (PyArg_ParseTuple(args, "I", &color)) {
-        lv_style_set_line_color(&self->style, color);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_line_opa(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_opa_t opa;
-
-    if (PyArg_ParseTuple(args, "b", &opa)) {
-        lv_style_set_line_opa(&self->style, opa);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_text_color(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_color_t color;
-
-    if (PyArg_ParseTuple(args, "I", &color)) {
-        lv_style_set_text_color(&self->style, color);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_text_align(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    lv_text_align_t align;
-
-    if (PyArg_ParseTuple(args, "b", &align)) {
-        lv_style_set_text_align(&self->style, align);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * style_set_text_font(style_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    void *font;
-
-    if (PyArg_ParseTuple(args, "k", &font)) {
-        lv_style_set_text_font(&self->style, font);
-    }
+    if (width != -1)    lv_style_set_max_width(&self->style, (lv_coord_t) width);
+    if (height != -1)   lv_style_set_max_height(&self->style, (lv_coord_t) height);
 
     Py_RETURN_NONE;
 }
 
 static PyMethodDef style_methods[] = {
-    { "set_bg_color", (PyCFunction) style_set_bg_color, METH_VARARGS, "" },
-    { "set_bg_opa", (PyCFunction) style_set_bg_opa, METH_VARARGS, "" },
-    { "set_bg_img_src", (PyCFunction) style_set_bg_img_src, METH_VARARGS, "" },
-    { "set_bg_img_opa", (PyCFunction) style_set_bg_img_opa, METH_VARARGS, "" },
-    { "set_bg_grad", (PyCFunction) style_set_bg_grad, METH_VARARGS, "" },
-    { "set_bg_grad_color", (PyCFunction) style_set_bg_grad_color, METH_VARARGS, "" },
-    { "set_bg_grad_dir", (PyCFunction) style_set_bg_grad_dir, METH_VARARGS, "" },
-    { "set_bg_main_stop", (PyCFunction) style_set_bg_main_stop, METH_VARARGS, "" },
-    { "set_bg_grad_stop", (PyCFunction) style_set_bg_grad_stop, METH_VARARGS, "" },
-    { "set_border_color", (PyCFunction) style_set_border_color, METH_VARARGS, "" },
-    { "set_border_width", (PyCFunction) style_set_border_width, METH_VARARGS, "" },
-    { "set_border_opa", (PyCFunction) style_set_border_opa, METH_VARARGS, "" },
+    { "set_bg", (PyCFunction) style_set_bg, METH_VARARGS | METH_KEYWORDS, "" },
+    { "set_border", (PyCFunction) style_set_border, METH_VARARGS | METH_KEYWORDS, "" },
     { "set_radius", (PyCFunction) style_set_radius, METH_VARARGS, "" },
-    { "set_x", (PyCFunction) style_set_x, METH_VARARGS, "" },
-    { "set_y", (PyCFunction) style_set_y, METH_VARARGS, "" },
-    { "set_width", (PyCFunction) style_set_width, METH_VARARGS, "" },
-    { "set_height", (PyCFunction) style_set_height, METH_VARARGS, "" },
-    { "set_max_width", (PyCFunction) style_set_max_width, METH_VARARGS, "" },
-    { "set_max_height", (PyCFunction) style_set_max_height, METH_VARARGS, "" },
-    { "set_pad_hor", (PyCFunction) style_set_pad_hor, METH_VARARGS, "" },
-    { "set_pad_left", (PyCFunction) style_set_pad_left, METH_VARARGS, "" },
-    { "set_pad_right", (PyCFunction) style_set_pad_right, METH_VARARGS, "" },
-    { "set_pad_ver", (PyCFunction) style_set_pad_ver, METH_VARARGS, "" },
-    { "set_pad_column", (PyCFunction) style_set_pad_column, METH_VARARGS, "" },
-    { "set_pad_row", (PyCFunction) style_set_pad_row, METH_VARARGS, "" },
-    { "set_line_width", (PyCFunction) style_set_line_width, METH_VARARGS, "" },
-    { "set_line_color", (PyCFunction) style_set_line_color, METH_VARARGS, "" },
-    { "set_line_opa", (PyCFunction) style_set_line_opa, METH_VARARGS, "" },
-    { "set_text_color", (PyCFunction) style_set_text_color, METH_VARARGS, "" },
-    { "set_text_align", (PyCFunction) style_set_text_align, METH_VARARGS, "" },
-    { "set_text_font", (PyCFunction) style_set_text_font, METH_VARARGS, "" },
+    { "set_geom", (PyCFunction) style_set_geom, METH_VARARGS | METH_KEYWORDS, "" },
+    { "set_pad", (PyCFunction) style_set_pad, METH_VARARGS | METH_KEYWORDS, "" },
+    { "set_line", (PyCFunction) style_set_line, METH_VARARGS | METH_KEYWORDS, "" },
+    { "set_text", (PyCFunction) style_set_text, METH_VARARGS | METH_KEYWORDS, "" },
+    { "set_max", (PyCFunction) style_set_max, METH_VARARGS | METH_KEYWORDS, "" },
     { NULL }
 };
 
