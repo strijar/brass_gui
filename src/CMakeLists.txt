@@ -17,7 +17,6 @@ target_sources(${PROJECT_NAME} PUBLIC
     vt.c memory.c queue.c two_tone.c
 )
 
-add_subdirectory(fonts)
 add_subdirectory(ft8)
 add_subdirectory(widgets)
 add_subdirectory(fpga)

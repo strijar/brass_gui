@@ -125,7 +125,7 @@ static void tx_info_draw_cb(lv_event_t * e) {
     lv_draw_label_dsc_init(&label_dsc);
     
     label_dsc.color = lv_color_white();
-    label_dsc.font = font_tx_info;
+/* FIXME    label_dsc.font = font_tx_info; */
 
     area.x1 = x1;
     area.x2 = x1 + 20;

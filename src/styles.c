@@ -7,7 +7,6 @@
  */
 
 #include "styles.h"
-#include "fonts/jura.h"
 #include "python/python.h"
 
 #define PATH "A:/usr/share/brass/"
@@ -50,10 +49,6 @@ lv_style_t  *switch_knob_checked_style;
 lv_style_t  *keyboard_style;
 
 lv_color_t  bg_color;
-
-lv_font_t   *font_swrscan = &jura_28;
-lv_font_t   *font_textarea = &jura_40;
-lv_font_t   *font_tx_info = &jura_22;
 
 static lv_font_t * load_font(const char *path, lv_coord_t font_size) {
     lv_ft_info_t    info;
