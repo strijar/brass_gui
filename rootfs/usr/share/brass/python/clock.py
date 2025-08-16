@@ -17,8 +17,9 @@ class Clock(lv.obj):
 		clock_label.add_style(clock_label_style, LV_PART_MAIN)
 		self.clock_label = clock_label
 
-		bat = lv.obj(self)
+		bat = lv.label(self)
 		bat.add_style(bat_style, LV_PART_MAIN)
+		bat.set_text(LV_SYMBOL_BATTERY_FULL)
 		self.bat = bat
 
 		self.timer_create(self.update, 1000)

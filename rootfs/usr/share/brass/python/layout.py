@@ -102,7 +102,7 @@ clock_style.set_pad(all=0)
 clock_label_style = lv.style()
 clock_label_style.set_geom(x=0, y=0, width=96, height=26)
 
-bat_style.set_geom(x=116, y=4, width=37, height=18)
+bat_style.set_geom(x=116, y=0, width=37, height=26)
 
 # # # # #
 

@@ -63,3 +63,9 @@ LV_GRAD_DIR_VERT                = 1
 LV_GRAD_DIR_HOR                 = 2
 
 LV_RADIUS_CIRCLE                = 0x7FFF
+
+LV_SYMBOL_BATTERY_FULL          = "\uF240"
+LV_SYMBOL_BATTERY_3             = "\uF241"
+LV_SYMBOL_BATTERY_2             = "\uF242"
+LV_SYMBOL_BATTERY_1             = "\uF243"
+LV_SYMBOL_BATTERY_EMPTY         = "\uF244"

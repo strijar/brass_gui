@@ -20,6 +20,8 @@ clock_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 20)
 dialog_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 22)
 dialog_title_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 16)
 
+awesome_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 22)
+
 # # #
 
 spectrum_style = lv.style()
@@ -236,7 +238,8 @@ bat_style = lv.style()
 
 bat_style.set_radius(0)
 bat_style.set_border(width=0)
-bat_style.set_bg(opa=LV_OPA_TRANSP, img_src="A:/usr/share/brass/images/bat_100.bin", img_opa=LV_OPA_COVER)
+bat_style.set_text(color=0xFFCF85, font=awesome_font)
+bat_style.set_bg(opa=LV_OPA_TRANSP)
 
 # # # # #
 
@@ -391,3 +394,4 @@ keyboard_style = lv.style()
 keyboard_style.set_radius(0)
 keyboard_style.set_pad(column=5, row=5)
 keyboard_style.set_bg(img_src="A:/usr/share/brass/images/pannel.bin", img_opa=LV_OPA_COVER)
+keyboard_style.set_text(font=awesome_font)
