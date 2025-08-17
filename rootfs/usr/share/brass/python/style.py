@@ -3,24 +3,26 @@ from lv_const import *
 
 # # #
 
-bandinfo_indicator_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 20)
-bandinfo_marker_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Bold.ttf", 20)
+bandinfo_indicator_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium-Awesome.ttf", 20)
+bandinfo_marker_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Bold-Awesome.ttf", 20)
 
-freqs_center_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Bold.ttf", 30)
-freqs_range_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 20)
+freqs_center_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Bold-Awesome.ttf", 30)
+freqs_range_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 20)
 
-msg_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 36)
-msg_tiny_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Bold.ttf", 50)
+msg_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 36)
+msg_tiny_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Bold-Awesome.ttf", 50)
 
-button_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 15)
-pannel_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 18)
-info_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 15)
-smeter_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium.ttf", 20)
-clock_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 20)
-dialog_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 22)
-dialog_title_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular.ttf", 16)
+button_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium-Awesome.ttf", 15)
+pannel_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 18)
+info_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium-Awesome.ttf", 15)
+smeter_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Medium-Awesome.ttf", 20)
+clock_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 20)
+bat_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 22)
 
-awesome_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 22)
+dialog_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 22)
+dialog_title_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 16)
+
+keyboard_font = lv.load_font("/usr/share/brass/font/JetBrainsMono-Regular-Awesome.ttf", 22)
 
 # # #
 
@@ -238,7 +240,7 @@ bat_style = lv.style()
 
 bat_style.set_radius(0)
 bat_style.set_border(width=0)
-bat_style.set_text(color=0xFFCF85, font=awesome_font)
+bat_style.set_text(color=0xFFCF85, font=bat_font)
 bat_style.set_bg(opa=LV_OPA_TRANSP)
 
 # # # # #
@@ -394,4 +396,4 @@ keyboard_style = lv.style()
 keyboard_style.set_radius(0)
 keyboard_style.set_pad(column=5, row=5)
 keyboard_style.set_bg(img_src="A:/usr/share/brass/images/pannel.bin", img_opa=LV_OPA_COVER)
-keyboard_style.set_text(font=awesome_font)
+keyboard_style.set_text(font=keyboard_font)
