@@ -49,7 +49,7 @@
 #include "settings/modes.h"
 #include "settings/rf.h"
 #include "bands/bands.h"
-#include "widgets/lv_smeter.h"
+#include "smeter.h"
 
 static lv_obj_t     *obj = NULL;
 static bool         freq_lock = false;

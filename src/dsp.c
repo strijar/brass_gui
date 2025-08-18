@@ -11,7 +11,7 @@
 #include <math.h>
 #include <specbleach_adenoiser.h>
 
-#include "widgets/lv_smeter.h"
+#include "smeter.h"
 #include "dsp.h"
 #include "util.h"
 #include "radio.h"

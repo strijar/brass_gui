@@ -18,7 +18,7 @@
 #include "fpga/adc.h"
 #include "settings/modes.h"
 #include "settings/options.h"
-#include "widgets/lv_smeter.h"
+#include "smeter.h"
 
 typedef struct {
     uint16_t    n;

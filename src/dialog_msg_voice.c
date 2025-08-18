@@ -31,7 +31,7 @@
 #include "buttons.h"
 #include "dsp.h"
 #include "fpga/dac.h"
-#include "widgets/lv_smeter.h"
+#include "smeter.h"
 
 #define DECIM       441
 #define INTER       128

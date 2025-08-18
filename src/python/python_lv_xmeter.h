@@ -12,4 +12,4 @@
 
 #include "lvgl/lvgl.h"
 
-extern PyTypeObject smeter_type;
+extern PyTypeObject xmeter_type;

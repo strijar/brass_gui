@@ -18,7 +18,7 @@
 #include "python_lv_finder.h"
 #include "python_lv_bandinfo.h"
 #include "python_lv_btn.h"
-#include "python_lv_smeter.h"
+#include "python_lv_xmeter.h"
 
 static PyObject * lv_load_font(PyObject *self, PyObject *args) {
     const char      *path;
@@ -68,7 +68,7 @@ PyMODINIT_FUNC PyInit_lv() {
     PyType_Ready(&finder_type);
     PyType_Ready(&bandinfo_type);
     PyType_Ready(&btn_type);
-    PyType_Ready(&smeter_type);
+    PyType_Ready(&xmeter_type);
 
     PyObject *m = PyModule_Create(&lv_module);
 
@@ -87,7 +87,7 @@ PyMODINIT_FUNC PyInit_lv() {
     PyModule_AddObjectRef(m, "finder", (PyObject *) &finder_type);
     PyModule_AddObjectRef(m, "bandinfo", (PyObject *) &bandinfo_type);
     PyModule_AddObjectRef(m, "btn", (PyObject *) &btn_type);
-    PyModule_AddObjectRef(m, "smeter", (PyObject *) &smeter_type);
+    PyModule_AddObjectRef(m, "xmeter", (PyObject *) &xmeter_type);
 
     return m;
 }

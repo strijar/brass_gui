@@ -4,8 +4,8 @@
  *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
-#ifndef LV_SMETER_H
-#define LV_SMETER_H
+#ifndef LV_XMETER_H
+#define LV_XMETER_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,18 +21,7 @@ extern "C" {
  *      DEFINES
  *********************/
 
-#define S_MIN   (-134)
-#define S1      (-121)
-#define S2      (-115)
-#define S3      (-109)
-#define S4      (-103)
-#define S5      (-97)
-#define S6      (-91)
-#define S7      (-85)
-#define S8      (-79)
-#define S9      (-73)
-#define S9_20   (S9 + 20)
-#define S9_40   (S9 + 40)
+#define LV_SMETER_LABELS 7
 
 /**********************
  *      TYPEDEFS
@@ -46,29 +35,38 @@ enum {
 };
 
 typedef struct {
+    char    text[32];
+    float   value;
+} lv_xmeter_label_t;
+
+typedef struct {
     lv_obj_t            obj;
 
     float               min;
     float               max;
     float               value;
-    int16_t             slice_db;
-    int16_t             part[3];
-} lv_smeter_t;
+    float               slice_value;
+    float               part[3];
+    lv_xmeter_label_t   labels[LV_SMETER_LABELS];
+} lv_xmeter_t;
 
-extern const lv_obj_class_t lv_smeter_class;
+extern const lv_obj_class_t lv_xmeter_class;
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
 
-lv_obj_t * lv_smeter_create(lv_obj_t * parent);
+lv_obj_t * lv_xmeter_create(lv_obj_t * parent);
 
 /*=====================
  * Setter functions
  *====================*/
 
-void lv_smeter_set_value(lv_obj_t * obj, int16_t db);
-void lv_smeter_set_part(lv_obj_t * obj, uint8_t index, int16_t db);
+void lv_xmeter_set_value(lv_obj_t * obj, float value);
+void lv_xmeter_set_slice(lv_obj_t * obj, float value);
+void lv_xmeter_set_part(lv_obj_t * obj, uint8_t index, float value);
+void lv_xmeter_set_label(lv_obj_t * obj, uint8_t index, const char *text, float value);
+void lv_xmeter_set_range(lv_obj_t * obj, float min, float max);
 
 #ifdef __cplusplus
 } /*extern "C"*/

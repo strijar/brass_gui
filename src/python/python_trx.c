@@ -16,7 +16,7 @@
 #include "src/widgets/lv_spectrum3d.h"
 #include "src/widgets/lv_waterfall.h"
 #include "src/widgets/lv_finder.h"
-#include "src/widgets/lv_smeter.h"
+#include "src/widgets/lv_xmeter.h"
 #include "src/main.h"
 #include "src/msgs.h"
 #include "src/radio.h"
@@ -302,13 +302,13 @@ static void smeter_msg_cb(void *s, lv_msg_t *m) {
         case MSG_SPECTRUM_AUTO: {
             const msgs_auto_t *msg = lv_msg_get_payload(m);
 
-            lv_smeter_set_part(smeter, 0, msg->min);
+            lv_xmeter_set_part(smeter, 0, msg->min);
         } break;
 
         case MSG_SMETER: {
             const float *msg = lv_msg_get_payload(m);
 
-            lv_smeter_set_value(smeter, *msg);
+            lv_xmeter_set_value(smeter, *msg);
         }
     }
 }
