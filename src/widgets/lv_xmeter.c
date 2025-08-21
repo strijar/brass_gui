@@ -122,6 +122,9 @@ static void lv_xmeter_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj
     meter->part[0] = 0.0f;
     meter->part[1] = 0.5f;
     meter->part[2] = 0.1f;
+
+    for (uint8_t i = 0; i < LV_SMETER_LABELS; i++)
+        meter->labels[i].text[0] = 0;
 }
 
 static void lv_xmeter_event(const lv_obj_class_t * class_p, lv_event_t * e) {
@@ -189,16 +192,19 @@ static void lv_xmeter_event(const lv_obj_class_t * class_p, lv_event_t * e) {
 
         for (uint8_t i = 0; i < LV_SMETER_LABELS; i++) {
             char    *text = meter->labels[i].text;
-            float   value = meter->labels[i].value;
 
-            lv_txt_get_size(&label_size, text, label_dsc.font, 0, 0, LV_COORD_MAX, 0);
+            if (*text) {
+                float   value = meter->labels[i].value;
 
-            area.x1 = x1 + len * (value - meter->min) / (meter->max - meter->min) - (label_size.x / 2);
-            area.y1 = y1 + h / 2 - label_size.y / 2;
-            area.x2 = area.x1 + label_size.x;
-            area.y2 = area.y2 + label_size.y;
+                lv_txt_get_size(&label_size, text, label_dsc.font, 0, 0, LV_COORD_MAX, 0);
 
-            lv_draw_label(draw_ctx, &label_dsc, &area, text, NULL);
+                area.x1 = x1 + len * (value - meter->min) / (meter->max - meter->min) - (label_size.x / 2);
+                area.y1 = y1 + h / 2 - label_size.y / 2;
+                area.x2 = area.x1 + label_size.x;
+                area.y2 = area.y2 + label_size.y;
+
+                lv_draw_label(draw_ctx, &label_dsc, &area, text, NULL);
+            }
         }
     }
 }

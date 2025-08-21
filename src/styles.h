@@ -14,7 +14,6 @@
 extern lv_color_t   bg_color;
 
 extern lv_style_t   waterfall_style;
-extern lv_style_t   tx_info_style;
 extern lv_style_t   rx_finder_style;
 
 extern lv_style_t   *pannel_style;

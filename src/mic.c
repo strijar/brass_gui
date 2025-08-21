@@ -9,10 +9,13 @@
 #include <stdlib.h>
 #include <liquid/liquid.h>
 #include <math.h>
+#include <pthread.h>
 
 #include "mic.h"
 #include "dsp.h"
 #include "audio.h"
+#include "msgs.h"
+#include "util.h"
 #include "fpga/dac.h"
 #include "dsp/firdes.h"
 #include "dsp/agc.h"
@@ -35,8 +38,16 @@ static float            *filter_taps = NULL;
 static bool             filter_need_update = false;
 static firfilt_rrrf     filter = NULL;
 
+static uint8_t          meter_count = 0;
+static float            meter_sum = 0.0f;
+static float            meter_avr = 0.0f;
+static lv_timer_t       *meter_timer = NULL;
+static pthread_mutex_t  meter_mux;
+
 static bool             mic_equalizer_update = true;
 static biquad_t         mic_equalizer[EQUALIZER_NUM];
+
+static void meter_timer_cb(lv_timer_t *t);
 
 void mic_init() {
     dc_block = firfilt_rrrf_create_dc_blocker(25, 30.0f);
@@ -64,6 +75,9 @@ void mic_init() {
         0.250f,                 /* hang_thresh */
         0.100f                  /* tau_hang_decay */
     );
+
+    pthread_mutex_init(&meter_mux, NULL);
+    meter_timer = lv_timer_create(meter_timer_cb, 1000 / 10, NULL);
 
     mic_update_filter();
 }
@@ -110,6 +124,18 @@ void mic_on_air(bool on) {
     on_air = on;
 }
 
+static void meter_timer_cb(lv_timer_t *t) {
+    pthread_mutex_lock(&meter_mux);
+
+    lpf(&meter_avr, meter_sum / meter_count, 0.2f);
+    lv_msg_send(MSG_MIC_METER, &meter_avr);
+
+    meter_count = 0;
+    meter_sum = 0;
+
+    pthread_mutex_unlock(&meter_mux);
+}
+
 void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
     if (filter_need_update) {
         if (filter) {
@@ -130,6 +156,7 @@ void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
         mic_equalizer_update = false;
     }
 
+    float   peak = 0.0f;
     float   a, b;
     bool    rec_msg = (dialog_msg_voice_get_state() == MSG_VOICE_RECORD);
 
@@ -146,8 +173,17 @@ void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
             b = agc_apply(agc, b);
 
             cbufferf_push(in_buf, b);
+
+            if (fabs(b) > peak) {
+                peak = fabs(b);
+            }
         }
     }
+
+    pthread_mutex_lock(&meter_mux);
+    meter_sum += peak;
+    meter_count++;
+    pthread_mutex_unlock(&meter_mux);
 
     unsigned int n;
     float *buf;

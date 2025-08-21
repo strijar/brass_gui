@@ -52,4 +52,5 @@ typedef enum {
     MSG_AGC_CHANGED,            /* op_mode->agc */
     MSG_ANT_CHANGED,            /* rf->ant */
     MSG_SPLIT_CHANGED,          /* op_work->split */
+    MSG_MIC_METER,              /* float */
 } msgs_t;

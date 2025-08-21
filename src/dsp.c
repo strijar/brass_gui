@@ -419,7 +419,7 @@ float dsp_demodulate(float complex in, radio_mode_t mode) {
 static void meter_timer_cb(lv_timer_t *t) {
     pthread_mutex_lock(&meter_mux);
 
-    if (dialog_msg_voice_get_state() != MSG_VOICE_RECORD) {
+    if (radio_get_state() == RADIO_RX) {
         lpf(&meter_avr_db, meter_sum_db / meter_count, 0.5f);
 
         lv_msg_send(MSG_SMETER, &meter_avr_db);

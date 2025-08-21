@@ -18,7 +18,6 @@
 #include "msg.h"
 #include "msg_tiny.h"
 #include "dsp.h"
-#include "tx_info.h"
 #include "mfk.h"
 #include "vol.h"
 #include "main.h"
@@ -55,8 +54,6 @@ static lv_obj_t     *obj = NULL;
 static bool         freq_lock = false;
 static bool         mode_lock = false;
 static bool         band_lock = false;
-
-static lv_obj_t     *tx_info;
 
 static void freq_shift(int16_t diff);
 static void next_freq_step(bool up);
@@ -797,8 +794,6 @@ lv_obj_t * main_screen() {
 
     buttons_init();
     pannel_init(obj);
-
-    tx_info = tx_info_init(obj);
 
     lv_msg_send(MSG_MODE_CHANGED, &op_work->mode);
     lv_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);

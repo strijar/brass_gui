@@ -9,10 +9,7 @@
 #include "styles.h"
 #include "python/python.h"
 
-#define PATH "A:/usr/share/brass/"
-
 lv_style_t  waterfall_style;
-lv_style_t  tx_info_style;
 lv_style_t  rx_finder_style;
 
 lv_style_t  *pannel_style;
@@ -49,19 +46,6 @@ lv_style_t  *switch_knob_checked_style;
 lv_style_t  *keyboard_style;
 
 lv_color_t  bg_color;
-
-static lv_font_t * load_font(const char *path, lv_coord_t font_size) {
-    lv_ft_info_t    info;
-
-    info.name = path;
-    info.weight = font_size;
-    info.style = FT_FONT_STYLE_NORMAL;
-    info.mem = NULL;
-
-    lv_ft_font_init(&info);
-
-    return info.font;
-}
 
 void styles_init() {
     bg_color = lv_color_hex(0x002550);
@@ -117,14 +101,4 @@ void styles_init() {
     switch_knob_checked_style = python_get_style("switch_knob_checked_style");
 
     keyboard_style = python_get_style("keyboard_style");
-
-    lv_style_init(&tx_info_style);
-    lv_style_set_radius(&tx_info_style, 0);
-    lv_style_set_width(&tx_info_style, 377);
-    lv_style_set_height(&tx_info_style, 123);
-    lv_style_set_x(&tx_info_style, 800 / 2 - (377 / 2));
-    lv_style_set_border_width(&tx_info_style, 0);
-    lv_style_set_bg_img_src(&tx_info_style, PATH "images/top_big.bin");
-    lv_style_set_bg_img_opa(&tx_info_style, LV_OPA_COVER);
-    lv_style_set_bg_opa(&tx_info_style, LV_OPA_0);
 }

@@ -672,17 +672,5 @@ msg_voice_state_t dialog_msg_voice_get_state() {
 }
 
 void dialog_msg_voice_put_audio_samples(float *samples, size_t nsamples) {
-    float peak = 0;
-
-    for (uint16_t i = 0; i < nsamples; i++) {
-        float x = fabs(samples[i]);
-
-        if (x > peak) {
-            peak = x;
-        }
-    }
-
-    peak = S1 + peak * (S9_40 - S1);
-//    meter_update(peak, 0.25f);
     sf_write_float(file, samples, nsamples);
 }

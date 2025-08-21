@@ -166,6 +166,18 @@ static PyObject * obj_clear_flag(obj_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * obj_add_flag(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    lv_obj_flag_t flag;
+
+    if (PyArg_ParseTuple(args, "i", &flag)) {
+        lv_obj_add_flag(self->obj, flag);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject * obj_set_pos(obj_object_t *self, PyObject *args) {
     lv_coord_t x, y;
 
@@ -237,6 +249,7 @@ static PyMethodDef obj_methods[] = {
     { "remove_style_all", (PyCFunction) obj_remove_style_all, METH_NOARGS, "" },
     { "add_style", (PyCFunction) obj_add_style, METH_VARARGS, "" },
     { "clear_flag", (PyCFunction) obj_clear_flag, METH_VARARGS, "" },
+    { "add_flag", (PyCFunction) obj_add_flag, METH_VARARGS, "" },
     { "set_pos", (PyCFunction) obj_set_pos, METH_VARARGS, "" },
     { "set_size", (PyCFunction) obj_set_size, METH_VARARGS, "" },
     { "set_style_line_width", (PyCFunction) obj_set_style_line_width, METH_VARARGS, "" },

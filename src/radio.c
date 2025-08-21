@@ -18,7 +18,6 @@
 #include "dsp.h"
 #include "main_screen.h"
 #include "hkey.h"
-#include "tx_info.h"
 #include "events.h"
 #include "dialog_swrscan.h"
 #include "voice.h"

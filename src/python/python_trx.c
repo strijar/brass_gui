@@ -293,22 +293,23 @@ static PyObject * trx_connect_tx_finder(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-/* S-Meter */
+/* X-Meter */
 
-static void smeter_msg_cb(void *s, lv_msg_t *m) {
-    lv_obj_t *smeter = lv_msg_get_user_data(m);
+static void xmeter_msg_cb(void *s, lv_msg_t *m) {
+    lv_obj_t *xmeter = lv_msg_get_user_data(m);
 
     switch (lv_msg_get_id(m)) {
         case MSG_SPECTRUM_AUTO: {
             const msgs_auto_t *msg = lv_msg_get_payload(m);
 
-            lv_xmeter_set_part(smeter, 0, msg->min);
+            lv_xmeter_set_part(xmeter, 0, msg->min);
         } break;
 
+        case MSG_MIC_METER:
         case MSG_SMETER: {
             const float *msg = lv_msg_get_payload(m);
 
-            lv_xmeter_set_value(smeter, *msg);
+            lv_xmeter_set_value(xmeter, *msg);
         }
     }
 }
@@ -319,10 +320,24 @@ static PyObject * trx_connect_smeter(PyObject *self, PyObject *args) {
     PyObject    *obj = NULL;
 
     if (PyArg_ParseTuple(args, "O", &obj)) {
-        lv_obj_t *smeter = python_lv_get_obj(obj);
+        lv_obj_t *xmeter = python_lv_get_obj(obj);
 
-        lv_msg_subsribe(MSG_SPECTRUM_AUTO, smeter_msg_cb, smeter);
-        lv_msg_subsribe(MSG_SMETER, smeter_msg_cb, smeter);
+        lv_msg_subsribe(MSG_SPECTRUM_AUTO, xmeter_msg_cb, xmeter);
+        lv_msg_subsribe(MSG_SMETER, xmeter_msg_cb, xmeter);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * trx_connect_mic_meter(PyObject *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        lv_obj_t *xmeter = python_lv_get_obj(obj);
+
+        lv_msg_subsribe(MSG_MIC_METER, xmeter_msg_cb, xmeter);
     }
 
     Py_RETURN_NONE;
@@ -355,6 +370,7 @@ static PyMethodDef trx_methods[] = {
     { "connect_tx_finder", (PyCFunction) trx_connect_tx_finder, METH_VARARGS, "" },
     { "connect_button", (PyCFunction) trx_connect_button, METH_VARARGS, "" },
     { "connect_smeter", (PyCFunction) trx_connect_smeter, METH_VARARGS, "" },
+    { "connect_mic_meter", (PyCFunction) trx_connect_mic_meter, METH_VARARGS, "" },
     { NULL }
 };
 
@@ -396,6 +412,7 @@ PyMODINIT_FUNC PyInit_trx() {
     PyModule_AddObjectRef(m, "MSG_AGC_CHANGED",         PyLong_FromLong(MSG_AGC_CHANGED));
     PyModule_AddObjectRef(m, "MSG_ANT_CHANGED",         PyLong_FromLong(MSG_ANT_CHANGED));
     PyModule_AddObjectRef(m, "MSG_SPLIT_CHANGED",       PyLong_FromLong(MSG_SPLIT_CHANGED));
+    PyModule_AddObjectRef(m, "MSG_MIC_METER",           PyLong_FromLong(MSG_MIC_METER));
 
     /* Modes */
 
