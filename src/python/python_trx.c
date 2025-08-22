@@ -413,6 +413,7 @@ PyMODINIT_FUNC PyInit_trx() {
     PyModule_AddObjectRef(m, "MSG_ANT_CHANGED",         PyLong_FromLong(MSG_ANT_CHANGED));
     PyModule_AddObjectRef(m, "MSG_SPLIT_CHANGED",       PyLong_FromLong(MSG_SPLIT_CHANGED));
     PyModule_AddObjectRef(m, "MSG_MIC_METER",           PyLong_FromLong(MSG_MIC_METER));
+    PyModule_AddObjectRef(m, "MSG_MIC",                 PyLong_FromLong(MSG_MIC));
 
     /* Modes */
 

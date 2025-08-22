@@ -53,6 +53,7 @@ static void obj_msg_cb(void *s, lv_msg_t *m) {
             arg = Py_BuildValue("IL", msg, *x);
         } break;
 
+        case MSG_MIC:
         case MSG_RECORDER: {
             const bool *x = lv_msg_get_payload(m);
 

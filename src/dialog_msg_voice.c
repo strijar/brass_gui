@@ -28,6 +28,7 @@
 #include "textarea_window.h"
 #include "msg.h"
 #include "msgs.h"
+#include "mic.h"
 #include "buttons.h"
 #include "dsp.h"
 #include "fpga/dac.h"
@@ -416,34 +417,21 @@ static void construct_cb(lv_obj_t *parent) {
 
     table = lv_table_create(dialog.obj);
 
-    lv_obj_remove_style(table, NULL, LV_STATE_ANY | LV_PART_MAIN);
-
+    lv_obj_remove_style_all(table);
+    lv_obj_add_style(table, dialog_item_focus_style, LV_PART_ITEMS | LV_STATE_EDITED);
     lv_obj_set_size(table, 775, 325);
+    lv_obj_center(table);
 
     lv_table_set_col_cnt(table, 1);
     lv_table_set_col_width(table, 0, 770);
-
-    lv_obj_set_style_border_width(table, 0, LV_PART_ITEMS);
-
-    lv_obj_set_style_bg_opa(table, LV_OPA_TRANSP, LV_PART_ITEMS);
-    lv_obj_set_style_text_color(table, lv_color_white(), LV_PART_ITEMS);
-    lv_obj_set_style_pad_top(table, 5, LV_PART_ITEMS);
-    lv_obj_set_style_pad_bottom(table, 5, LV_PART_ITEMS);
-    lv_obj_set_style_pad_left(table, 0, LV_PART_ITEMS);
-    lv_obj_set_style_pad_right(table, 0, LV_PART_ITEMS);
-
-    lv_obj_set_style_text_color(table, lv_color_black(), LV_PART_ITEMS | LV_STATE_EDITED);
-    lv_obj_set_style_bg_color(table, lv_color_white(), LV_PART_ITEMS | LV_STATE_EDITED);
-    lv_obj_set_style_bg_opa(table, 128, LV_PART_ITEMS | LV_STATE_EDITED);
 
     lv_obj_add_event_cb(table, msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
     lv_msg_subsribe_obj(MSG_PTT, table, NULL);
 
     lv_obj_add_event_cb(table, dialog_key_cb, LV_EVENT_KEY, NULL);
+
     lv_group_add_obj(keyboard_group, table);
     lv_group_set_editing(keyboard_group, true);
-
-    lv_obj_center(table);
 
     /* * */
 
@@ -611,6 +599,7 @@ static void rec_cb(lv_event_t * e) {
     if (state == MSG_VOICE_OFF) {
         if (create_file()) {
             dsp_set_mute(true);
+            mic_enabled(true);
             state = MSG_VOICE_RECORD;
 
             buttons_unload_page();
@@ -625,6 +614,7 @@ static void rec_stop_cb(lv_event_t * e) {
 
     state = MSG_VOICE_OFF;
     dsp_set_mute(false);
+    mic_enabled(false);
     close_file();
     load_table();
 }

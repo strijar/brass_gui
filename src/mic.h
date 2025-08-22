@@ -17,6 +17,7 @@
 void mic_init();
 size_t mic_modulate(float complex *data, size_t max_size, radio_mode_t mode);
 void mic_on_air(bool on);
+void mic_enabled(bool on);
 
 void mic_update_filter();
 void mic_update_equalizer();

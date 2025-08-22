@@ -33,6 +33,7 @@ class Top(lv.obj):
 
 		self.msg_subscribe(trx.MSG_TX, self.msg_tx)
 		self.msg_subscribe(trx.MSG_RX, self.msg_rx)
+		self.msg_subscribe(trx.MSG_MIC, self.msg_mic)
 
 	def msg_tx(self, msg, payload = None):
 		self.smeter.add_flag(LV_OBJ_FLAG_HIDDEN)
@@ -41,3 +42,11 @@ class Top(lv.obj):
 	def msg_rx(self, msg, payload = None):
 		self.mic_meter.add_flag(LV_OBJ_FLAG_HIDDEN)
 		self.smeter.clear_flag(LV_OBJ_FLAG_HIDDEN)
+
+	def msg_mic(self, msg, enabled = None):
+		if enabled:
+			self.smeter.add_flag(LV_OBJ_FLAG_HIDDEN)
+			self.mic_meter.clear_flag(LV_OBJ_FLAG_HIDDEN)
+		else:
+			self.mic_meter.add_flag(LV_OBJ_FLAG_HIDDEN)
+			self.smeter.clear_flag(LV_OBJ_FLAG_HIDDEN)

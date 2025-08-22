@@ -27,6 +27,7 @@
 #define INTER   128
 
 static bool             on_air = false;
+static bool             enabled = false;
 static firfilt_rrrf     dc_block;
 static cbufferf         in_buf;
 static rresamp_rrrf     resamp;
@@ -122,6 +123,11 @@ size_t mic_modulate(float complex *data, size_t max_size, radio_mode_t mode) {
 
 void mic_on_air(bool on) {
     on_air = on;
+}
+
+void mic_enabled(bool on) {
+    enabled = on;
+    lv_msg_send(MSG_MIC, &enabled);
 }
 
 static void meter_timer_cb(lv_timer_t *t) {
