@@ -9,9 +9,6 @@
 #include "styles.h"
 #include "python/python.h"
 
-lv_style_t  waterfall_style;
-lv_style_t  rx_finder_style;
-
 lv_style_t  *pannel_style;
 
 lv_style_t  *msg_style;
@@ -45,30 +42,23 @@ lv_style_t  *switch_knob_checked_style;
 
 lv_style_t  *keyboard_style;
 
+lv_style_t  *ft8_waterfall_style;
+lv_style_t  *ft8_finder_style;
+lv_style_t  *ft8_finder_indicator_style;
+lv_style_t  *ft8_table_style;
+lv_style_t  *ft8_focused_style;
+lv_style_t  *ft8_rx_info_style;
+lv_style_t  *ft8_rx_msg_style;
+lv_style_t  *ft8_rx_cq_style;
+lv_style_t  *ft8_rx_to_me_style;
+lv_style_t  *ft8_tx_msg_style;
+
 lv_color_t  bg_color;
 
 void styles_init() {
     bg_color = lv_color_hex(0x002550);
 
     /* * */
-
-    lv_style_init(&rx_finder_style);
-    lv_style_set_radius(&rx_finder_style, 0);
-    lv_style_set_bg_opa(&rx_finder_style, LV_OPA_0);
-    lv_style_set_width(&rx_finder_style, 800);
-    lv_style_set_height(&rx_finder_style, 100);
-    lv_style_set_x(&rx_finder_style, 0);
-    lv_style_set_y(&rx_finder_style, 0);
-
-    lv_style_init(&waterfall_style);
-    lv_style_set_bg_color(&waterfall_style, lv_color_hex(0x000000));
-    lv_style_set_border_color(&waterfall_style, lv_color_hex(0xAAAAAA));
-    lv_style_set_border_width(&waterfall_style, 0);
-    lv_style_set_radius(&waterfall_style, 0);
-    lv_style_set_width(&waterfall_style, 800);
-    lv_style_set_x(&waterfall_style, 0);
-    lv_style_set_pad_hor(&waterfall_style, 0);
-    lv_style_set_pad_ver(&waterfall_style, 0);
 
     msg_style = python_get_style("msg_style");
     msg_label_normal_style = python_get_style("msg_label_normal_style");
@@ -101,4 +91,15 @@ void styles_init() {
     switch_knob_checked_style = python_get_style("switch_knob_checked_style");
 
     keyboard_style = python_get_style("keyboard_style");
+
+    ft8_waterfall_style = python_get_style("ft8_waterfall_style");
+    ft8_finder_style = python_get_style("ft8_finder_style");
+    ft8_finder_indicator_style = python_get_style("ft8_finder_indicator_style");
+    ft8_table_style = python_get_style("ft8_table_style");
+    ft8_focused_style = python_get_style("ft8_focused_style");
+    ft8_rx_info_style = python_get_style("ft8_rx_info_style");
+    ft8_rx_msg_style = python_get_style("ft8_rx_msg_style");
+    ft8_rx_cq_style = python_get_style("ft8_rx_cq_style");
+    ft8_rx_to_me_style = python_get_style("ft8_rx_to_me_style");
+    ft8_tx_msg_style = python_get_style("ft8_tx_msg_style");
 }

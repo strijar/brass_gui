@@ -60,6 +60,14 @@
 
 #define WIDTH           775
 
+enum {
+    LV_PART_RX_INFO     = LV_PART_CUSTOM_FIRST,
+    LV_PART_RX_MSG      = LV_PART_CUSTOM_FIRST + 0x10000,
+    LV_PART_RX_CQ       = LV_PART_CUSTOM_FIRST + 0x20000,
+    LV_PART_RX_TO_ME    = LV_PART_CUSTOM_FIRST + 0x30000,
+    LV_PART_TX_MSG      = LV_PART_CUSTOM_FIRST + 0x40000
+};
+
 typedef enum {
     NOT_READY = 0,
     IDLE,
@@ -732,6 +740,12 @@ static void add_msg_cb(lv_event_t * e) {
     table_rows++;
 }
 
+static void fill_style(lv_obj_t *obj, lv_obj_draw_part_dsc_t *dsc, lv_style_selector_t part) {
+    dsc->label_dsc->font = lv_obj_get_style_text_font(obj, part);
+    dsc->label_dsc->color = lv_obj_get_style_text_color(obj, part);
+    dsc->label_dsc->align = lv_obj_get_style_text_align(obj, part);
+}
+
 static void table_draw_part_begin_cb(lv_event_t * e) {
     lv_obj_t                *obj = lv_event_get_target(e);
     lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
@@ -742,33 +756,29 @@ static void table_draw_part_begin_cb(lv_event_t * e) {
         ft8_cell_t  *cell = lv_table_get_cell_user_data(obj, row, col);
 
         if (cell == NULL) {
-            dsc->label_dsc->align = LV_TEXT_ALIGN_CENTER;
-            dsc->rect_dsc->bg_color = lv_color_white();
-            dsc->rect_dsc->bg_opa = 128;
-
+            fill_style(obj, dsc, LV_PART_RX_INFO);
             return;
         }
 
         switch (cell->type) {
             case MSG_RX_INFO:
-                dsc->label_dsc->align = LV_TEXT_ALIGN_CENTER;
-                dsc->rect_dsc->bg_color = lv_color_white();
-                dsc->rect_dsc->bg_opa = 128;
+                fill_style(obj, dsc, LV_PART_RX_INFO);
+                break;
+
+            case MSG_RX_MSG:
+                fill_style(obj, dsc, LV_PART_RX_MSG);
                 break;
 
             case MSG_RX_CQ:
-                dsc->rect_dsc->bg_color = lv_color_hex(0x00DD00);
-                dsc->rect_dsc->bg_opa = 128;
+                fill_style(obj, dsc, LV_PART_RX_CQ);
                 break;
 
             case MSG_RX_TO_ME:
-                dsc->rect_dsc->bg_color = lv_color_hex(0xFF0000);
-                dsc->rect_dsc->bg_opa = 128;
+                fill_style(obj, dsc, LV_PART_RX_TO_ME);
                 break;
 
             case MSG_TX_MSG:
-                dsc->rect_dsc->bg_color = lv_color_hex(0x0000DD);
-                dsc->rect_dsc->bg_opa = 128;
+                fill_style(obj, dsc, LV_PART_TX_MSG);
                 break;
         }
     }
@@ -1101,10 +1111,9 @@ static void construct_cb(lv_obj_t *parent) {
 
     waterfall = lv_waterfall_create(dialog.obj);
 
-    lv_obj_add_style(waterfall, &waterfall_style, 0);
+    lv_obj_remove_style_all(waterfall);
+    lv_obj_add_style(waterfall, ft8_waterfall_style, 0);
     lv_obj_clear_flag(waterfall, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_set_size(waterfall, WIDTH, 325);
 
     lv_waterfall_set_palette(waterfall, 5);
     lv_waterfall_set_palette_color(waterfall, 0, 0.00f, lv_color_hex(0x000000));
@@ -1113,36 +1122,39 @@ static void construct_cb(lv_obj_t *parent) {
     lv_waterfall_set_palette_color(waterfall, 3, 0.75f, lv_color_hex(0xFFFF00));
     lv_waterfall_set_palette_color(waterfall, 4, 1.00f, lv_color_hex(0xFFFFFF));
 
-    lv_waterfall_set_data_size(waterfall, WIDTH);
-
-    lv_obj_set_pos(waterfall, 13, 13);
+    lv_obj_update_layout(waterfall);
+    lv_waterfall_set_data_size(waterfall, lv_obj_get_width(waterfall));
 
     /* Freq finder */
 
     finder = lv_finder_create(waterfall);
 
+    lv_obj_remove_style_all(finder);
+    lv_obj_add_style(finder, ft8_finder_style, LV_PART_MAIN);
+    lv_obj_add_style(finder, ft8_finder_indicator_style, LV_PART_INDICATOR);
+
     lv_finder_set_width(finder, 50);
     lv_finder_set_value(finder, settings_ft8->tx_freq);
-
-    lv_obj_set_size(finder, WIDTH, 325);
-    lv_obj_set_pos(finder, 0, 0);
-
-    lv_obj_set_style_radius(finder, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(finder, 0, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(finder, LV_OPA_0, LV_PART_MAIN);
-
-    lv_obj_set_style_bg_color(finder, bg_color, LV_PART_INDICATOR);
-    lv_obj_set_style_bg_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
-
-    lv_obj_set_style_border_width(finder, 1, LV_PART_INDICATOR);
-    lv_obj_set_style_border_color(finder, lv_color_white(), LV_PART_INDICATOR);
-    lv_obj_set_style_border_opa(finder, LV_OPA_50, LV_PART_INDICATOR);
 
     /* Table */
 
     table = lv_table_create(dialog.obj);
 
-    lv_obj_remove_style(table, NULL, LV_STATE_ANY | LV_PART_MAIN);
+    lv_obj_remove_style_all(table);
+    lv_obj_add_style(table, ft8_table_style, LV_PART_MAIN);
+    lv_obj_add_style(table, ft8_focused_style, LV_PART_ITEMS | LV_STATE_FOCUSED);
+
+    lv_obj_add_style(table, ft8_rx_info_style, LV_PART_RX_INFO);
+    lv_obj_add_style(table, ft8_rx_msg_style, LV_PART_RX_MSG);
+    lv_obj_add_style(table, ft8_rx_cq_style, LV_PART_RX_CQ);
+    lv_obj_add_style(table, ft8_rx_to_me_style, LV_PART_RX_TO_ME);
+    lv_obj_add_style(table, ft8_tx_msg_style, LV_PART_TX_MSG);
+
+    lv_obj_update_layout(table);
+
+    lv_table_set_col_cnt(table, 1);
+    lv_table_set_col_width(table, 0, lv_obj_get_width(table));
+
     lv_obj_add_event_cb(table, add_msg_cb, EVENT_FT8_MSG, NULL);
     lv_obj_add_event_cb(table, selected_msg_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(table, tx_call_dis_cb, LV_EVENT_PRESSED, NULL);
@@ -1150,30 +1162,8 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_event_cb(table, table_draw_part_begin_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
     lv_obj_add_event_cb(table, table_draw_part_end_cb, LV_EVENT_DRAW_PART_END, NULL);
 
-    lv_obj_set_size(table, WIDTH, 325 - 55);
-    lv_obj_set_pos(table, 13, 13 + 55);
-
-    lv_table_set_col_cnt(table, 1);
-    lv_table_set_col_width(table, 0, WIDTH - 5);
-
-    lv_obj_set_style_border_width(table, 0, LV_PART_ITEMS);
-
-    lv_obj_set_style_bg_opa(table, 192, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(table, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_border_width(table, 1, LV_PART_MAIN);
-    lv_obj_set_style_border_color(table, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_border_opa(table, 128, LV_PART_MAIN);
-
-    lv_obj_set_style_bg_opa(table, LV_OPA_TRANSP, LV_PART_ITEMS);
-    lv_obj_set_style_text_color(table, lv_color_white(), LV_PART_ITEMS);
-    lv_obj_set_style_pad_top(table, 3, LV_PART_ITEMS);
-    lv_obj_set_style_pad_bottom(table, 3, LV_PART_ITEMS);
-    lv_obj_set_style_pad_left(table, 5, LV_PART_ITEMS);
-    lv_obj_set_style_pad_right(table, 0, LV_PART_ITEMS);
-
-    lv_obj_set_style_text_color(table, lv_color_black(), LV_PART_ITEMS | LV_STATE_EDITED);
-    lv_obj_set_style_bg_color(table, lv_color_white(), LV_PART_ITEMS | LV_STATE_EDITED);
-    lv_obj_set_style_bg_opa(table, 128, LV_PART_ITEMS | LV_STATE_EDITED);
+    lv_group_add_obj(keyboard_group, table);
+    lv_group_set_editing(keyboard_group, true);
 
     lv_table_set_cell_value(table, 0, 0, "Wait sync");
 
@@ -1186,9 +1176,6 @@ static void construct_cb(lv_obj_t *parent) {
     lv_anim_set_ready_cb(&fade, fade_ready);
 
     /* * */
-
-    lv_group_add_obj(keyboard_group, table);
-    lv_group_set_editing(keyboard_group, true);
 
     table_rows = 0;
 

@@ -397,3 +397,42 @@ keyboard_style.set_radius(0)
 keyboard_style.set_pad(column=5, row=5)
 keyboard_style.set_bg(img_src="A:/usr/share/brass/images/pannel.bin", img_opa=LV_OPA_COVER)
 keyboard_style.set_text(font=keyboard_font)
+
+# # # # #
+
+ft8_waterfall_style = lv.style()
+ft8_waterfall_style.set_geom(x=10, y=20, width=780, height=384 - 40)
+
+ft8_finder_style = lv.style()
+ft8_finder_style.set_geom(x=0, y=0, width=780, height=384 - 40)
+
+ft8_finder_indicator_style = lv.style()
+ft8_finder_indicator_style.set_bg(color=0xDF1B73, opa=LV_OPA_70)
+ft8_finder_indicator_style.set_border(width=1, color=0xFFFFFF, opa=LV_OPA_50)
+
+ft8_table_style = lv.style()
+
+ft8_table_style.set_geom(x=10, y=20 + 40, width=780, height=384 - 40 - 40)
+ft8_table_style.set_bg(color=0x141F36, opa=LV_OPA_COVER)
+ft8_table_style.set_border(width=0)
+ft8_table_style.set_radius(0)
+
+#
+
+ft8_focused_style = lv.style()
+ft8_focused_style.set_bg(color=0x000000, opa=LV_OPA_50)
+
+ft8_rx_info_style = lv.style()
+ft8_rx_info_style.set_text(color=0xFFA600, align=LV_TEXT_ALIGN_CENTER)
+
+ft8_rx_msg_style = lv.style()
+ft8_rx_msg_style.set_text(color=0xFFCF85)
+
+ft8_rx_cq_style = lv.style()
+ft8_rx_cq_style.set_text(color=0xFFFFFF)
+
+ft8_rx_to_me_style = lv.style()
+ft8_rx_to_me_style.set_text(color=0xFFC940)
+
+ft8_tx_msg_style = lv.style()
+ft8_tx_msg_style.set_text(color=0x5D769A)

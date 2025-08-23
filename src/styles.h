@@ -13,9 +13,6 @@
 
 extern lv_color_t   bg_color;
 
-extern lv_style_t   waterfall_style;
-extern lv_style_t   rx_finder_style;
-
 extern lv_style_t   *pannel_style;
 
 extern lv_style_t   *msg_style;
@@ -49,5 +46,16 @@ extern lv_style_t   *switch_indicator_checked_style;
 extern lv_style_t   *switch_knob_checked_style;
 
 extern lv_style_t   *keyboard_style;
+
+extern lv_style_t   *ft8_waterfall_style;
+extern lv_style_t   *ft8_finder_style;
+extern lv_style_t   *ft8_finder_indicator_style;
+extern lv_style_t   *ft8_table_style;
+extern lv_style_t   *ft8_focused_style;
+extern lv_style_t   *ft8_rx_info_style;
+extern lv_style_t   *ft8_rx_msg_style;
+extern lv_style_t   *ft8_rx_cq_style;
+extern lv_style_t   *ft8_rx_to_me_style;
+extern lv_style_t   *ft8_tx_msg_style;
 
 void styles_init();
