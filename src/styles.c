@@ -9,6 +9,8 @@
 #include "styles.h"
 #include "python/python.h"
 
+lv_grad_dsc_t *waterfall_grad;
+
 lv_style_t  *pannel_style;
 
 lv_style_t  *msg_style;
@@ -60,6 +62,8 @@ void styles_init() {
 
     /* * */
 
+    waterfall_grad = python_get_grad("waterfall_grad");
+
     msg_style = python_get_style("msg_style");
     msg_label_normal_style = python_get_style("msg_label_normal_style");
     msg_label_select_style = python_get_style("msg_label_select_style");
@@ -102,4 +106,5 @@ void styles_init() {
     ft8_rx_cq_style = python_get_style("ft8_rx_cq_style");
     ft8_rx_to_me_style = python_get_style("ft8_rx_to_me_style");
     ft8_tx_msg_style = python_get_style("ft8_tx_msg_style");
+
 }

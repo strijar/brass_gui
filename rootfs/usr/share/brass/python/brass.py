@@ -27,7 +27,6 @@ class MainScreen(lv.obj):
 #		trx.connect_spectrum3d(self.spectrum3d)
 
 		self.waterfall = MainWaterfall(self)
-		self.waterfall.makePalette()
 		trx.connect_waterfall(self.waterfall)
 
 		self.top = Top(self)

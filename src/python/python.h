@@ -16,3 +16,4 @@ PyObject * python_call(const char *func_name);
 
 lv_obj_t * python_main_screen_get();
 lv_style_t * python_get_style(const char *style_name);
+lv_grad_dsc_t * python_get_grad(const char *grad_name);

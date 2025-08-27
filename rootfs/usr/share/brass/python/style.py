@@ -80,6 +80,18 @@ waterfall_style = lv.style()
 waterfall_style.set_bg(color=0x000000, opa=LV_OPA_COVER)
 waterfall_style.set_radius(0)
 
+#
+
+waterfall_grad = lv.grad()
+
+waterfall_grad.set_dir(LV_GRAD_DIR_HOR)
+waterfall_grad.set_stops_count(5)
+waterfall_grad.set_stop(0, 0,   0x040A1B)
+waterfall_grad.set_stop(1, 64,  0x040AFF)
+waterfall_grad.set_stop(2, 128, 0xFF0A1B)
+waterfall_grad.set_stop(3, 192, 0xFFFF1B)
+waterfall_grad.set_stop(4, 255, 0xFFFFFF)
+
 # # #
 
 bandinfo_style = lv.style()

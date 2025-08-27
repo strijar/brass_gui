@@ -13,6 +13,8 @@
 
 extern lv_color_t   bg_color;
 
+extern lv_grad_dsc_t *waterfall_grad;
+
 extern lv_style_t   *pannel_style;
 
 extern lv_style_t   *msg_style;

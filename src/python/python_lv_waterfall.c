@@ -8,6 +8,7 @@
 
 #include "python_lv_waterfall.h"
 #include "python_lv_object.h"
+#include "python_lv_grad.h"
 #include "src/widgets/lv_waterfall.h"
 
 static int waterfall_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
@@ -37,32 +38,6 @@ static PyObject * waterfall_set_data_size(obj_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-static PyObject * waterfall_set_palette(obj_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    int stops;
-
-    if (PyArg_ParseTuple(args, "i", &stops)) {
-        lv_waterfall_set_palette(self->obj, stops);
-    }
-
-    Py_RETURN_NONE;
-}
-
-static PyObject * waterfall_set_palette_color(obj_object_t *self, PyObject *args) {
-    LV_LOG_INFO("begin");
-
-    uint8_t     index;
-    float       frac;
-    lv_color_t  color;
-
-    if (PyArg_ParseTuple(args, "bfI", &index, &frac, &color)) {
-        lv_waterfall_set_palette_color(self->obj, index, frac, color);
-    }
-
-    Py_RETURN_NONE;
-}
-
 static PyObject * waterfall_clear_data(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
@@ -71,10 +46,21 @@ static PyObject * waterfall_clear_data(obj_object_t *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * waterfall_set_grad(obj_object_t *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    PyObject *grad = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &grad)) {
+        lv_waterfall_set_grad(self->obj, python_lv_get_grad(grad));
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef waterfall_methods[] = {
     { "set_data_size", (PyCFunction) waterfall_set_data_size, METH_VARARGS, "" },
-    { "set_palette", (PyCFunction) waterfall_set_palette, METH_VARARGS, "" },
-    { "set_palette_color", (PyCFunction) waterfall_set_palette_color, METH_VARARGS, "" },
+    { "set_grad", (PyCFunction) waterfall_set_grad, METH_VARARGS, "" },
     { "clear_data", (PyCFunction) waterfall_clear_data, METH_NOARGS, "" },
     { NULL }
 };

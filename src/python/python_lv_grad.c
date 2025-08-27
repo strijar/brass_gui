@@ -79,3 +79,13 @@ PyTypeObject grad_type = {
     .tp_members = NULL,
     .tp_methods = grad_methods,
 };
+
+lv_grad_dsc_t * python_lv_get_grad(PyObject *obj) {
+    if (PyObject_TypeCheck(obj, &grad_type)) {
+        grad_object_t *self = (grad_object_t *) obj;
+
+        return &self->grad;
+    }
+
+    return NULL;
+}

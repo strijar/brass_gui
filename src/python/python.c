@@ -9,6 +9,8 @@
 #include "python.h"
 #include "python_lv.h"
 #include "python_lv_object.h"
+#include "python_lv_style.h"
+#include "python_lv_grad.h"
 #include "python_trx.h"
 
 static PyObject *module;
@@ -87,6 +89,25 @@ lv_style_t * python_get_style(const char *style_name) {
     }
 
     Py_XDECREF(style);
+
+    return value;
+}
+
+lv_grad_dsc_t * python_get_grad(const char *grad_name) {
+    if (module == NULL) {
+        return NULL;
+    }
+
+    PyObject *grad = PyObject_GetAttrString(module, grad_name);
+    lv_grad_dsc_t *value = NULL;
+
+    if (grad) {
+        value = python_lv_get_grad(grad);
+    } else {
+        LV_LOG_ERROR("Gradient %s not found", grad_name);
+    }
+
+    Py_XDECREF(grad);
 
     return value;
 }

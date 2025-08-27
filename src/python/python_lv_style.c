@@ -49,14 +49,7 @@ static PyObject * style_set_bg(style_object_t *self, PyObject *args, PyObject *k
     if (grad_dir != -1)     lv_style_set_bg_grad_dir(&self->style, (lv_grad_dir_t) grad_dir);
     if (main_stop != -1)    lv_style_set_bg_main_stop(&self->style, main_stop);
     if (grad_stop != -1)    lv_style_set_bg_grad_stop(&self->style, grad_stop);
-
-    if (grad != NULL && PyObject_TypeCheck(grad, &grad_type)) {
-        Py_INCREF(grad);
-
-        grad_object_t *grad_obj = (grad_object_t *) grad;
-
-        lv_style_set_bg_grad(&self->style, &grad_obj->grad);
-    }
+    if (grad != NULL)       lv_style_set_bg_grad(&self->style, python_lv_get_grad(grad));
 
     Py_RETURN_NONE;
 }

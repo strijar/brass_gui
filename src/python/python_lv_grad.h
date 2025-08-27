@@ -18,3 +18,5 @@ typedef struct {
 } grad_object_t;
 
 extern PyTypeObject grad_type;
+
+lv_grad_dsc_t * python_lv_get_grad(PyObject *obj);
