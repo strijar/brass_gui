@@ -3,7 +3,7 @@
  *
  *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2024 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
 #include "memory.h"
