@@ -22,12 +22,12 @@ class MainScreen(lv.obj):
 		self.spectrum = MainSpectrum(self)
 		trx.connect_spectrum(self.spectrum)
 
-#		self.spectrum3d = MainSpectrum3D(self)
-#		self.spectrum3d.makePalette()
-#		trx.connect_spectrum3d(self.spectrum3d)
-
-		self.waterfall = MainWaterfall(self)
-		trx.connect_waterfall(self.waterfall)
+		if True:
+			self.waterfall = MainWaterfall(self)
+			trx.connect_waterfall(self.waterfall)
+		else:
+			self.spectrum3d = MainSpectrum3D(self)
+			trx.connect_spectrum3d(self.spectrum3d)
 
 		self.top = Top(self)
 		self.freqs = MainFreqs(self)

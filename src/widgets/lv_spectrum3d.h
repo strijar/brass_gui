@@ -30,8 +30,7 @@ typedef struct {
     uint8_t             *line_buf;
     lv_coord_t          *top_buf;
 
-    lv_grad_dsc_t       grad;
-    lv_color_t          *palette;
+    lv_color_t          palette[256];
 
     int16_t             min;
     int16_t             max;
@@ -52,8 +51,7 @@ lv_obj_t * lv_spectrum3d_create(lv_obj_t * parent);
  * Setter functions
  *====================*/
 
-void lv_spectrum3d_set_palette(lv_obj_t * obj, uint16_t stops_count);
-void lv_spectrum3d_set_palette_color(lv_obj_t * obj, uint16_t index, float frac, lv_color_t color);
+void lv_spectrum3d_set_grad(lv_obj_t * obj, lv_grad_dsc_t * grad);
 
 void lv_spectrum3d_set_data_size(lv_obj_t * obj, uint16_t size, uint16_t depth);
 void lv_spectrum3d_set_max(lv_obj_t * obj, int16_t db);

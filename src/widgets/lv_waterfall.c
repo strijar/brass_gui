@@ -55,8 +55,6 @@ void lv_waterfall_set_grad(lv_obj_t * obj, lv_grad_dsc_t * grad) {
 
     lv_waterfall_t * waterfall = (lv_waterfall_t *)obj;
 
-    waterfall->palette = lv_mem_realloc(waterfall->palette, 256 * sizeof(waterfall->palette[0]));
-
     for (int i = 0; i < 256; i++) {
         waterfall->palette[i] = lv_gradient_calculate(grad, 256, i);
     }
@@ -219,7 +217,6 @@ static void lv_waterfall_constructor(const lv_obj_class_t * class_p, lv_obj_t * 
     lv_waterfall_t * waterfall = (lv_waterfall_t *)obj;
 
     waterfall->img = NULL;
-    waterfall->palette = NULL;
     waterfall->line_len = 0;
     waterfall->line_buf = NULL;
     waterfall->min = -40;

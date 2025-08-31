@@ -30,7 +30,7 @@ typedef struct {
     uint32_t        line_len;
     uint8_t         *line_buf;
 
-    lv_color_t      *palette;
+    lv_color_t      palette[256];
 
     int16_t         min;
     int16_t         max;

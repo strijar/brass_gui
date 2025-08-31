@@ -52,30 +52,13 @@ lv_obj_t * lv_spectrum3d_create(lv_obj_t * parent) {
  * Setter functions
  *====================*/
 
-void lv_spectrum3d_set_palette(lv_obj_t * obj, uint16_t stops_count) {
+void lv_spectrum3d_set_grad(lv_obj_t * obj, lv_grad_dsc_t * grad) {
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_spectrum3d_t * spectrum3d = (lv_spectrum3d_t *)obj;
 
-    spectrum3d->palette = lv_mem_realloc(spectrum3d->palette, 256 * sizeof(spectrum3d->palette[0]));
-    spectrum3d->grad.dir = LV_GRAD_DIR_HOR;
-    spectrum3d->grad.stops_count = stops_count;
-}
-
-void lv_spectrum3d_set_palette_color(lv_obj_t * obj, uint16_t index, float frac, lv_color_t color) {
-    LV_ASSERT_OBJ(obj, MY_CLASS);
-
-    lv_spectrum3d_t * spectrum3d = (lv_spectrum3d_t *)obj;
-
-    if (index < spectrum3d->grad.stops_count && frac >= 0.0f && frac <= 1.0f) {
-        spectrum3d->grad.stops[index].frac = frac * 255;
-        spectrum3d->grad.stops[index].color = color;
-
-        if (index == spectrum3d->grad.stops_count - 1) {
-            for (int i = 0; i < 256; i++) {
-                spectrum3d->palette[i] = lv_gradient_calculate(&spectrum3d->grad, 256, i);
-            }
-        }
+    for (int i = 0; i < 256; i++) {
+        spectrum3d->palette[i] = lv_gradient_calculate(grad, 256, i);
     }
 }
 
@@ -241,8 +224,6 @@ static void lv_spectrum3d_constructor(const lv_obj_class_t * class_p, lv_obj_t *
     spectrum3d->max = 0;
     spectrum3d->span = 100000;
     spectrum3d->scroll_surplus = 0;
-
-    spectrum3d->palette = NULL;
 
     LV_TRACE_OBJ_CREATE("finished");
 }
