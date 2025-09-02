@@ -156,7 +156,7 @@ static void finder_invalidate(lv_obj_t * obj) {
     lv_coord_t      h = lv_obj_get_height(obj);
     uint16_t        border = lv_obj_get_style_border_width(obj, LV_PART_INDICATOR);
 
-    uint64_t        size_hz = finder->range_max - finder->range_min;
+    int32_t         size_hz = finder->range_max - finder->range_min;
     int64_t         f = finder->value - finder->range_min;
     int64_t         f1 = w * (f + finder->offset_min) / size_hz;
     int64_t         f2 = w * (f + finder->offset_max) / size_hz;
@@ -225,7 +225,7 @@ static void lv_finder_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         lv_coord_t      h = lv_obj_get_height(obj);
         uint16_t        border = lv_obj_get_style_border_width(obj, LV_PART_INDICATOR);
 
-        uint64_t        size_hz = finder->range_max - finder->range_min;
+        int32_t         size_hz = finder->range_max - finder->range_min;
         int64_t         f = finder->value - finder->range_min;
         int64_t         f1 = w * (f + finder->offset_min) / size_hz;
         int64_t         f2 = w * (f + finder->offset_max) / size_hz;
