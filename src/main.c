@@ -44,6 +44,7 @@
 #include "settings/modes.h"
 #include "settings/options.h"
 #include "settings/rf.h"
+#include "settings/hw.h"
 #include "olivia/olivia.h"
 #include "bands/bands.h"
 
@@ -80,6 +81,7 @@ int main(void) {
 
     settings_modes_load();
     settings_bands_load();
+    settings_hw_load();
     settings_options_load();
     settings_rf_load();
 

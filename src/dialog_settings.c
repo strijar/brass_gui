@@ -27,6 +27,7 @@
 #include "fpga/control.h"
 #include "settings/options.h"
 #include "settings/rf.h"
+#include "settings/hw.h"
 
 static time_t       now;
 struct tm           ts;
@@ -339,7 +340,19 @@ static void make_long_action() {
     }
 }
 
-/* HMic actions */
+/* HMic */
+
+static void hmic_update_cb(lv_event_t * e) {
+    lv_obj_t    *obj = lv_event_get_target(e);
+    char        *val = hw->hmic[lv_dropdown_get_selected(obj)].label;
+
+    if (options->hkeys.hmic) {
+        free(options->hkeys.hmic);
+    }
+
+    options->hkeys.hmic = strdup(val);
+    hkey_mic_update();
+}
 
 static action_items_t hmic_action_items[] = {
     { .label = " None ", .action = ACTION_NONE },
@@ -368,8 +381,28 @@ static void hmic_action_update_cb(lv_event_t * e) {
     }
 }
 
-static void make_hmic_action() {
+static void make_hmic() {
     lv_obj_t    *obj;
+
+    dialog_label(&dialog, false, "HMic");
+
+    obj = dialog_dropdown(&dialog, 6);
+    lv_dropdown_clear_options(obj);
+
+    for (uint16_t i = 0; i < hw->hmic_count; i++) {
+        hmic_item_t *item = &hw->hmic[i];
+
+        lv_dropdown_add_option(obj, item->label, LV_DROPDOWN_POS_LAST);
+
+        if (strcmp(item->label, options->hkeys.hmic) == 0) {
+            lv_dropdown_set_selected(obj, i);
+        }
+    }
+
+    lv_obj_add_event_cb(obj, hmic_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    /* * */
+
     char        *labels[] = { "P1", "P2", "P3", "P4", "A", "B", "C", "D" };
 
     dialog_title(&dialog, "HMic press actions");
@@ -638,6 +671,6 @@ static void construct_cb(lv_obj_t *parent) {
     make_mag();
     make_clock();
     make_long_action();
-    make_hmic_action();
+    make_hmic();
     make_voice();
 }

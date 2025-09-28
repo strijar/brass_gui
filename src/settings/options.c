@@ -10,6 +10,7 @@
 #include "lvgl/lvgl.h"
 #include "options.h"
 #include "src/qth.h"
+#include "src/hkey.h"
 #include "src/dsp.h"
 #include "src/vol.h"
 #include "src/mfk.h"
@@ -167,17 +168,12 @@ const cyaml_schema_field_t msg_fields_schema[] = {
     CYAML_FIELD_END
 };
 
-static const cyaml_schema_value_t uint_entry = {
-    CYAML_VALUE_UINT(CYAML_FLAG_DEFAULT, uint16_t),
-};
-
 static const cyaml_schema_value_t action_entry = {
     CYAML_VALUE_ENUM(CYAML_FLAG_DEFAULT, options_action_t, action_strings, CYAML_ARRAY_LEN(action_strings)),
 };
 
 const cyaml_schema_field_t hkeys_fields_schema[] = {
-    CYAML_FIELD_SEQUENCE_FIXED("x",             CYAML_FLAG_DEFAULT,  options_hkeys_t, x, &uint_entry, 7),
-    CYAML_FIELD_SEQUENCE_FIXED("y",             CYAML_FLAG_DEFAULT,  options_hkeys_t, y, &uint_entry, 5),
+    CYAML_FIELD_STRING_PTR("hmic",              CYAML_FLAG_POINTER,  options_hkeys_t, hmic, 0, CYAML_UNLIMITED),
     CYAML_FIELD_SEQUENCE_FIXED("press_p",       CYAML_FLAG_OPTIONAL, options_hkeys_t, press_p, &action_entry, 4),
     CYAML_FIELD_SEQUENCE_FIXED("press_char",    CYAML_FLAG_OPTIONAL, options_hkeys_t, press_char, &action_entry, 4),
     CYAML_FIELD_END
@@ -253,6 +249,7 @@ void settings_options_load() {
     }
 
     qth_update(options->op.qth);
+    hkey_mic_update();
 }
 
 void settings_options_save() {

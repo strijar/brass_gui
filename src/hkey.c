@@ -10,6 +10,7 @@
 
 #include "lvgl/lvgl.h"
 #include "settings/options.h"
+#include "settings/hw.h"
 #include "events.h"
 #include "hkey.h"
 #include "util.h"
@@ -23,6 +24,7 @@ static int16_t      hist_y[3] = {-1, -1, -1};
 static hkey_state_t state = HKEY_RELEASE;
 static uint64_t     press_time;
 static hkey_t       key = HKEY_NONE;
+static hmic_item_t  *hmic = NULL;
 
 static const hkey_t matrix[7][5] = {
     { HKEY_NONE, HKEY_1,    HKEY_2,    HKEY_3,      HKEY_A    },
@@ -79,15 +81,19 @@ void hkey_put(uint16_t x, uint16_t y) {
     int16_t xi = -1;
     int16_t yi = -1;
 
+    if (hmic == NULL) {
+        return;
+    }
+
     for (int i = 0; i < 7; i++) {
-        if (x < options->hkeys.x[i]) {
+        if (x < hmic->x[i]) {
             xi = i;
             break;
         }
     }
 
     for (int i = 0; i < 5; i++) {
-        if (y < options->hkeys.y[i]) {
+        if (y < hmic->y[i]) {
             yi = i;
             break;
         }
@@ -145,4 +151,17 @@ void hkey_put(uint16_t x, uint16_t y) {
                 break;
         }
     }
+}
+
+void hkey_mic_update() {
+     for (uint16_t i = 0; i < hw->hmic_count; i++) {
+        hmic_item_t *item = &hw->hmic[i];
+
+        if (strcmp(item->label, options->hkeys.hmic) == 0) {
+            hmic = item;
+            return;
+        }
+     }
+
+     hmic = NULL;
 }

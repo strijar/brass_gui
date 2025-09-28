@@ -30,7 +30,7 @@ static void * iio_thread(void *arg) {
         iio_channel_attr_read_longlong(pwr_fwd, "raw", &fwd);
 
         hkey_put(x, y);
-        usleep(1000);
+        usleep(200);
     }
 }
 

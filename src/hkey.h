@@ -10,3 +10,4 @@
 #include <stdint.h>
 
 void hkey_put(uint16_t x, uint16_t y);
+void hkey_mic_update();
