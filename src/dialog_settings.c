@@ -24,9 +24,8 @@
 #include "keyboard.h"
 #include "voice.h"
 #include "dsp.h"
-#include "fpga/control.h"
+#include "hkey.h"
 #include "settings/options.h"
-#include "settings/rf.h"
 #include "settings/hw.h"
 
 static time_t       now;
@@ -488,32 +487,6 @@ static void make_freq_accel() {
     obj = dropdown_uint8(dialog.grid, 6, &options->freq.accel, " None \n Lite \n Strong");
 }
 
-/* TXO freq */
-
-static void txo_freq_update_cb(lv_event_t * e) {
-    lv_obj_t        *obj = lv_event_get_target(e);
-
-    rf->txo_offset = lv_spinbox_get_value(obj);
-    control_update();
-}
-
-static void make_txo_freq() {
-    lv_obj_t    *obj;
-
-    dialog_label(&dialog, false, "TXO offset");
-
-    obj = lv_spinbox_create(dialog.grid);
-
-    dialog_item(&dialog, obj, 6);
-
-    lv_spinbox_set_value(obj, rf->txo_offset);
-    lv_spinbox_set_range(obj, -10000, 10000);
-    lv_obj_add_event_cb(obj, txo_freq_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    lv_spinbox_set_digit_format(obj, 6, 0);
-    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-}
-
 /* Backlight */
 
 static void backlight_timeout_update_cb(lv_event_t * e) {
@@ -666,7 +639,6 @@ static void construct_cb(lv_obj_t *parent) {
     make_date();
     make_time();
     make_freq_accel();
-    make_txo_freq();
     make_backlight();
     make_mag();
     make_clock();

@@ -18,6 +18,7 @@
 #include "dsp.h"
 #include "settings/rf.h"
 #include "hw/pa_bias.h"
+#include "fpga/control.h"
 
 static void construct_cb(lv_obj_t *parent);
 static void destruct_cb();
@@ -148,6 +149,32 @@ static void make_tx_band() {
     }
 }
 
+/* TXO freq */
+
+static void txo_freq_update_cb(lv_event_t * e) {
+    lv_obj_t        *obj = lv_event_get_target(e);
+
+    rf->txo_offset = lv_spinbox_get_value(obj);
+    control_update();
+}
+
+static void make_txo_freq() {
+    lv_obj_t    *obj;
+
+    dialog_label(&dialog, false, "TXO offset");
+
+    obj = lv_spinbox_create(dialog.grid);
+
+    dialog_item(&dialog, obj, 6);
+
+    lv_spinbox_set_value(obj, rf->txo_offset);
+    lv_spinbox_set_range(obj, -10000, 10000);
+    lv_obj_add_event_cb(obj, txo_freq_update_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_spinbox_set_digit_format(obj, 6, 0);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+}
+
 /* * */
 
 static void construct_cb(lv_obj_t *parent) {
@@ -155,5 +182,6 @@ static void construct_cb(lv_obj_t *parent) {
 
     make_mode();
     make_pa_bias();
+    make_txo_freq();
     make_tx_band();
 }
