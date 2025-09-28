@@ -58,6 +58,13 @@ static void keypad_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
 
                 case BTN_SOUTH:
                     mfk->pressed = (in.value != 0);
+
+                    if (in.value) {
+                        int32_t *c = malloc(sizeof(int32_t));
+                        *c = LV_KEY_END;
+
+                        lv_event_send(lv_group_get_focused(keyboard_group), LV_EVENT_KEY, c);
+                    }
                     return;
 
                 /* Front side */

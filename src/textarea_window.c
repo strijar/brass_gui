@@ -44,6 +44,7 @@ static void text_cb(lv_event_t * e) {
     switch (key) {
         case HKEY_FINP:
         case LV_KEY_ENTER:
+        case LV_KEY_END:
             ok();
             break;
 
