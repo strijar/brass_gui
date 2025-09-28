@@ -93,6 +93,7 @@ void vol_update(int16_t diff, bool voice) {
 
         case VOL_FREQ_MODE:
             i = limit(options->freq.mode + diff, FREQ_MODE_JOIN, FREQ_MODE_FFT_ONLY);
+            options->freq.mode = i;
 
             switch (i) {
                 case FREQ_MODE_JOIN:
