@@ -24,9 +24,13 @@ static struct gpiod_line    *line_tx = NULL;
 
 #define BPF_NUM     8
 #define LPF_NUM     7
+#define ATU_L_NUM   7
+#define ATU_C_NUM   7
 
 static struct gpiod_line    *bpf[BPF_NUM];
 static struct gpiod_line    *lpf[LPF_NUM];
+static struct gpiod_line    *atu_l[ATU_L_NUM];
+static struct gpiod_line    *atu_c[ATU_C_NUM];
 
 static struct gpiod_line    *adf_clk = NULL;
 static struct gpiod_line    *adf_data = NULL;
@@ -41,6 +45,9 @@ static struct gpiod_line    *k41 = NULL;        /* XVRT_VHF/UHF_RX_TX   */
 static struct gpiod_line    *k23 = NULL;        /* RELAY_HF_RX_TX       */
 static struct gpiod_line    *k22 = NULL;        /* RELAY_HF_VHF/UHF     */
 static struct gpiod_line    *k40 = NULL;        /* SEL_VHF/UHF          */
+static struct gpiod_line    *k42 = NULL;        /* TX_430_TX            */
+static struct gpiod_line    *rx_144 = NULL;     /* RX_144_RX            */
+static struct gpiod_line    *rx_430 = NULL;     /* RX_430_RX            */
 
 static struct gpiod_line    *hf_tx = NULL;
 
@@ -119,6 +126,9 @@ static void rf_3_init() {
         k23 = init_line(chip, "k23");
         k22 = init_line(chip, "k22");
         k40 = init_line(chip, "k40");
+        k42 = init_line(chip, "k42");
+        rx_144 = init_line(chip, "rx_144");
+        rx_430 = init_line(chip, "rx_430");
     } else {
         LV_LOG_ERROR("Unable to open gpio chip 3");
     }
@@ -138,9 +148,35 @@ static void rf_4_init() {
         for (uint8_t i = 0; i < LPF_NUM; i++)
             lpf[i] = init_line(chip, lpf_gpio[i]);
 
+        const char* atu_l_gpio[ATU_L_NUM] = {
+            "l_01", "l_02", "l_03",
+            "l_04", "l_05", "l_06", "l_07"
+        };
+
+        for (uint8_t i = 0; i < ATU_L_NUM; i++)
+            atu_l[i] = init_line(chip, atu_l_gpio[i]);
+
         hf_tx = init_line(chip, "hf_tx");
     } else {
         LV_LOG_ERROR("Unable to open gpio chip 4");
+    }
+}
+
+static void rf_5_init() {
+    struct gpiod_chip    *chip = NULL;
+
+    chip = gpiod_chip_open_by_number(5);
+
+    if (chip) {
+        const char* atu_c_gpio[ATU_C_NUM] = {
+            "c_01", "c_02", "c_03",
+            "c_04", "c_05", "c_06", "c_07"
+        };
+
+        for (uint8_t i = 0; i < ATU_L_NUM; i++)
+            atu_c[i] = init_line(chip, atu_c_gpio[i]);
+    } else {
+        LV_LOG_ERROR("Unable to open gpio chip 5");
     }
 }
 
@@ -149,6 +185,7 @@ void gpio_init() {
     rf_2_init();
     rf_3_init();
     rf_4_init();
+    rf_5_init();
 
     set_value(adf_le, 0); usleep(100);
     set_value(adf_le, 1); usleep(100);
@@ -168,9 +205,15 @@ void gpio_set_tx(bool on) {
             break;
 
         case RF_ROUTE_VHF:
+            set_value(k34, on ? 1 : 0);
+            set_value(k41, on ? 1 : 0);
+            set_value(rx_144, on ? 0 : 1);
             break;
 
         case RF_ROUTE_UHF:
+            set_value(k34, on ? 1 : 0);
+            set_value(k42, on ? 1 : 0);
+            set_value(rx_430, on ? 0 : 1);
             break;
     }
 
@@ -190,6 +233,7 @@ void gpio_set_rf_route(rf_route_t route) {
             break;
 
         case RF_ROUTE_VHF:
+            set_value(k32_k33, 0);
             set_value(k37, 0);
             set_value(k23, 1);
             set_value(k38, 0);
@@ -197,6 +241,7 @@ void gpio_set_rf_route(rf_route_t route) {
             break;
 
         case RF_ROUTE_UHF:
+            set_value(k32_k33, 1);
             set_value(k37, 0);
             set_value(k23, 1);
             set_value(k38, 1);
