@@ -23,7 +23,6 @@ bands:
 
 - settings: {label: 20m SSB, start: 14070000, stop: 14350000, tx: true, jump: true}
   work: {rx: 14100000, tx: 14100000, fft: 14100000, mode: usb, split: None}
-  work: {mode: usb, split: None}
 
 - settings: {label: 17m, start: 18068000, stop: 18168000, tx: true, jump: true}
   work: {mode: usb, split: None}
