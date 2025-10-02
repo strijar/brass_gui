@@ -21,6 +21,7 @@ typedef struct {
 typedef struct {
     hmic_item_t         *hmic;
     uint16_t            hmic_count;
+    uint32_t            tcxo_freq;
 } hw_t;
 
 extern hw_t   *hw;

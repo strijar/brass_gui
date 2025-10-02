@@ -10,6 +10,7 @@
 #include "lvgl/lvgl.h"
 #include "xvrt.h"
 #include "gpio.h"
+#include "src/settings/hw.h"
 
 #define REG0_FRACT(x)                   (((x) & 0xFFF) << 3)
 #define REG0_INT(x)                     (((x) & 0xFFFF) << 15)
@@ -66,13 +67,15 @@
 #define REG5_LD_PIN_MODE_HIGH           (3 << 22)
 #define REG5_RESERVED                   (3 << 19)
 
+#define REG2_VAL                        (REG2_MUXOUT(MUXOUT_DIGITAL_LOCK_DETECT) | REG2_CHARGE_PUMP_CURR_uA(2500) | REG2_PD_POLARITY_POS | 2)
+
 static uint32_t prev_freq = 0;
 static bool     first = true;
 
 static uint32_t regs[6] = {
     0x0,
     (REG1_PHASE(1) | REG1_MOD(2) | 1),
-    (REG2_MUXOUT(MUXOUT_DIGITAL_LOCK_DETECT) | REG2_10BIT_R_CNT(104) | REG2_CHARGE_PUMP_CURR_uA(2500) | REG2_PD_POLARITY_POS | 2),
+    0x0,
     (REG3_12BIT_CLKDIV(150) | 3),
     0x0,
     (REG5_LD_PIN_MODE_DIGITAL | REG5_RESERVED | 5)
@@ -120,4 +123,16 @@ bool xvrt_update(const uint32_t freq) {
     }
 
     return false;
+}
+
+void xvrt_load_tcxo_freq() {
+    if (hw->tcxo_freq < 10000000 || hw->tcxo_freq > 13000000) {
+        LV_LOG_ERROR("Invalid TCXO freq %i", hw->tcxo_freq);
+        return;
+    }
+
+    uint16_t cnt = hw->tcxo_freq / 125000;
+
+    regs[2] = REG2_VAL | REG2_10BIT_R_CNT(cnt);
+    first = true;
 }

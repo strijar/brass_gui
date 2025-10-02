@@ -8,6 +8,7 @@
 
 #include "lvgl/lvgl.h"
 #include "hw.h"
+#include "src/hw/xvrt.h"
 
 static const char  filename[] = "/mnt/settings/hw.yaml";
 
@@ -31,6 +32,7 @@ const cyaml_schema_value_t hmic_schema = {
 
 const cyaml_schema_field_t hw_fields_schema[] = {
     CYAML_FIELD_SEQUENCE("hmic",        CYAML_FLAG_POINTER,  hw_t, hmic, &hmic_schema, 0, CYAML_UNLIMITED),
+    CYAML_FIELD_UINT("tcxo_freq",       CYAML_FLAG_DEFAULT,  hw_t, tcxo_freq),
     CYAML_FIELD_END
 };
 
@@ -53,6 +55,8 @@ void settings_hw_load() {
         LV_LOG_ERROR("%s", cyaml_strerror(err));
         return;
     }
+
+    xvrt_load_tcxo_freq();
 }
 
 void settings_hw_save() {

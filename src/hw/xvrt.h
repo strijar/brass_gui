@@ -12,3 +12,4 @@
 #include <stdint.h>
 
 bool xvrt_update(const uint32_t freq);
+void xvrt_load_tcxo_freq();
