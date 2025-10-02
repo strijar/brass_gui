@@ -141,6 +141,12 @@ int32_t lv_waterfall_scroll_data(lv_obj_t * obj, int32_t df) {
 
     if (px) {
         lv_img_dsc_t    *dsc = waterfall->dsc;
+
+        if (abs(px) > dsc->header.w) {
+            lv_waterfall_clear_data(obj);
+            return 0;
+        }
+
         uint8_t         *ptr = dsc->data;
         uint32_t        line_len = waterfall->line_len;
         uint8_t         *line_buf = waterfall->line_buf;
