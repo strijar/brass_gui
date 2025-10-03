@@ -548,8 +548,9 @@ static void freq_shift(int16_t diff) {
 
     switch (options->freq.mode) {
         case FREQ_MODE_JOIN:
+            radio_set_freq_fft(freq_fft);
             radio_set_freqs(freq_rx, freq_tx);
-            freq_shift = freq_rx - prev_freq_rx;
+            freq_shift = freq_fft - prev_freq_fft;
             lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             voice_say_freq(freq_rx);
             break;
