@@ -238,6 +238,8 @@ void gpio_set_rf_route(rf_route_t route) {
             set_value(k23, 1);
             set_value(k38, 0);
             set_value(k40, 0);
+            set_value(rx_144, 1);
+            set_value(rx_430, 0);
             break;
 
         case RF_ROUTE_UHF:
@@ -246,6 +248,8 @@ void gpio_set_rf_route(rf_route_t route) {
             set_value(k23, 1);
             set_value(k38, 1);
             set_value(k40, 1);
+            set_value(rx_144, 0);
+            set_value(rx_430, 1);
             break;
     }
 
