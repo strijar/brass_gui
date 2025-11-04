@@ -206,12 +206,14 @@ void gpio_set_tx(bool on) {
 
         case RF_ROUTE_VHF:
             set_value(k34, on ? 1 : 0);
+            set_value(k39, on ? 1 : 0);
             set_value(k41, on ? 1 : 0);
             set_value(rx_144, on ? 0 : 1);
             break;
 
         case RF_ROUTE_UHF:
             set_value(k34, on ? 1 : 0);
+            set_value(k39, on ? 1 : 0);
             set_value(k42, on ? 1 : 0);
             set_value(rx_430, on ? 0 : 1);
             break;
