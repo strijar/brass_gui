@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "pannel.h"
 #include "styles.h"
 #include "util.h"
@@ -94,6 +95,7 @@ static void pannel_update_cb(lv_event_t * e) {
     } else {
         lv_draw_label_dsc_t dsc_label;
 
+        lv_draw_label_dsc_init(&dsc_label);
         lv_obj_init_draw_label_dsc(obj, LV_PART_MAIN, &dsc_label);
 
         lv_txt_get_size(&line_size, last_line, dsc_label.font, 0, 0, LV_COORD_MAX, 0);

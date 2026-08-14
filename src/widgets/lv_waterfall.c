@@ -22,7 +22,8 @@ struct lv_waterfall_t {
     lv_draw_buf_t   *draw_buf;
 
     uint32_t        line_len;
-    uint8_t         *line_buf;
+    uint16_t        height;
+    uint16_t        head;
 
     lv_color_t      palette[256];
 
@@ -44,6 +45,7 @@ struct lv_waterfall_t {
 
 static void lv_waterfall_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj);
 static void lv_waterfall_destructor(const lv_obj_class_t * class_p, lv_obj_t * obj);
+static void lv_waterfall_update_image(lv_waterfall_t * waterfall);
 
 /**********************
  *  STATIC VARIABLES
@@ -111,19 +113,30 @@ void lv_waterfall_set_data_size(lv_obj_t * obj, uint16_t size) {
         lv_obj_delete(waterfall->img);
         waterfall->img = NULL;
     }
-    if (waterfall->draw_buf != NULL) lv_draw_buf_destroy(waterfall->draw_buf);
+    if (waterfall->draw_buf != NULL) {
+        lv_image_cache_drop(waterfall->draw_buf);
+        lv_draw_buf_destroy(waterfall->draw_buf);
+    }
 
-    waterfall->draw_buf = lv_draw_buf_create(size, height, LV_COLOR_FORMAT_XRGB8888, 0);
+    waterfall->draw_buf = NULL;
+    waterfall->height = 0;
+    waterfall->head = 0;
+
+    if (size == 0 || height <= 0 || height > UINT16_MAX / 2) return;
+
+    /* Keep a second copy of every row.  A height-sized window starting at
+     * head is then always contiguous, even when the ring wraps. */
+    waterfall->draw_buf = lv_draw_buf_create(size, (uint32_t) height * 2, LV_COLOR_FORMAT_XRGB8888, 0);
     if (waterfall->draw_buf == NULL) return;
     memset(waterfall->draw_buf->data, 0, waterfall->draw_buf->data_size);
 
     waterfall->line_len = waterfall->draw_buf->header.stride;
-    waterfall->line_buf = lv_realloc(waterfall->line_buf, waterfall->line_len);
+    waterfall->height = height;
 
     waterfall->img = lv_image_create(obj);
 
-    lv_obj_align(waterfall->img, LV_ALIGN_CENTER, 0, 0);
     lv_image_set_src(waterfall->img, waterfall->draw_buf);
+    lv_obj_align(waterfall->img, LV_ALIGN_TOP_MID, 0, 0);
     lv_image_cache_drop(waterfall->draw_buf);
 }
 
@@ -157,8 +170,12 @@ void lv_waterfall_clear_data(lv_obj_t * obj) {
     lv_waterfall_t * waterfall = (lv_waterfall_t *)obj;
 
     if (waterfall->draw_buf == NULL) return;
+
+    /* Keep the current ring window in place. */
     memset(waterfall->draw_buf->data, 0, waterfall->draw_buf->data_size);
-    lv_image_cache_drop(waterfall->draw_buf);
+    waterfall->scroll = 0;
+    waterfall->scroll_surplus = 0;
+    lv_draw_buf_flush_cache(waterfall->draw_buf, NULL);
     lv_obj_invalidate(waterfall->img);
 }
 
@@ -198,27 +215,26 @@ int32_t lv_waterfall_scroll_data(lv_obj_t * obj, int32_t df) {
 
         uint8_t         *ptr = dsc->data;
         uint32_t        line_len = waterfall->line_len;
-        uint8_t         *line_buf = waterfall->line_buf;
         uint16_t        offset = abs(px) * 4;
         uint16_t        tail = (dsc->header.w - abs(px)) * 4;
 
-        for (int y = 0; y < dsc->header.h; y++) {
+        /* Horizontal scrolling is independent of the vertical ring order.
+         * Update every unique row and then synchronize its duplicate. */
+        for (uint16_t y = 0; y < waterfall->height; y++) {
             if (px > 0) {
-                memset(line_buf + tail, 0, offset);
-                memcpy(line_buf, ptr + offset, tail);
-                memcpy(ptr, line_buf, line_len);
+                memmove(ptr, ptr + offset, tail);
+                memset(ptr + tail, 0, offset);
             } else {
-                memset(line_buf, 0, offset);
-                memcpy(line_buf + offset, ptr, tail);
-                memcpy(ptr, line_buf, line_len);
+                memmove(ptr + offset, ptr, tail);
+                memset(ptr, 0, offset);
             }
 
+            memcpy(ptr + waterfall->height * line_len, ptr, line_len);
             ptr += line_len;
         }
 
         waterfall->scroll = 0;
-        lv_draw_buf_flush_cache(dsc, NULL);
-        lv_image_cache_drop(dsc);
+        lv_waterfall_update_image(waterfall);
         lv_obj_invalidate(waterfall->img);
     }
 
@@ -233,15 +249,14 @@ void lv_waterfall_add_data(lv_obj_t * obj, float * data, uint16_t cnt) {
 
     if (dsc == NULL || waterfall->max == waterfall->min) return;
 
+    if (cnt == 0 || waterfall->height == 0) return;
+
     uint32_t    line_len = waterfall->line_len;
-    uint8_t     *ptr = dsc->data + (dsc->header.h - 2) * line_len;
 
-    /* Scroll down */
-
-    for (uint16_t y = 0; y < dsc->header.h - 1; y++) {
-        memcpy(ptr + line_len, ptr, line_len);
-        ptr -= line_len;
-    }
+    /* Moving the window one row backwards makes the new row appear at the
+     * top without moving the existing image. */
+    waterfall->head = waterfall->head == 0 ? waterfall->height - 1 : waterfall->head - 1;
+    uint8_t *ptr = dsc->data + waterfall->head * line_len;
 
     /* Paint */
 
@@ -258,11 +273,11 @@ void lv_waterfall_add_data(lv_obj_t * obj, float * data, uint16_t cnt) {
 
         uint8_t id = v * 255;
 
-        ((uint32_t *) dsc->data)[x] = lv_color_to_u32(waterfall->palette[id]);
+        ((uint32_t *) ptr)[x] = lv_color_to_u32(waterfall->palette[id]);
     }
 
-    lv_draw_buf_flush_cache(dsc, NULL);
-    lv_image_cache_drop(dsc);
+    memcpy(ptr + waterfall->height * line_len, ptr, line_len);
+    lv_waterfall_update_image(waterfall);
     lv_obj_invalidate(waterfall->img);
 }
 
@@ -279,7 +294,8 @@ static void lv_waterfall_constructor(const lv_obj_class_t * class_p, lv_obj_t * 
     waterfall->img = NULL;
     waterfall->draw_buf = NULL;
     waterfall->line_len = 0;
-    waterfall->line_buf = NULL;
+    waterfall->height = 0;
+    waterfall->head = 0;
     waterfall->min = -40;
     waterfall->max = 0;
     waterfall->span = 100000;
@@ -293,6 +309,20 @@ static void lv_waterfall_destructor(const lv_obj_class_t * class_p, lv_obj_t * o
     LV_UNUSED(class_p);
     lv_waterfall_t * waterfall = (lv_waterfall_t *)obj;
 
-    if (waterfall->draw_buf) lv_draw_buf_destroy(waterfall->draw_buf);
-    if (waterfall->line_buf) lv_free(waterfall->line_buf);
+    if (waterfall->draw_buf) {
+        lv_image_cache_drop(waterfall->draw_buf);
+        lv_draw_buf_destroy(waterfall->draw_buf);
+    }
+}
+
+static void lv_waterfall_update_image(lv_waterfall_t * waterfall) {
+    lv_area_t visible = {
+        .x1 = 0,
+        .y1 = waterfall->head,
+        .x2 = waterfall->draw_buf->header.w - 1,
+        .y2 = waterfall->head + waterfall->height - 1,
+    };
+
+    lv_draw_buf_flush_cache(waterfall->draw_buf, &visible);
+    lv_obj_align(waterfall->img, LV_ALIGN_TOP_MID, 0, -(lv_coord_t) waterfall->head);
 }

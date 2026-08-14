@@ -165,6 +165,8 @@ static void lv_xmeter_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         lv_draw_label_dsc_t label_dsc;
         lv_area_t           area;
 
+        lv_draw_label_dsc_init(&label_dsc);
+
         int16_t     slice_width = lv_obj_get_style_width(obj, LV_PART_INDICATOR);
         int16_t     slice_pad = lv_obj_get_style_pad_column(obj, LV_PART_INDICATOR);
 
