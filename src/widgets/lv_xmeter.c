@@ -9,13 +9,31 @@
  *********************/
 
 #include <stdlib.h>
+#include <string.h>
 #include "lv_xmeter.h"
+#include "lvgl/src/core/lv_obj_class_private.h"
+#include "lvgl/src/core/lv_obj_private.h"
 
 /*********************
  *      DEFINES
  *********************/
 
 #define MY_CLASS    &lv_xmeter_class
+
+typedef struct {
+    char text[32];
+    float value;
+} lv_xmeter_label_t;
+
+typedef struct {
+    lv_obj_t obj;
+    float min;
+    float max;
+    float value;
+    float slice_value;
+    float part[3];
+    lv_xmeter_label_t labels[LV_SMETER_LABELS];
+} lv_xmeter_t;
 
 /**********************
  *  STATIC PROTOTYPES
@@ -71,6 +89,7 @@ void lv_xmeter_set_part(lv_obj_t * obj, uint8_t index, float value) {
 
     lv_xmeter_t * meter = (lv_xmeter_t *)obj;
 
+    if (index >= 3) return;
     meter->part[index] = value;
     lv_obj_invalidate(obj);
 }
@@ -88,10 +107,12 @@ void lv_xmeter_set_label(lv_obj_t * obj, uint8_t index, const char *text, float 
     LV_ASSERT_OBJ(obj, MY_CLASS);
 
     lv_xmeter_t         *meter = (lv_xmeter_t *)obj;
+    if (index >= LV_SMETER_LABELS || text == NULL) return;
     lv_xmeter_label_t   *label = &meter->labels[index];
 
     label->value = value;
     strncpy(label->text, text, 31);
+    label->text[31] = '\0';
     lv_obj_invalidate(obj);
 }
 
@@ -139,7 +160,7 @@ static void lv_xmeter_event(const lv_obj_class_t * class_p, lv_event_t * e) {
 
     if (code == LV_EVENT_DRAW_MAIN_END) {
         lv_xmeter_t         *meter = (lv_xmeter_t *) obj;
-        lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+        lv_layer_t          *layer = lv_event_get_layer(e);
         lv_draw_rect_dsc_t  rect_dsc;
         lv_draw_label_dsc_t label_dsc;
         lv_area_t           area;
@@ -147,13 +168,17 @@ static void lv_xmeter_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         int16_t     slice_width = lv_obj_get_style_width(obj, LV_PART_INDICATOR);
         int16_t     slice_pad = lv_obj_get_style_pad_column(obj, LV_PART_INDICATOR);
 
-        lv_coord_t  x1 = obj->coords.x1 + 18;
-        lv_coord_t  y1 = obj->coords.y1;
+        lv_area_t obj_coords;
+        lv_obj_get_coords(obj, &obj_coords);
+        lv_coord_t  x1 = obj_coords.x1 + 18;
+        lv_coord_t  y1 = obj_coords.y1;
 
         lv_coord_t  w = lv_obj_get_width(obj);
         lv_coord_t  h = lv_obj_get_height(obj);
 
-        lv_coord_t  len = slice_width * (meter->max - meter->min) / meter->slice_value;
+        float range = meter->max - meter->min;
+        if (range == 0.0f || meter->slice_value <= 0.0f || slice_width <= 0) return;
+        lv_coord_t  len = slice_width * range / meter->slice_value;
 
         /* Rects */
 
@@ -178,7 +203,7 @@ static void lv_xmeter_event(const lv_obj_class_t * class_p, lv_event_t * e) {
 
             area.x2 = area.x1 + slice_width - slice_pad;
 
-            lv_draw_rect(draw_ctx, &rect_dsc, &area);
+            lv_draw_rect(layer, &rect_dsc, &area);
 
             slice_value += meter->slice_value;
             area.x1 += slice_width;
@@ -201,9 +226,11 @@ static void lv_xmeter_event(const lv_obj_class_t * class_p, lv_event_t * e) {
                 area.x1 = x1 + len * (value - meter->min) / (meter->max - meter->min) - (label_size.x / 2);
                 area.y1 = y1 + h / 2 - label_size.y / 2;
                 area.x2 = area.x1 + label_size.x;
-                area.y2 = area.y2 + label_size.y;
+                area.y2 = area.y1 + label_size.y;
 
-                lv_draw_label(draw_ctx, &label_dsc, &area, text, NULL);
+                label_dsc.text = text;
+                label_dsc.text_size = label_size;
+                lv_draw_label(layer, &label_dsc, &area);
             }
         }
     }
