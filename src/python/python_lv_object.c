@@ -107,7 +107,7 @@ static PyObject * obj_msg_subscribe(obj_object_t *self, PyObject *args) {
 }
 
 static void obj_timer_cb(lv_timer_t *timer) {
-    PyObject    *call = (PyObject *) timer->user_data;
+    PyObject    *call = lv_timer_get_user_data(timer);
     PyObject    *res = PyObject_CallNoArgs(call);
 
     if (res) {

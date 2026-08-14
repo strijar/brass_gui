@@ -190,6 +190,7 @@ static void mode_ft4_cb(lv_event_t * e);
 
 static void tx_cq_dis_cb(lv_event_t * e);
 static void tx_cq_en_cb(lv_event_t * e);
+static void tx_cq_hold_cb(void * data);
 
 static void tx_call_dis_cb(lv_event_t * e);
 static void tx_call_en_cb(lv_event_t * e);
@@ -208,8 +209,8 @@ static button_item_t button_mode_ft4 = { .label = "Mode\nFT4", .press = mode_ft4
 static button_item_t button_tx_cq_dis = { .label = "TX CQ\nDisabled", .press = tx_cq_dis_cb };
 static button_item_t button_tx_cq_en = { .label = "TX CQ\nEnabled", .press = tx_cq_en_cb };
 
-static button_item_t button_tx_call_dis = { .label = "TX Call\nDisabled", .press = tx_call_dis_cb, .hold = tx_cq_en_cb };
-static button_item_t button_tx_call_en = { .label = "TX Call\nEnabled", .press = tx_call_en_cb, .hold = tx_cq_en_cb };
+static button_item_t button_tx_call_dis = { .label = "TX Call\nDisabled", .press = tx_call_dis_cb, .hold = tx_cq_hold_cb };
+static button_item_t button_tx_call_en = { .label = "TX Call\nEnabled", .press = tx_call_en_cb, .hold = tx_cq_hold_cb };
 
 static button_item_t button_auto_dis = { .label = "Auto\nDisabled", .press = mode_auto_cb };
 static button_item_t button_auto_en = { .label = "Auto\nEnabled", .press = mode_auto_cb };
@@ -339,7 +340,7 @@ static void send_info(const char * fmt, ...) {
 
     msg->msg = strdup(buf);
 
-    msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
+    msg->cell = lv_malloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_RX_INFO;
 
     queue_send(table, EVENT_FT8_MSG, msg);
@@ -384,7 +385,7 @@ static void send_rx_text(int16_t snr, const char * text) {
 
     msg->msg = strdup(text);
 
-    msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
+    msg->cell = lv_malloc(sizeof(ft8_cell_t));
     msg->cell->snr = snr;
     msg->cell->type = type;
     msg->cell->odd = odd;
@@ -405,7 +406,7 @@ static void send_tx_text(const char * text) {
 
     msg->msg = strdup(text);
 
-    msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
+    msg->cell = lv_malloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_TX_MSG;
 
     queue_send(table, EVENT_FT8_MSG, msg);
@@ -704,8 +705,8 @@ static void * decode_thread(void *arg) {
 
 static void add_msg_cb(lv_event_t * e) {
     ft8_msg_t   *msg = (ft8_msg_t *) lv_event_get_param(e);
-    int16_t     row = 0;
-    int16_t     col = 0;
+    uint32_t    row = 0;
+    uint32_t    col = 0;
     bool        scroll;
 
     lv_table_get_selected_cell(table, &row, &col);
@@ -797,8 +798,8 @@ static void table_draw_task_cb(lv_event_t * e) {
 }
 
 static void selected_msg_cb(lv_event_t * e) {
-    int16_t     row;
-    int16_t     col;
+    uint32_t    row;
+    uint32_t    col;
 
     lv_table_get_selected_cell(table, &row, &col);
 }
@@ -1239,6 +1240,11 @@ static void tx_cq_en_cb(lv_event_t * e) {
     qso = QSO_IDLE;
 }
 
+static void tx_cq_hold_cb(void * data) {
+    LV_UNUSED(data);
+    tx_cq_en_cb(NULL);
+}
+
 static void tx_call_off() {
     buttons_load(2, &button_tx_call_dis);
     state = TX_STOP;
@@ -1255,8 +1261,8 @@ static void tx_call_dis_cb(lv_event_t * e) {
     if (state == TX_PROCESS) {
         tx_call_off();
     } else {
-        int16_t     row;
-        int16_t     col;
+        uint32_t    row;
+        uint32_t    col;
 
         lv_table_get_selected_cell(table, &row, &col);
 
