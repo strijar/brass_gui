@@ -30,8 +30,8 @@ struct lv_waterfall_t {
     int16_t         min;
     int16_t         max;
     int32_t         span;
-    int16_t         scroll_surplus;
-    int32_t         scroll;
+    int64_t         scroll_numerator;
+    bool            skip_next_line;
 };
 
 /*********************
@@ -173,8 +173,8 @@ void lv_waterfall_clear_data(lv_obj_t * obj) {
 
     /* Keep the current ring window in place. */
     memset(waterfall->draw_buf->data, 0, waterfall->draw_buf->data_size);
-    waterfall->scroll = 0;
-    waterfall->scroll_surplus = 0;
+    waterfall->scroll_numerator = 0;
+    waterfall->skip_next_line = false;
     lv_draw_buf_flush_cache(waterfall->draw_buf, NULL);
     lv_obj_invalidate(waterfall->img);
 }
@@ -184,26 +184,17 @@ int32_t lv_waterfall_scroll_data(lv_obj_t * obj, int32_t df) {
 
     lv_waterfall_t * waterfall = (lv_waterfall_t *)obj;
 
-    uint16_t    div = waterfall->span / lv_obj_get_width(obj);
-    if (div == 0 || waterfall->draw_buf == NULL) return 0;
-    int16_t     surplus = df % div;
+    int32_t width = lv_obj_get_width(obj);
+    if (width <= 0 || waterfall->span <= 0 || waterfall->draw_buf == NULL) return 0;
 
-    waterfall->scroll += df / div;
-
-    if (surplus) {
-        waterfall->scroll_surplus += surplus;
-    } else {
-        waterfall->scroll_surplus = 0;
-    }
-
-    if (abs(waterfall->scroll_surplus) > div) {
-        waterfall->scroll += waterfall->scroll_surplus / div;
-        waterfall->scroll_surplus %= div;
-    }
+    /* Preserve the fractional pixel remainder exactly. This avoids drift
+     * when span / width is not an integer number of Hz per pixel. */
+    waterfall->scroll_numerator += (int64_t)df * width;
+    int32_t px = waterfall->scroll_numerator / waterfall->span;
+    waterfall->scroll_numerator -= (int64_t)px * waterfall->span;
+    waterfall->skip_next_line = true;
 
     /* Scroll */
-
-    int16_t px = waterfall->scroll;
 
     if (px) {
         lv_draw_buf_t   *dsc = waterfall->draw_buf;
@@ -233,12 +224,11 @@ int32_t lv_waterfall_scroll_data(lv_obj_t * obj, int32_t df) {
             ptr += line_len;
         }
 
-        waterfall->scroll = 0;
         lv_waterfall_update_image(waterfall);
         lv_obj_invalidate(waterfall->img);
     }
 
-    return px * div;
+    return (int64_t)px * waterfall->span / width;
 }
 
 void lv_waterfall_add_data(lv_obj_t * obj, float * data, uint16_t cnt) {
@@ -250,6 +240,14 @@ void lv_waterfall_add_data(lv_obj_t * obj, float * data, uint16_t cnt) {
     if (dsc == NULL || waterfall->max == waterfall->min) return;
 
     if (cnt == 0 || waterfall->height == 0) return;
+
+    /* The first accumulation interval after an FFT retune can contain data
+     * from both center frequencies. Do not advance the vertical history with
+     * that mixed line. Repeated retunes keep resetting this one-frame gate. */
+    if (waterfall->skip_next_line) {
+        waterfall->skip_next_line = false;
+        return;
+    }
 
     uint32_t    line_len = waterfall->line_len;
 
@@ -299,8 +297,8 @@ static void lv_waterfall_constructor(const lv_obj_class_t * class_p, lv_obj_t * 
     waterfall->min = -40;
     waterfall->max = 0;
     waterfall->span = 100000;
-    waterfall->scroll_surplus = 0;
-    waterfall->scroll = 0;
+    waterfall->scroll_numerator = 0;
+    waterfall->skip_next_line = false;
 
     LV_TRACE_OBJ_CREATE("finished");
 }

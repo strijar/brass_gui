@@ -531,20 +531,7 @@ static void freq_shift(int16_t diff) {
     uint64_t    freq_rx = align_long(prev_freq_rx + df, abs(df));
     uint64_t    freq_tx = align_long(prev_freq_tx + df, abs(df));
     uint64_t    freq_fft = align_long(prev_freq_fft + df, abs(df));
-    int32_t     freq_delta = 0;
     int32_t     freq_shift = 0;
-    int32_t     half = 45000 / op_mode->spectrum_factor;
-
-    switch (op_work->split) {
-        case SPLIT_NONE:
-        case SPLIT_RX:
-            freq_delta = freq_rx - freq_fft;
-            break;
-
-        case SPLIT_TX:
-            freq_delta = freq_tx - freq_fft;
-            break;
-    }
 
     switch (options->freq.mode) {
         case FREQ_MODE_JOIN:
@@ -556,14 +543,18 @@ static void freq_shift(int16_t diff) {
             break;
 
         case FREQ_MODE_SLIDE:
-            if (freq_delta < -half) {
-                freq_fft += freq_delta + half - df;
+        {
+            uint64_t tuned_freq = op_work->split == SPLIT_TX ? freq_tx : freq_rx;
+            int32_t span = 100000 / op_mode->spectrum_factor;
+            int32_t trigger = span * 45 / 100;
+            int64_t offset = (int64_t)tuned_freq - (int64_t)prev_freq_fft;
+
+            if (offset < -trigger) {
+                freq_fft = tuned_freq + trigger;
                 freq_shift = freq_fft - prev_freq_fft;
-            } else if (freq_delta > half) {
-                freq_fft += freq_delta - half - df;
+            } else if (offset > trigger) {
+                freq_fft = tuned_freq - trigger;
                 freq_shift = freq_fft - prev_freq_fft;
-            } else {
-                freq_shift = 0;
             }
 
             if (freq_shift != 0) {
@@ -573,6 +564,7 @@ static void freq_shift(int16_t diff) {
 
             radio_set_freqs(freq_rx, freq_tx);
             break;
+        }
 
         case FREQ_MODE_RX_ONLY:
             radio_set_freqs(freq_rx, freq_tx);
