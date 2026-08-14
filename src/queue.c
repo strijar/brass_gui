@@ -41,13 +41,13 @@ void queue_work() {
                 lv_obj_invalidate(item->obj);
             }
         } else if (item->event_code == EVENT_MSG_UPDATE) {
-            lv_msg_send(MSG_MSG, item->param);
+            brass_msg_send(MSG_MSG, item->param);
             item->param = NULL;
         } else if (item->event_code == EVENT_MSG_TINY_UPDATE) {
-            lv_msg_send(MSG_MSG_TINY, item->param);
+            brass_msg_send(MSG_MSG_TINY, item->param);
             item->param = NULL;
         } else {
-            lv_event_send(item->obj, item->event_code, item->param);
+            lv_obj_send_event(item->obj, item->event_code, item->param);
         }
 
         pthread_mutex_lock(&mux);

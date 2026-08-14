@@ -225,11 +225,11 @@ static void textarea_window_edit_ok_cb() {
 }
 
 static void msg_cb(lv_event_t * e) {
-    lv_msg_t *m = lv_event_get_msg(e);
+    brass_msg_t *m = brass_event_get_msg(e);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_PTT: {
-            const int *on = lv_msg_get_payload(m);
+            const int *on = brass_msg_get_payload(m);
 
             if (*on) {
                 if (play_state) {
@@ -257,8 +257,8 @@ static void construct_cb(lv_obj_t *parent) {
     lv_table_set_col_width(table, 0, 770);
 
     lv_obj_add_event_cb(table, dialog_key_cb, LV_EVENT_KEY, NULL);
-    lv_obj_add_event_cb(table, msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
-    lv_msg_subsribe_obj(MSG_PTT, table, NULL);
+    lv_obj_add_event_cb(table, msg_cb, BRASS_EVENT_MSG_RECEIVED, NULL);
+    brass_msg_subscribe_obj(MSG_PTT, table, NULL);
 
     lv_group_add_obj(keyboard_group, table);
     lv_group_set_editing(keyboard_group, true);

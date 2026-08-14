@@ -127,14 +127,14 @@ void mic_on_air(bool on) {
 
 void mic_enabled(bool on) {
     enabled = on;
-    lv_msg_send(MSG_MIC, &enabled);
+    brass_msg_send(MSG_MIC, &enabled);
 }
 
 static void meter_timer_cb(lv_timer_t *t) {
     pthread_mutex_lock(&meter_mux);
 
     lpf(&meter_avr, meter_sum / meter_count, 0.2f);
-    lv_msg_send(MSG_MIC_METER, &meter_avr);
+    brass_msg_send(MSG_MIC_METER, &meter_avr);
 
     meter_count = 0;
     meter_sum = 0;

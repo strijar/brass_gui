@@ -9,6 +9,26 @@
  *********************/
 
 #include "lv_finder.h"
+#include "lvgl/src/core/lv_obj_private.h"
+
+struct lv_finder_t {
+    lv_obj_t        obj;
+
+    int16_t         offset_min;
+    int16_t         offset_max;
+    uint64_t        value;
+
+    uint64_t        range_min;
+    uint64_t        range_max;
+    uint64_t        center;
+    int32_t         span;
+
+    uint8_t         cursor_num;
+    int16_t         cursor[LV_FINDER_CURSORS];
+
+    lv_coord_t      prev_x1;
+    lv_coord_t      prev_x2;
+};
 
 /*********************
  *      DEFINES

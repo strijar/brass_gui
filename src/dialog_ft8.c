@@ -734,7 +734,7 @@ static void add_msg_cb(lv_event_t * e) {
         int32_t *c = malloc(sizeof(int32_t));
         *c = LV_KEY_DOWN;
 
-        lv_event_send(table, LV_EVENT_KEY, c);
+        lv_obj_send_event(table, LV_EVENT_KEY, c);
     }
 
     table_rows++;
@@ -870,7 +870,7 @@ static void clean() {
     int32_t *c = malloc(sizeof(int32_t));
     *c = LV_KEY_UP;
 
-    lv_event_send(table, LV_EVENT_KEY, c);
+    lv_obj_send_event(table, LV_EVENT_KEY, c);
 }
 
 static void make_tx_msg(ft8_tx_msg_t msg, int16_t snr) {

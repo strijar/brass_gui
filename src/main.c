@@ -7,7 +7,7 @@
  */
 
 #include "lvgl/lvgl.h"
-#include "lv_drivers/display/fbdev.h"
+#include "lvgl/src/drivers/display/fb/lv_linux_fbdev.h"
 #include <unistd.h>
 #include <pthread.h>
 #include <time.h>
@@ -37,7 +37,6 @@
 #include "python/python.h"
 #include "mic.h"
 #include "vt.h"
-#include "render/render.h"
 #include "hw/gpio.h"
 #include "hw/iio.h"
 #include "settings/bands.h"
@@ -48,15 +47,9 @@
 #include "olivia/olivia.h"
 #include "bands/bands.h"
 
-#define DISP_BUF_SIZE (800 * 480)
-
 rotary_t                    *vol;
 encoder_t                   *mfk;
 
-static lv_color_t           buf_1[DISP_BUF_SIZE];
-static lv_color_t           buf_2[DISP_BUF_SIZE];
-static lv_disp_draw_buf_t   disp_buf;
-static lv_disp_drv_t        disp_drv;
 static pthread_mutex_t      mux;
 
 void lv_lock() {
@@ -86,9 +79,14 @@ int main(void) {
     settings_rf_load();
 
     lv_init();
-    lv_png_init();
+    lv_libpng_init();
 
-    fbdev_init();
+    lv_display_t *display = lv_linux_fbdev_create();
+    if (display == NULL || lv_linux_fbdev_set_file(display, "/dev/fb0") != LV_RESULT_OK) {
+        LV_LOG_ERROR("unable to initialize /dev/fb0");
+        return 1;
+    }
+
     mic_init();
     audio_init();
     recorder_init();
@@ -98,25 +96,7 @@ int main(void) {
     iio_init();
     bands_init();
 
-    lv_disp_draw_buf_init(&disp_buf, buf_1, buf_2, DISP_BUF_SIZE);
-    lv_disp_drv_init(&disp_drv);
-
-    disp_drv.draw_buf   = &disp_buf;
-    disp_drv.flush_cb   = fbdev_flush;
-    disp_drv.hor_res    = 800;
-    disp_drv.ver_res    = 480;
-
-#if 1
-    disp_drv.draw_ctx_init = brass_draw_ctx_init;
-    disp_drv.draw_ctx_size = sizeof(brass_draw_ctx_t);
-#endif
-
-    lv_disp_drv_register(&disp_drv);
-
-    lv_disp_set_bg_color(lv_disp_get_default(), lv_color_black());
-    lv_disp_set_bg_opa(lv_disp_get_default(), LV_OPA_COVER);
-
-    lv_timer_t *timer = _lv_disp_get_refr_timer(lv_disp_get_default());
+    lv_timer_t *timer = lv_display_get_refr_timer(display);
 
     lv_timer_set_period(timer, 15);
 

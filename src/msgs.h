@@ -9,6 +9,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "brass_msg.h"
 #include "widgets/lv_finder.h"
 
 typedef struct {

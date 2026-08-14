@@ -15,11 +15,13 @@ include_directories(third-party/rapidxml)
 include_directories(third-party/utf8)
 include_directories(${FREETYPE_INCLUDE_DIRS})
 
+set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "Build LVGL examples" FORCE)
+set(CONFIG_LV_BUILD_DEMOS OFF CACHE BOOL "Build LVGL demos" FORCE)
+set(CONFIG_LV_USE_THORVG_INTERNAL OFF CACHE BOOL "Build LVGL internal ThorVG" FORCE)
+
 add_subdirectory(lvgl EXCLUDE_FROM_ALL)
-add_subdirectory(lv_drivers EXCLUDE_FROM_ALL)
 add_subdirectory(src)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION sbin)
 install(TARGETS lvgl LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(TARGETS lv_drivers LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(DIRECTORY rootfs/ DESTINATION / USE_SOURCE_PERMISSIONS)

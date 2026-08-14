@@ -4,7 +4,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     main.c main_screen.c 
     styles.c radio.c dsp.c util.c 
     rotary.c keyboard.c encoder.c
-    events.c msg.c msg_tiny.c keypad.c
+    events.c msg.c msg_tiny.c brass_msg.c keypad.c
     hkey.c
     audio.c mfk.c cw.c cw_decoder.c pannel.c
     rtty.c screenshot.c backlight.c gps.c
@@ -21,7 +21,6 @@ add_subdirectory(widgets)
 add_subdirectory(fpga)
 add_subdirectory(dsp)
 add_subdirectory(python)
-add_subdirectory(render)
 add_subdirectory(settings)
 add_subdirectory(olivia)
 add_subdirectory(bands)
@@ -44,7 +43,7 @@ target_link_options(${PROJECT_NAME} PRIVATE -g -rdynamic)
 #target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -static-libasan -static-libubsan)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
-target_link_libraries(${PROJECT_NAME} PRIVATE lvgl lvgl::drivers)
+target_link_libraries(${PROJECT_NAME} PRIVATE lvgl)
 target_link_libraries(${PROJECT_NAME} PRIVATE liquid specbleach m fftw3)
 target_link_libraries(${PROJECT_NAME} PRIVATE pulse pulse-simple)
 target_link_libraries(${PROJECT_NAME} PRIVATE png)

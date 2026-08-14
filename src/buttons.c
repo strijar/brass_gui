@@ -180,7 +180,7 @@ static void buttons_load_mode() {
     }
 }
 
-static void mode_changed_cb(void *s, lv_msg_t *m) {
+static void mode_changed_cb(void *s, brass_msg_t *m) {
     buttons_load_mode();
 }
 
@@ -205,7 +205,7 @@ bool buttons_insert(int index, lv_obj_t *button) {
 }
 
 void buttons_init() {
-    lv_msg_subsribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
+    brass_msg_subscribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
 }
 
 void buttons_load(uint8_t n, button_item_t *item) {
@@ -320,8 +320,8 @@ void buttons_press(uint8_t n, bool hold) {
             item->hold(item);
         }
     } else {
-        lv_event_send(btn[n].obj, LV_EVENT_PRESSED, NULL);
-        lv_event_send(btn[n].obj, LV_EVENT_RELEASED, NULL);
+        lv_obj_send_event(btn[n].obj, LV_EVENT_PRESSED, NULL);
+        lv_obj_send_event(btn[n].obj, LV_EVENT_RELEASED, NULL);
     }
 }
 

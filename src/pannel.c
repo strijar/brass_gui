@@ -109,7 +109,7 @@ static void pannel_update_cb(lv_event_t * e) {
     lv_label_set_text_static(obj, buf);
 }
 
-static void mode_changed_cb(void *s, lv_msg_t *m) {
+static void mode_changed_cb(void *s, brass_msg_t *m) {
     pannel_visible();
 }
 
@@ -120,7 +120,7 @@ lv_obj_t * pannel_init(lv_obj_t *parent) {
     lv_obj_add_event_cb(obj, pannel_update_cb, EVENT_PANNEL_UPDATE, NULL);
     lv_obj_set_style_opa_layered(obj, LV_OPA_TRANSP, 0);
 
-    lv_msg_subsribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
+    brass_msg_subscribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
 
     /* Fade */
 

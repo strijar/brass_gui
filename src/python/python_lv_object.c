@@ -39,30 +39,30 @@ static int obj_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
     return 0;
 }
 
-static void obj_msg_cb(void *s, lv_msg_t *m) {
-    PyObject    *call = lv_msg_get_user_data(m);
+static void obj_msg_cb(void *s, brass_msg_t *m) {
+    PyObject    *call = brass_msg_get_user_data(m);
     PyObject    *arg;
-    uint32_t    msg = lv_msg_get_id(m);
+    uint32_t    msg = brass_msg_get_id(m);
 
     switch (msg) {
         case MSG_FREQ_FFT_CHANGED:
         case MSG_FREQ_TX_CHANGED:
         case MSG_FREQ_RX_CHANGED: {
-            const uint64_t *x = lv_msg_get_payload(m);
+            const uint64_t *x = brass_msg_get_payload(m);
 
             arg = Py_BuildValue("IL", msg, *x);
         } break;
 
         case MSG_MIC:
         case MSG_RECORDER: {
-            const bool *x = lv_msg_get_payload(m);
+            const bool *x = brass_msg_get_payload(m);
 
             arg = Py_BuildValue("Ib", msg, *x);
         } break;
 
         case MSG_MSG:
         case MSG_MSG_TINY: {
-            const char *x = lv_msg_get_payload(m);
+            const char *x = brass_msg_get_payload(m);
 
             arg = Py_BuildValue("Is", msg, x);
         } break;
@@ -72,7 +72,7 @@ static void obj_msg_cb(void *s, lv_msg_t *m) {
         case MSG_ANT_CHANGED:
         case MSG_SPLIT_CHANGED:
         case MSG_MODE_CHANGED: {
-            const uint8_t *x = lv_msg_get_payload(m);
+            const uint8_t *x = brass_msg_get_payload(m);
 
             arg = Py_BuildValue("Ib", msg, *x);
         } break;
@@ -100,7 +100,7 @@ static PyObject * obj_msg_subscribe(obj_object_t *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "iO", &msg_id, &obj)) {
         Py_XINCREF(obj);
 
-        lv_msg_subscribe(msg_id, obj_msg_cb, obj);
+        brass_msg_subscribe(msg_id, obj_msg_cb, obj);
     }
 
     Py_RETURN_NONE;

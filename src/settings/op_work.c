@@ -56,7 +56,7 @@ void op_work_set_mode(radio_mode_t mode) {
     if (mode != op_work->mode) {
         op_work->mode = mode;
         settings_mode_update(op_work->mode);
-        lv_msg_send(MSG_MODE_CHANGED, &op_work->mode);
+        brass_msg_send(MSG_MODE_CHANGED, &op_work->mode);
     }
 }
 

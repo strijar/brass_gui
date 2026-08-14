@@ -6,29 +6,19 @@
  *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
  */
 
-#include "lv_drivers/indev/evdev.h"
+#include "lvgl/src/drivers/evdev/lv_evdev.h"
 
 #include "keyboard.h"
 
 lv_group_t *keyboard_group;
 
-static lv_indev_drv_t       indev_drv_2;
-static lv_group_t           *group;
 static bool                 ready = false;
 
 void keyboard_init() {
     keyboard_group = lv_group_create();
 
-    if (!evdev_set_file("/dev/input/event5")) {
-        return;
-    }
-
-    lv_indev_drv_init(&indev_drv_2);
-
-    indev_drv_2.type = LV_INDEV_TYPE_KEYPAD;
-    indev_drv_2.read_cb = evdev_read;
-
-    lv_indev_t *keyboard_indev = lv_indev_drv_register(&indev_drv_2);
+    lv_indev_t *keyboard_indev = lv_evdev_create(LV_INDEV_TYPE_KEYPAD, "/dev/input/event5");
+    if (keyboard_indev == NULL) return;
 
     lv_indev_set_group(keyboard_indev, keyboard_group);
 

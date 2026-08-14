@@ -34,7 +34,7 @@ static void * gps_thread(void *arg) {
                         
                         memcpy(msg, &gpsdata, sizeof(*msg));
                         lv_lock();
-                        lv_event_send(dialog_gps->obj, EVENT_GPS, msg);
+                        lv_obj_send_event(dialog_gps->obj, EVENT_GPS, msg);
                         lv_unlock();
                     }
                 }

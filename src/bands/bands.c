@@ -31,7 +31,7 @@ static op_work_t  op_dummy = {
 
 band_settings_t     *band_settings = NULL;
 
-static void reload_cb(void *s, lv_msg_t *m) {
+static void reload_cb(void *s, brass_msg_t *m) {
     uint8_t     zoom = op_mode->spectrum_factor;
     uint64_t    freq = op_work->fft;
     uint64_t    start = freq - 100000 / 2 / zoom;
@@ -45,8 +45,8 @@ static void reload_cb(void *s, lv_msg_t *m) {
     list = band_tree_findall(tree, start, stop);
 }
 
-static void rx_pre_changed_cb(void *s, lv_msg_t *m) {
-    const uint64_t  *freq = lv_msg_get_payload(m);
+static void rx_pre_changed_cb(void *s, brass_msg_t *m) {
+    const uint64_t  *freq = brass_msg_get_payload(m);
     band_t          *band = band_tree_find(tree, *freq, *freq);
 
     if (band) {
@@ -68,9 +68,9 @@ void bands_init() {
     for (size_t i = 0; i < bands->count; i++)
         band_tree_insert(tree, &bands->item[i]);
 
-    lv_msg_subsribe(MSG_RATE_FFT_CHANGED, reload_cb, NULL);
-    lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, reload_cb, NULL);
-    lv_msg_subsribe(MSG_FREQ_RX_PRE_CHANGED, rx_pre_changed_cb, NULL);
+    brass_msg_subscribe(MSG_RATE_FFT_CHANGED, reload_cb, NULL);
+    brass_msg_subscribe(MSG_FREQ_FFT_CHANGED, reload_cb, NULL);
+    brass_msg_subscribe(MSG_FREQ_RX_PRE_CHANGED, rx_pre_changed_cb, NULL);
 
     band_t *band = band_tree_find(tree, op_work->rx, op_work->rx);
 
@@ -88,7 +88,7 @@ void bands_activate(band_t *band, bool touch_freq) {
     band_settings = &band->settings;
     op_work = &band->work;
 
-    lv_msg_send(MSG_BAND_CHANGED, NULL);
+    brass_msg_send(MSG_BAND_CHANGED, NULL);
 
     if (touch_freq) {
         if (op_work->rx == 0) {
@@ -105,7 +105,7 @@ void bands_activate(band_t *band, bool touch_freq) {
     }
 
     op_work_activate(touch_freq);
-    lv_msg_send(MSG_MODE_CHANGED, &op_work->mode);
+    brass_msg_send(MSG_MODE_CHANGED, &op_work->mode);
 }
 
 void bands_change(bool up) {

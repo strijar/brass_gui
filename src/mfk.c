@@ -322,7 +322,7 @@ void mfk_update(int16_t diff, bool voice) {
             if (diff != 0) {
                 rf->ant = limit(rf->ant + diff, 1, 5);
 
-                lv_msg_send(MSG_ANT_CHANGED, &rf->ant);
+                brass_msg_send(MSG_ANT_CHANGED, &rf->ant);
             }
             msg_set_text_fmt("%c Antenna : %i", mode, rf->ant);
 
