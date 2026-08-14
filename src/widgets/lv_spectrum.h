@@ -26,22 +26,11 @@ typedef struct {
     uint32_t    time;
 } lv_spectrum_peak_t;
 
-typedef struct {
-    lv_obj_t            obj;
+typedef struct lv_spectrum_t lv_spectrum_t;
 
-    int16_t             min;
-    int16_t             max;
-    int32_t             span;
-    int16_t             delta_surplus;
-    bool                filled;
-    bool                peak_on;
-    uint16_t            peak_hold;
-    float               peak_speed;
-
-    uint16_t            data_size;
-    float               *data_buf;
-    lv_spectrum_peak_t  *peak_buf;
-} lv_spectrum_t;
+enum {
+    LV_PART_SPECTRUM_PEAK = LV_PART_CUSTOM_FIRST,
+};
 
 extern const lv_obj_class_t lv_spectrum_class;
 

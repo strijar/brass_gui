@@ -10,8 +10,16 @@
 
 #include <stdlib.h>
 #include "lv_bandinfo.h"
+#include "lv_hiding_private.h"
+#include "lvgl/src/core/lv_obj_class_private.h"
 #include "src/bands/bands.h"
 #include "src/msgs.h"
+
+struct lv_bandinfo_t {
+    lv_hiding_t obj;
+    uint64_t    center;
+    int32_t     span;
+};
 
 /*********************
  *      DEFINES
@@ -104,10 +112,12 @@ static void lv_bandinfo_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         }
 
         lv_bandinfo_t   *bandinfo = (lv_bandinfo_t *) obj;
-        lv_draw_ctx_t   *draw_ctx = lv_event_get_draw_ctx(e);
+        lv_layer_t      *layer = lv_event_get_layer(e);
 
-        lv_coord_t      x1 = obj->coords.x1;
-        lv_coord_t      y1 = obj->coords.y1;
+        lv_area_t       obj_coords;
+        lv_obj_get_coords(obj, &obj_coords);
+        lv_coord_t      x1 = obj_coords.x1;
+        lv_coord_t      y1 = obj_coords.y1;
         lv_coord_t      w = lv_obj_get_width(obj);
         lv_coord_t      h = lv_obj_get_height(obj) - 1;
         band_listtrav_t *trav = band_listtrav_new(list);
@@ -142,8 +152,8 @@ static void lv_bandinfo_event(const lv_obj_class_t * class_p, lv_event_t * e) {
                 lv_obj_init_draw_rect_dsc(obj, LV_PART_INDICATOR, &rect_dsc);
                 lv_obj_init_draw_label_dsc(obj, LV_PART_INDICATOR, &dsc_label);
             } else {
-                lv_obj_init_draw_rect_dsc(obj, LV_PART_TICKS, &rect_dsc);
-                lv_obj_init_draw_label_dsc(obj, LV_PART_TICKS, &dsc_label);
+                lv_obj_init_draw_rect_dsc(obj, LV_PART_BANDINFO_MARKER, &rect_dsc);
+                lv_obj_init_draw_label_dsc(obj, LV_PART_BANDINFO_MARKER, &dsc_label);
             }
 
             /* Rect */
@@ -153,7 +163,7 @@ static void lv_bandinfo_event(const lv_obj_class_t * class_p, lv_event_t * e) {
             area.x2 = x1 + stop - 2;
             area.y2 = y1 + h;
 
-            lv_draw_rect(draw_ctx, &rect_dsc, &area);
+            lv_draw_rect(layer, &rect_dsc, &area);
 
             /* Label */
 
@@ -166,7 +176,8 @@ static void lv_bandinfo_event(const lv_obj_class_t * class_p, lv_event_t * e) {
                 area.x2 = x1 + (start + stop / 2 + label_size.x / 2);
                 area.y2 = y1 + h;
 
-                lv_draw_label(draw_ctx, &dsc_label, &area, band->settings.label, NULL);
+                dsc_label.text = band->settings.label;
+                lv_draw_label(layer, &dsc_label, &area);
             }
         }
 

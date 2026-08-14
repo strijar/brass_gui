@@ -22,12 +22,11 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 
-typedef struct {
-    lv_hiding_t         obj;
+typedef struct lv_bandinfo_t lv_bandinfo_t;
 
-    uint64_t            center;
-    int32_t             span;
-} lv_bandinfo_t;
+enum {
+    LV_PART_BANDINFO_MARKER = LV_PART_CUSTOM_FIRST,
+};
 
 extern const lv_obj_class_t lv_bandinfo_class;
 

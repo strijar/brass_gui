@@ -10,6 +10,25 @@
 
 #include <stdlib.h>
 #include "lv_spectrum.h"
+#include "lvgl/src/core/lv_obj_class_private.h"
+#include "lvgl/src/core/lv_obj_private.h"
+
+struct lv_spectrum_t {
+    lv_obj_t            obj;
+
+    int16_t             min;
+    int16_t             max;
+    int32_t             span;
+    int16_t             delta_surplus;
+    bool                filled;
+    bool                peak_on;
+    uint16_t            peak_hold;
+    float               peak_speed;
+
+    uint16_t            data_size;
+    float               *data_buf;
+    lv_spectrum_peak_t  *peak_buf;
+};
 
 /*********************
  *      DEFINES
@@ -58,8 +77,8 @@ void lv_spectrum_set_data_size(lv_obj_t * obj, uint16_t size) {
     lv_spectrum_t * spectrum = (lv_spectrum_t *)obj;
 
     spectrum->data_size = size;
-    spectrum->data_buf = lv_mem_realloc(spectrum->data_buf, size * sizeof(float));
-    spectrum->peak_buf = lv_mem_realloc(spectrum->peak_buf, size * sizeof(lv_spectrum_peak_t));
+    spectrum->data_buf = lv_realloc(spectrum->data_buf, size * sizeof(float));
+    spectrum->peak_buf = lv_realloc(spectrum->peak_buf, size * sizeof(lv_spectrum_peak_t));
 }
 
 void lv_spectrum_clear_data(lv_obj_t * obj) {
@@ -84,7 +103,9 @@ void lv_spectrum_scroll_data(lv_obj_t * obj, int32_t df) {
     lv_spectrum_peak_t  *from, *to;
     uint32_t            now = lv_tick_get();
 
+    if (spectrum->data_size == 0) return;
     uint16_t            div = spectrum->span / spectrum->data_size;
+    if (div == 0) return;
     int16_t             surplus = df % div;
     int32_t             delta = df / div;
     
@@ -243,8 +264,8 @@ static void lv_spectrum_destructor(const lv_obj_class_t * class_p, lv_obj_t * ob
     LV_UNUSED(class_p);
     lv_spectrum_t * spectrum = (lv_spectrum_t *)obj;
 
-    if (spectrum->data_buf) lv_mem_free(spectrum->data_buf);
-    if (spectrum->peak_buf) lv_mem_free(spectrum->peak_buf);
+    if (spectrum->data_buf) lv_free(spectrum->data_buf);
+    if (spectrum->peak_buf) lv_free(spectrum->peak_buf);
 }
 
 static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
@@ -259,7 +280,7 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
 
     if (code == LV_EVENT_DRAW_MAIN_END) {
         lv_spectrum_t   *spectrum = (lv_spectrum_t *) obj;
-        lv_draw_ctx_t   *draw_ctx = lv_event_get_draw_ctx(e);
+        lv_layer_t      *layer = lv_event_get_layer(e);
 
         lv_draw_line_dsc_t  main_line_dsc;
         lv_draw_line_dsc_t  peak_line_dsc;
@@ -271,11 +292,13 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
 
         if (spectrum->peak_on) {
             lv_draw_line_dsc_init(&peak_line_dsc);
-            lv_obj_init_draw_line_dsc(obj, LV_PART_TICKS, &peak_line_dsc);
+            lv_obj_init_draw_line_dsc(obj, LV_PART_SPECTRUM_PEAK, &peak_line_dsc);
         }
 
-        lv_coord_t x1 = obj->coords.x1;
-        lv_coord_t y1 = obj->coords.y1;
+        lv_area_t obj_coords;
+        lv_obj_get_coords(obj, &obj_coords);
+        lv_coord_t x1 = obj_coords.x1;
+        lv_coord_t y1 = obj_coords.y1;
 
         lv_coord_t w = lv_obj_get_width(obj);
         lv_coord_t h = lv_obj_get_height(obj);
@@ -305,7 +328,11 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
                 peak_a.x = x1 + x;
                 peak_a.y = y1 + (1.0f - v_peak) * h;
 
-                lv_draw_line(draw_ctx, &peak_line_dsc, &peak_a, &peak_b);
+                peak_line_dsc.p1.x = peak_a.x;
+                peak_line_dsc.p1.y = peak_a.y;
+                peak_line_dsc.p2.x = peak_b.x;
+                peak_line_dsc.p2.y = peak_b.y;
+                lv_draw_line(layer, &peak_line_dsc);
 
                 peak_b = peak_a;
             }
@@ -320,7 +347,11 @@ static void lv_spectrum_event(const lv_obj_class_t * class_p, lv_event_t * e) {
                 main_b.y = y1 + h;
             }
 
-            lv_draw_line(draw_ctx, &main_line_dsc, &main_a, &main_b);
+            main_line_dsc.p1.x = main_a.x;
+            main_line_dsc.p1.y = main_a.y;
+            main_line_dsc.p2.x = main_b.x;
+            main_line_dsc.p2.y = main_b.y;
+            lv_draw_line(layer, &main_line_dsc);
 
             if (!spectrum->filled) {
                 main_b = main_a;

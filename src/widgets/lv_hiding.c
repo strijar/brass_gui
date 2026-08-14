@@ -9,6 +9,8 @@
  *********************/
 
 #include "lv_hiding.h"
+#include "lv_hiding_private.h"
+#include "lvgl/src/core/lv_obj_class_private.h"
 
 /*********************
  *      DEFINES
@@ -80,7 +82,7 @@ void lv_hiding_touch(lv_obj_t * obj) {
  **********************/
 
 static void msg_timer(lv_timer_t *t) {
-    lv_hiding_t * hiding = (lv_hiding_t *) t->user_data;
+    lv_hiding_t * hiding = lv_timer_get_user_data(t);
 
     lv_anim_set_values(&hiding->fade, lv_obj_get_style_opa((lv_obj_t *) hiding, 0), LV_OPA_TRANSP);
     lv_anim_start(&hiding->fade);
