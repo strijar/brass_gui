@@ -9,6 +9,7 @@
  *********************/
 
 #include "lv_finder.h"
+#include "lvgl/src/core/lv_obj_class_private.h"
 #include "lvgl/src/core/lv_obj_private.h"
 
 struct lv_finder_t {
@@ -236,11 +237,13 @@ static void lv_finder_event(const lv_obj_class_t * class_p, lv_event_t * e) {
 
     if (code == LV_EVENT_DRAW_MAIN_END) {
         lv_finder_t     *finder = (lv_finder_t *) obj;
-        lv_draw_ctx_t   *draw_ctx = lv_event_get_draw_ctx(e);
+        lv_layer_t      *layer = lv_event_get_layer(e);
         lv_area_t       area;
 
-        lv_coord_t      x1 = obj->coords.x1;
-        lv_coord_t      y1 = obj->coords.y1;
+        lv_area_t       obj_coords;
+        lv_obj_get_coords(obj, &obj_coords);
+        lv_coord_t      x1 = obj_coords.x1;
+        lv_coord_t      y1 = obj_coords.y1;
         lv_coord_t      w = lv_obj_get_width(obj);
         lv_coord_t      h = lv_obj_get_height(obj);
         uint16_t        border = lv_obj_get_style_border_width(obj, LV_PART_INDICATOR);
@@ -262,7 +265,7 @@ static void lv_finder_event(const lv_obj_class_t * class_p, lv_event_t * e) {
         lv_draw_rect_dsc_init(&draw_dsc);
         lv_obj_init_draw_rect_dsc(obj, LV_PART_INDICATOR, &draw_dsc);
 
-        lv_draw_rect(draw_ctx, &draw_dsc, &area);
+        lv_draw_rect(layer, &draw_dsc, &area);
 
         /* Cursors */
 
@@ -281,7 +284,11 @@ static void lv_finder_event(const lv_obj_class_t * class_p, lv_event_t * e) {
                 b.x = a.x;
                 b.y = area.y2;
 
-                lv_draw_line(draw_ctx, &line_dsc, &a, &b);
+                line_dsc.p1.x = a.x;
+                line_dsc.p1.y = a.y;
+                line_dsc.p2.x = b.x;
+                line_dsc.p2.y = b.y;
+                lv_draw_line(layer, &line_dsc);
             }
         }
     }

@@ -21,23 +21,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 
-typedef struct {
-    lv_obj_t        obj;
-
-    lv_obj_t        *img;
-    lv_img_dsc_t    *dsc;
-
-    uint32_t        line_len;
-    uint8_t         *line_buf;
-
-    lv_color_t      palette[256];
-
-    int16_t         min;
-    int16_t         max;
-    int32_t         span;
-    int16_t         scroll_surplus;
-    int32_t         scroll;
-} lv_waterfall_t;
+typedef struct lv_waterfall_t lv_waterfall_t;
 
 extern const lv_obj_class_t lv_waterfall_class;
 
