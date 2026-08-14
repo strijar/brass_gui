@@ -21,7 +21,7 @@ typedef enum {
 extern rotary_t     *vol;
 extern encoder_t    *mfk;
 
-void lv_lock();
-void lv_unlock();
+void brass_lv_lock();
+void brass_lv_unlock();
 
 void main_exit();

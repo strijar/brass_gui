@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <math.h>
+#include <string.h>
 
 #include "lvgl/lvgl.h"
 #include "dialog.h"
@@ -139,6 +140,8 @@ static void draw_cb(lv_event_t * e) {
 
     lv_draw_label_dsc_t dsc_label;
     lv_draw_label_dsc_init(&dsc_label);
+    dsc_label.text_local = 1;
+    dsc_label.text_static = 0;
     
     dsc_label.color = lv_color_white();
 /* FIXME    dsc_label.font = font_swrscan; */
@@ -170,6 +173,7 @@ static void draw_cb(lv_event_t * e) {
         area.y2 = a.y + label_size.y / 2;
 
         dsc_label.text = str;
+        dsc_label.text_length = strlen(str);
         lv_draw_label(layer, &dsc_label, &area);
     }
     
@@ -199,6 +203,7 @@ static void draw_cb(lv_event_t * e) {
         area.y2 = area.y1 + label_size.y;
 
         dsc_label.text = str;
+        dsc_label.text_length = strlen(str);
         lv_draw_label(layer, &dsc_label, &area);
     }
 

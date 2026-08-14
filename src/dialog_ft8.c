@@ -154,6 +154,7 @@ static uint64_t             waterfall_time;
 static pthread_cond_t       audio_cond;
 static pthread_mutex_t      audio_mutex;
 static cbuffercf            audio_buf;
+static float complex       *audio_frame;
 static pthread_t            thread;
 
 static complex float        *rx_window = NULL;
@@ -254,6 +255,7 @@ static void init() {
     subblock_size = block_size / TIME_OSR;
     nfft = block_size * FREQ_OSR;
     fft_norm = 2.0f / nfft;
+    audio_frame = malloc(block_size * sizeof(*audio_frame));
 
     const uint32_t max_blocks = slot_time / symbol_period;
     const uint32_t num_bins = ADC_RATE * symbol_period / 2;
@@ -327,6 +329,8 @@ static void done() {
     free(waterfall_psd);
 
     free(rx_window);
+    free(audio_frame);
+    audio_frame = NULL;
 }
 
 static void send_info(const char * fmt, ...) {
@@ -412,6 +416,27 @@ static void send_tx_text(const char * text) {
     queue_send(table, EVENT_FT8_MSG, msg);
 }
 
+static void free_pending_msg(void *param) {
+    ft8_msg_t *msg = param;
+
+    free(msg->msg);
+    lv_free(msg->cell);
+    free(msg);
+}
+
+static void free_table_cells() {
+    if (table == NULL) return;
+
+    uint32_t rows = lv_table_get_row_count(table);
+    for (uint32_t row = 0; row < rows; row++) {
+        ft8_cell_t *cell = lv_table_get_cell_user_data(table, row, 0);
+        if (cell != NULL) {
+            lv_free(cell);
+            lv_table_set_cell_user_data(table, row, 0, NULL);
+        }
+    }
+}
+
 static void decode() {
     uint16_t    num_candidates = ft8_find_sync(&wf, MAX_CANDIDATES, candidate_list, MIN_SCORE);
 
@@ -468,9 +493,9 @@ void static waterfall_process(float complex *frame, const size_t size) {
 
         spgramcf_get_psd(waterfall_sg, waterfall_psd);
 
-        lv_lock();
+        brass_lv_lock();
         lv_waterfall_add_data(waterfall, &waterfall_psd[low_bin], high_bin - low_bin);
-        lv_unlock();
+        brass_lv_unlock();
 
         waterfall_time = now;
         spgramcf_reset(waterfall_sg);
@@ -584,15 +609,16 @@ static void rx_worker(bool sync) {
         pthread_cond_wait(&audio_cond, &audio_mutex);
     }
 
-    pthread_mutex_unlock(&audio_mutex);
-
-    while (cbuffercf_size(audio_buf) > block_size) {
+    while (cbuffercf_size(audio_buf) >= block_size) {
         cbuffercf_read(audio_buf, block_size, &buf, &n);
+        memcpy(audio_frame, buf, block_size * sizeof(*audio_frame));
+        cbuffercf_release(audio_buf, block_size);
+        pthread_mutex_unlock(&audio_mutex);
 
-        waterfall_process(buf, block_size);
+        waterfall_process(audio_frame, block_size);
 
         if (sync) {
-            process(buf);
+            process(audio_frame);
 
             if (wf.num_blocks >= wf.max_blocks) {
                 decode();
@@ -600,8 +626,10 @@ static void rx_worker(bool sync) {
             }
         }
 
-        cbuffercf_release(audio_buf, block_size);
+        pthread_mutex_lock(&audio_mutex);
     }
+
+    pthread_mutex_unlock(&audio_mutex);
 }
 
 static void tx_worker() {
@@ -739,6 +767,8 @@ static void add_msg_cb(lv_event_t * e) {
     }
 
     table_rows++;
+    free(msg->msg);
+    msg->msg = NULL;
 }
 
 static void fill_style(lv_obj_t *obj, lv_draw_label_dsc_t *dsc, lv_style_selector_t part) {
@@ -780,11 +810,15 @@ static void table_draw_task_cb(lv_event_t * e) {
         extra.base.id1 = UINT32_MAX;
         extra.base.id2 = UINT32_MAX;
         extra.align = LV_TEXT_ALIGN_RIGHT;
+        extra.text_local = 1;
+        extra.text_static = 0;
+        extra.hint = NULL;
 
         area.x2 -= 15;
         area.x1 = area.x2 - 120;
         snprintf(buf, sizeof(buf), "%i dB", cell->snr);
         extra.text = buf;
+        extra.text_length = strlen(buf);
         lv_draw_label(extra.base.layer, &extra, &area);
 
         if (cell->dist > 0) {
@@ -792,6 +826,7 @@ static void table_draw_task_cb(lv_event_t * e) {
             area.x1 = area.x2 - 200;
             snprintf(buf, sizeof(buf), "%i km", cell->dist);
             extra.text = buf;
+            extra.text_length = strlen(buf);
             lv_draw_label(extra.base.layer, &extra, &area);
         }
     }
@@ -807,7 +842,24 @@ static void selected_msg_cb(lv_event_t * e) {
 static void destruct_cb() {
     done();
 
+    if (timer != NULL) {
+        lv_timer_delete(timer);
+        timer = NULL;
+    }
+    lv_anim_delete(table, NULL);
+    fade_run = false;
+    queue_cancel(table, EVENT_FT8_MSG, free_pending_msg);
+
     free(audio_buf);
+    audio_buf = NULL;
+
+    free_table_cells();
+    lv_obj_delete(table);
+    table = NULL;
+
+    lv_obj_delete(waterfall);
+    waterfall = NULL;
+    finder = NULL;
     op_work_restore();
 
     main_screen_lock_mode(false);
@@ -832,6 +884,7 @@ static void load_band() {
 static void clean() {
     reset();
 
+    free_table_cells();
     lv_table_set_row_cnt(table, 1);
     lv_table_set_cell_value(table, 0, 0, "Wait sync");
 
@@ -1289,18 +1342,30 @@ static void tx_call_en_cb(lv_event_t * e) {
 }
 
 static void audio_cb(float complex *samples, size_t n) {
+    static uint64_t last_overflow_log;
+
     if (state == NOT_READY) {
         return;
     }
 
     if (state == IDLE || state == RX_PROCESS) {
+        bool overflow = false;
+
+        pthread_mutex_lock(&audio_mutex);
         if (cbuffercf_space_available(audio_buf) >= n) {
-            pthread_mutex_lock(&audio_mutex);
-            pthread_cond_broadcast(&audio_cond);
             cbuffercf_write(audio_buf, samples, n);
-            pthread_mutex_unlock(&audio_mutex);
+            pthread_cond_signal(&audio_cond);
         } else {
-            LV_LOG_WARN("Buffer over");
+            overflow = true;
+        }
+        pthread_mutex_unlock(&audio_mutex);
+
+        if (overflow) {
+            uint64_t now = get_time();
+            if (now - last_overflow_log >= 1000) {
+                LV_LOG_WARN("Audio buffer overflow");
+                last_overflow_log = now;
+            }
         }
     }
 }

@@ -33,9 +33,9 @@ static void * gps_thread(void *arg) {
                         struct gps_data_t *msg = malloc(sizeof(struct gps_data_t));
                         
                         memcpy(msg, &gpsdata, sizeof(*msg));
-                        lv_lock();
+                        brass_lv_lock();
                         lv_obj_send_event(dialog_gps->obj, EVENT_GPS, msg);
-                        lv_unlock();
+                        brass_lv_unlock();
                     }
                 }
             }

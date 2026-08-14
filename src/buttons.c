@@ -36,6 +36,7 @@
 typedef struct {
     lv_obj_t        *obj;
     button_item_t   *item;
+    lv_event_dsc_t  *event_dsc;
 } button_t;
 
 static uint8_t      btn_height = 59;
@@ -211,8 +212,14 @@ void buttons_init() {
 void buttons_load(uint8_t n, button_item_t *item) {
     lv_obj_t        *label = lv_obj_get_user_data(btn[n].obj);
 
-    lv_obj_remove_event_cb(btn[n].obj, NULL);
-    lv_obj_add_event_cb(btn[n].obj, item->press, LV_EVENT_PRESSED, item);
+    if (btn[n].event_dsc != NULL) {
+        lv_obj_remove_event_dsc(btn[n].obj, btn[n].event_dsc);
+        btn[n].event_dsc = NULL;
+    }
+
+    if (item->press != NULL) {
+        btn[n].event_dsc = lv_obj_add_event_cb(btn[n].obj, item->press, LV_EVENT_PRESSED, item);
+    }
     lv_label_set_text(label, item->label);
 
     btn[n].item = item;
@@ -230,7 +237,10 @@ void buttons_unload_page() {
     for (uint8_t i = 0; i < BUTTONS; i++) {
         lv_obj_t        *label = lv_obj_get_user_data(btn[i].obj);
 
-        lv_obj_remove_event_cb(btn[i].obj, NULL);
+        if (btn[i].event_dsc != NULL) {
+            lv_obj_remove_event_dsc(btn[i].obj, btn[i].event_dsc);
+            btn[i].event_dsc = NULL;
+        }
         lv_label_set_text(label, "");
         btn[i].item = NULL;
     }

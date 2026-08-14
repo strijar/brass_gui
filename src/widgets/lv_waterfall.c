@@ -293,7 +293,6 @@ static void lv_waterfall_destructor(const lv_obj_class_t * class_p, lv_obj_t * o
     LV_UNUSED(class_p);
     lv_waterfall_t * waterfall = (lv_waterfall_t *)obj;
 
-    if (waterfall->img) lv_image_set_src(waterfall->img, NULL);
     if (waterfall->draw_buf) lv_draw_buf_destroy(waterfall->draw_buf);
     if (waterfall->line_buf) lv_free(waterfall->line_buf);
 }

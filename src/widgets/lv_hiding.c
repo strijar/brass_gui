@@ -22,6 +22,7 @@
  **********************/
 
 static void lv_hiding_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj);
+static void lv_hiding_destructor(const lv_obj_class_t * class_p, lv_obj_t * obj);
 static void msg_timer(lv_timer_t *t);
 
 /**********************
@@ -30,6 +31,7 @@ static void msg_timer(lv_timer_t *t);
 
 const lv_obj_class_t lv_hiding_class  = {
     .constructor_cb = lv_hiding_constructor,
+    .destructor_cb = lv_hiding_destructor,
     .base_class = &lv_obj_class,
     .instance_size = sizeof(lv_hiding_t),
 };
@@ -116,4 +118,15 @@ static void lv_hiding_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj
     lv_anim_set_user_data(&hiding->fade, obj);
 
     LV_TRACE_OBJ_CREATE("finished");
+}
+
+static void lv_hiding_destructor(const lv_obj_class_t * class_p, lv_obj_t * obj) {
+    LV_UNUSED(class_p);
+    lv_hiding_t * hiding = (lv_hiding_t *)obj;
+
+    if (hiding->timer != NULL) {
+        lv_timer_delete(hiding->timer);
+        hiding->timer = NULL;
+    }
+    lv_anim_delete(obj, NULL);
 }

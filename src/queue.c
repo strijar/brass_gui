@@ -74,6 +74,7 @@ void queue_send(lv_obj_t *obj, lv_event_code_t event_code, void *param) {
     item->obj = obj;
     item->event_code = event_code;
     item->param = param;
+    item->next = NULL;
 
     pthread_mutex_lock(&mux);
 
@@ -82,6 +83,34 @@ void queue_send(lv_obj_t *obj, lv_event_code_t event_code, void *param) {
     } else {
         tail->next = item;
         tail = item;
+    }
+
+    pthread_mutex_unlock(&mux);
+}
+
+void queue_cancel(lv_obj_t *obj, lv_event_code_t event_code, void (*free_param)(void *)) {
+    pthread_mutex_lock(&mux);
+
+    item_t **link = &head;
+    while (*link != NULL) {
+        item_t *item = *link;
+
+        if (item->obj == obj && item->event_code == event_code) {
+            *link = item->next;
+            if (tail == item) tail = NULL;
+            if (item->param != NULL) {
+                if (free_param != NULL) free_param(item->param);
+                else free(item->param);
+            }
+            free(item);
+        } else {
+            link = &item->next;
+        }
+    }
+
+    if (head != NULL && tail == NULL) {
+        tail = head;
+        while (tail->next != NULL) tail = tail->next;
     }
 
     pthread_mutex_unlock(&mux);

@@ -8,6 +8,7 @@
 
 #include "lvgl/lvgl.h"
 #include "lvgl/src/drivers/display/fb/lv_linux_fbdev.h"
+#include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <time.h>
@@ -52,11 +53,16 @@ encoder_t                   *mfk;
 
 static pthread_mutex_t      mux;
 
-void lv_lock() {
+static void lv_log_stderr_cb(lv_log_level_t level, const char *buf) {
+    (void) level;
+    fprintf(stderr, "%s\n", buf);
+}
+
+void brass_lv_lock() {
     pthread_mutex_lock(&mux);
 }
 
-void lv_unlock() {
+void brass_lv_unlock() {
     pthread_mutex_unlock(&mux);
 }
 
@@ -108,6 +114,10 @@ int main(void) {
     keypad_t *keypad = keypad_init("/dev/input/event3");
     keypad_t *gpio = keypad_init("/dev/input/event4");
 
+    if (vol == NULL || mfk == NULL || main == NULL || keypad == NULL || gpio == NULL) {
+        return 1;
+    }
+
     vol->left[VOL_EDIT] = KEY_VOL_LEFT_EDIT;
     vol->right[VOL_EDIT] = KEY_VOL_RIGHT_EDIT;
 
@@ -118,6 +128,9 @@ int main(void) {
     styles_init();
 
     lv_obj_t *main_obj = main_screen();
+    if (main_obj == NULL) {
+        return 1;
+    }
 
     cw_init();
     cw_key_init();
@@ -136,12 +149,10 @@ int main(void) {
     uint64_t prev_time = get_time();
 
     lv_scr_load(main_obj);
+    bool first_loop = true;
 
     while (1) {
-        lv_lock();
-
-        lv_timer_handler();
-        queue_work();
+        brass_lv_lock();
 
         uint64_t now = get_time();
         uint64_t delta = now - prev_time;
@@ -149,7 +160,12 @@ int main(void) {
         lv_tick_inc(delta);
         prev_time = now;
 
-        lv_unlock();
+        lv_timer_handler();
+
+        queue_work();
+        first_loop = false;
+
+        brass_lv_unlock();
         usleep(100);
     }
 

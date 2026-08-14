@@ -12,4 +12,5 @@
 
 void queue_init();
 void queue_send(lv_obj_t *obj, lv_event_code_t event_code, void *param);
+void queue_cancel(lv_obj_t *obj, lv_event_code_t event_code, void (*free_param)(void *));
 void queue_work();
