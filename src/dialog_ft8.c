@@ -740,87 +740,58 @@ static void add_msg_cb(lv_event_t * e) {
     table_rows++;
 }
 
-static void fill_style(lv_obj_t *obj, lv_obj_draw_part_dsc_t *dsc, lv_style_selector_t part) {
-    dsc->label_dsc->font = lv_obj_get_style_text_font(obj, part);
-    dsc->label_dsc->color = lv_obj_get_style_text_color(obj, part);
-    dsc->label_dsc->align = lv_obj_get_style_text_align(obj, part);
+static void fill_style(lv_obj_t *obj, lv_draw_label_dsc_t *dsc, lv_style_selector_t part) {
+    dsc->font = lv_obj_get_style_text_font(obj, part);
+    dsc->color = lv_obj_get_style_text_color(obj, part);
+    dsc->align = lv_obj_get_style_text_align(obj, part);
 }
 
-static void table_draw_part_begin_cb(lv_event_t * e) {
-    lv_obj_t                *obj = lv_event_get_target(e);
-    lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
+static void table_draw_task_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+    lv_draw_task_t *task = lv_event_get_draw_task(e);
+    lv_draw_label_dsc_t *dsc = lv_draw_task_get_label_dsc(task);
+    if (dsc == NULL || dsc->base.id1 == UINT32_MAX) return;
 
-    if (dsc->part == LV_PART_ITEMS) {
-        uint32_t    row = dsc->id / lv_table_get_col_cnt(obj);
-        uint32_t    col = dsc->id - row * lv_table_get_col_cnt(obj);
-        ft8_cell_t  *cell = lv_table_get_cell_user_data(obj, row, col);
+    uint32_t row = dsc->base.id1;
+    uint32_t col = dsc->base.id2;
+    if (row >= lv_table_get_row_cnt(obj) || col >= lv_table_get_col_cnt(obj)) return;
 
-        if (cell == NULL) {
-            fill_style(obj, dsc, LV_PART_RX_INFO);
-            return;
-        }
-
-        switch (cell->type) {
-            case MSG_RX_INFO:
-                fill_style(obj, dsc, LV_PART_RX_INFO);
-                break;
-
-            case MSG_RX_MSG:
-                fill_style(obj, dsc, LV_PART_RX_MSG);
-                break;
-
-            case MSG_RX_CQ:
-                fill_style(obj, dsc, LV_PART_RX_CQ);
-                break;
-
-            case MSG_RX_TO_ME:
-                fill_style(obj, dsc, LV_PART_RX_TO_ME);
-                break;
-
-            case MSG_TX_MSG:
-                fill_style(obj, dsc, LV_PART_TX_MSG);
-                break;
-        }
+    ft8_cell_t *cell = lv_table_get_cell_user_data(obj, row, col);
+    if (cell == NULL) {
+        fill_style(obj, dsc, LV_PART_RX_INFO);
+        return;
     }
-}
 
-static void table_draw_part_end_cb(lv_event_t * e) {
-    lv_obj_t                *obj = lv_event_get_target(e);
-    lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
+    switch (cell->type) {
+        case MSG_RX_INFO:  fill_style(obj, dsc, LV_PART_RX_INFO); break;
+        case MSG_RX_MSG:   fill_style(obj, dsc, LV_PART_RX_MSG); break;
+        case MSG_RX_CQ:    fill_style(obj, dsc, LV_PART_RX_CQ); break;
+        case MSG_RX_TO_ME: fill_style(obj, dsc, LV_PART_RX_TO_ME); break;
+        case MSG_TX_MSG:   fill_style(obj, dsc, LV_PART_TX_MSG); break;
+    }
 
-    if (dsc->part == LV_PART_ITEMS) {
-        uint32_t    row = dsc->id / lv_table_get_col_cnt(obj);
-        uint32_t    col = dsc->id - row * lv_table_get_col_cnt(obj);
-        ft8_cell_t  *cell = lv_table_get_cell_user_data(obj, row, col);
+    if (cell->type == MSG_RX_MSG || cell->type == MSG_RX_CQ || cell->type == MSG_RX_TO_ME) {
+        char buf[64];
+        lv_area_t area;
+        lv_draw_task_get_area(task, &area);
 
-        if (cell == NULL) {
-            return;
-        }
+        lv_draw_label_dsc_t extra = *dsc;
+        extra.base.id1 = UINT32_MAX;
+        extra.base.id2 = UINT32_MAX;
+        extra.align = LV_TEXT_ALIGN_RIGHT;
 
-        if (cell->type == MSG_RX_MSG || cell->type == MSG_RX_CQ || cell->type == MSG_RX_TO_ME) {
-            char                buf[64];
-            const lv_coord_t    cell_top = lv_obj_get_style_pad_top(obj, LV_PART_ITEMS);
-            const lv_coord_t    cell_bottom = lv_obj_get_style_pad_bottom(obj, LV_PART_ITEMS);
-            lv_area_t           area;
+        area.x2 -= 15;
+        area.x1 = area.x2 - 120;
+        snprintf(buf, sizeof(buf), "%i dB", cell->snr);
+        extra.text = buf;
+        lv_draw_label(extra.base.layer, &extra, &area);
 
-            dsc->label_dsc->align = LV_TEXT_ALIGN_RIGHT;
-
-            area.y1 = dsc->draw_area->y1 + cell_top;
-            area.y2 = dsc->draw_area->y2 - cell_bottom;
-
-            area.x2 = dsc->draw_area->x2 - 15;
-            area.x1 = area.x2 - 120;
-
-            snprintf(buf, sizeof(buf), "%i dB", cell->snr);
-            lv_draw_label(dsc->draw_ctx, dsc->label_dsc, &area, buf, NULL);
-
-            if (cell->dist > 0) {
-                area.x2 = area.x1 - 10;
-                area.x1 = area.x2 - 200;
-
-                snprintf(buf, sizeof(buf), "%i km", cell->dist);
-                lv_draw_label(dsc->draw_ctx, dsc->label_dsc, &area, buf, NULL);
-            }
+        if (cell->dist > 0) {
+            area.x2 = area.x1 - 10;
+            area.x1 = area.x2 - 200;
+            snprintf(buf, sizeof(buf), "%i km", cell->dist);
+            extra.text = buf;
+            lv_draw_label(extra.base.layer, &extra, &area);
         }
     }
 }
@@ -1154,8 +1125,8 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_event_cb(table, selected_msg_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(table, tx_call_dis_cb, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(table, dialog_key_cb, LV_EVENT_KEY, NULL);
-    lv_obj_add_event_cb(table, table_draw_part_begin_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
-    lv_obj_add_event_cb(table, table_draw_part_end_cb, LV_EVENT_DRAW_PART_END, NULL);
+    lv_obj_add_flag(table, LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS);
+    lv_obj_add_event_cb(table, table_draw_task_cb, LV_EVENT_DRAW_TASK_ADDED, NULL);
 
     lv_group_add_obj(keyboard_group, table);
     lv_group_set_editing(keyboard_group, true);

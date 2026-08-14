@@ -116,14 +116,17 @@ static lv_coord_t calc_y(float vswr) {
 
 static void draw_cb(lv_event_t * e) {
     lv_obj_t            *obj = lv_event_get_target(e);
-    lv_draw_ctx_t       *draw_ctx = lv_event_get_draw_ctx(e);
+    lv_layer_t          *layer = lv_event_get_layer(e);
     lv_draw_line_dsc_t  line_dsc;
     char                str[32];
 
     lv_draw_line_dsc_init(&line_dsc);
     
-    lv_coord_t x1 = obj->coords.x1;
-    lv_coord_t y1 = obj->coords.y1;
+    lv_area_t obj_coords;
+    lv_obj_get_coords(obj, &obj_coords);
+
+    lv_coord_t x1 = obj_coords.x1;
+    lv_coord_t y1 = obj_coords.y1;
 
     lv_coord_t w = lv_obj_get_width(obj);
     lv_coord_t h = lv_obj_get_height(obj);
@@ -152,7 +155,11 @@ static void draw_cb(lv_event_t * e) {
         a.y = y1 + calc_y(y);
         b.y = a.y;
 
-        lv_draw_line(draw_ctx, &line_dsc, &a, &b);
+        line_dsc.p1.x = a.x;
+        line_dsc.p1.y = a.y;
+        line_dsc.p2.x = b.x;
+        line_dsc.p2.y = b.y;
+        lv_draw_line(layer, &line_dsc);
 
         snprintf(str, sizeof(str), "%.1f", y);
         lv_txt_get_size(&label_size, str, dsc_label.font, 0, 0, LV_COORD_MAX, 0);
@@ -162,7 +169,8 @@ static void draw_cb(lv_event_t * e) {
         area.x2 = a.x + label_size.x;
         area.y2 = a.y + label_size.y / 2;
 
-        lv_draw_label(draw_ctx, &dsc_label, &area, str, NULL);
+        dsc_label.text = str;
+        lv_draw_label(layer, &dsc_label, &area);
     }
     
     uint64_t    freq = freq_center - settings_swrscan->span / 4;
@@ -175,7 +183,11 @@ static void draw_cb(lv_event_t * e) {
         a.x = x1 + w / 2 + (w / 4) * x;
         b.x = a.x;
 
-        lv_draw_line(draw_ctx, &line_dsc, &a, &b);
+        line_dsc.p1.x = a.x;
+        line_dsc.p1.y = a.y;
+        line_dsc.p2.x = b.x;
+        line_dsc.p2.y = b.y;
+        lv_draw_line(layer, &line_dsc);
 
         split_freq(freq, &mhz, &khz, &hz);
         snprintf(str, sizeof(str), "%i.%03i.%03i", mhz, khz, hz);
@@ -186,7 +198,8 @@ static void draw_cb(lv_event_t * e) {
         area.x2 = area.x1 + label_size.x;
         area.y2 = area.y1 + label_size.y;
 
-        lv_draw_label(draw_ctx, &dsc_label, &area, str, NULL);
+        dsc_label.text = str;
+        lv_draw_label(layer, &dsc_label, &area);
     }
 
     /* Chart */
@@ -201,7 +214,11 @@ static void draw_cb(lv_event_t * e) {
         b.x = x1 + (i) * w / STEPS;
         b.y = y1 + calc_y(data_filtered[i]);
 
-        lv_draw_line(draw_ctx, &line_dsc, &a, &b);
+        line_dsc.p1.x = a.x;
+        line_dsc.p1.y = a.y;
+        line_dsc.p2.x = b.x;
+        line_dsc.p2.y = b.y;
+        lv_draw_line(layer, &line_dsc);
     }
 }
 
