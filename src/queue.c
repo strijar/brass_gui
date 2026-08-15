@@ -34,10 +34,15 @@ void queue_work() {
     while (head != NULL) {
         item_t *item = head;
 
+        head = item->next;
+        if (head == NULL) {
+            tail = NULL;
+        }
+
         pthread_mutex_unlock(&mux);
 
         if (item->event_code == LV_EVENT_REFRESH) {
-            if (backlight_is_on()) {
+            if (backlight_is_on() && lv_obj_is_valid(item->obj)) {
                 lv_obj_invalidate(item->obj);
             }
         } else if (item->event_code == EVENT_MSG_UPDATE) {
@@ -46,17 +51,11 @@ void queue_work() {
         } else if (item->event_code == EVENT_MSG_TINY_UPDATE) {
             brass_msg_send(MSG_MSG_TINY, item->param);
             item->param = NULL;
-        } else {
+        } else if (item->obj != NULL && lv_obj_is_valid(item->obj)) {
             lv_obj_send_event(item->obj, item->event_code, item->param);
         }
 
         pthread_mutex_lock(&mux);
-
-        if (head == tail) {
-            head = tail  = NULL;
-        } else {
-            head = head->next;
-        }
 
         if (item->param != NULL) {
             free(item->param);
@@ -70,6 +69,10 @@ void queue_work() {
 
 void queue_send(lv_obj_t *obj, lv_event_code_t event_code, void *param) {
     item_t *item = malloc(sizeof(item_t));
+
+    if (item == NULL) {
+        return;
+    }
 
     item->obj = obj;
     item->event_code = event_code;

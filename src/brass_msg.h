@@ -23,6 +23,7 @@ typedef void (*brass_msg_cb_t)(void *subscriber, brass_msg_t *msg);
 void brass_msg_send(uint32_t id, const void *payload);
 brass_msg_subscription_t *brass_msg_subscribe(uint32_t id, brass_msg_cb_t callback, void *user_data);
 brass_msg_subscription_t *brass_msg_subscribe_obj(uint32_t id, lv_obj_t *obj, void *user_data);
+brass_msg_subscription_t *brass_msg_subscribe_obj_cb(uint32_t id, lv_obj_t *obj, brass_msg_cb_t callback);
 void brass_msg_unsubscribe(brass_msg_subscription_t *subscription);
 
 static inline uint32_t brass_msg_get_id(const brass_msg_t *msg) {

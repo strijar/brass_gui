@@ -21,13 +21,14 @@ static int waterfall_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_waterfall_create(parent);
+    python_lv_set_obj(self, lv_waterfall_create(parent));
 
     return 0;
 }
 
 static PyObject * waterfall_set_data_size(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     int w;
 
@@ -40,6 +41,7 @@ static PyObject * waterfall_set_data_size(obj_object_t *self, PyObject *args) {
 
 static PyObject * waterfall_clear_data(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     lv_waterfall_clear_data(self->obj);
 
@@ -48,6 +50,7 @@ static PyObject * waterfall_clear_data(obj_object_t *self, PyObject *args) {
 
 static PyObject * waterfall_set_grad(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     PyObject *grad = NULL;
 

@@ -20,13 +20,14 @@ static int spectrum_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_spectrum_create(parent);
+    python_lv_set_obj(self, lv_spectrum_create(parent));
 
     return 0;
 }
 
 static PyObject * spectrum_set_data_size(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     int size;
 
@@ -39,6 +40,7 @@ static PyObject * spectrum_set_data_size(obj_object_t *self, PyObject *args) {
 
 static PyObject * spectrum_clear_data(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     lv_spectrum_clear_data(self->obj);
 
@@ -47,6 +49,7 @@ static PyObject * spectrum_clear_data(obj_object_t *self, PyObject *args) {
 
 static PyObject * spectrum_set_peak(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     int on;
 
@@ -59,6 +62,7 @@ static PyObject * spectrum_set_peak(obj_object_t *self, PyObject *args) {
 
 static PyObject * spectrum_set_peak_hold(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     int ms;
 
@@ -71,6 +75,7 @@ static PyObject * spectrum_set_peak_hold(obj_object_t *self, PyObject *args) {
 
 static PyObject * spectrum_set_peak_speed(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     float db;
 

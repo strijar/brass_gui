@@ -121,5 +121,6 @@ extern uint32_t EVENT_MSG_TINY_UPDATE;
 extern uint32_t EVENT_FREQ_UPDATE;
 extern uint32_t EVENT_FT8_MSG;
 extern uint32_t EVENT_GPS;
+extern uint32_t EVENT_VOICE_DONE;
 
 void event_init();

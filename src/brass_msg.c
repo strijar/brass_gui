@@ -88,7 +88,20 @@ static void object_delete_cb(lv_event_t *event) {
 brass_msg_subscription_t *brass_msg_subscribe_obj(uint32_t id, lv_obj_t *obj, void *user_data) {
     (void) user_data;
 
+    if (obj == NULL) return NULL;
+
     brass_msg_subscription_t *subscription = brass_msg_subscribe(id, object_msg_cb, obj);
+    if (subscription != NULL) {
+        lv_obj_add_event_cb(obj, object_delete_cb, LV_EVENT_DELETE, subscription);
+    }
+
+    return subscription;
+}
+
+brass_msg_subscription_t *brass_msg_subscribe_obj_cb(uint32_t id, lv_obj_t *obj, brass_msg_cb_t callback) {
+    if (obj == NULL || callback == NULL) return NULL;
+
+    brass_msg_subscription_t *subscription = brass_msg_subscribe(id, callback, obj);
     if (subscription != NULL) {
         lv_obj_add_event_cb(obj, object_delete_cb, LV_EVENT_DELETE, subscription);
     }

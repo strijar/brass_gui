@@ -16,6 +16,7 @@
 #include <sndfile.h>
 #include <dirent.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include <string.h>
 
 #include "lvgl/lvgl.h"
@@ -31,6 +32,7 @@
 #include "msgs.h"
 #include "mic.h"
 #include "buttons.h"
+#include "queue.h"
 #include "dsp.h"
 #include "fpga/dac.h"
 #include "smeter.h"
@@ -46,8 +48,8 @@ typedef enum {
     VOICE_BEACON_IDLE,
 } voice_beacon_t;
 
-static msg_voice_state_t    state = MSG_VOICE_OFF;
-static voice_beacon_t       beacon = VOICE_BEACON_OFF;
+static _Atomic msg_voice_state_t state = MSG_VOICE_OFF;
+static _Atomic voice_beacon_t    beacon = VOICE_BEACON_OFF;
 static lv_timer_t           *beacon_timer = NULL;
 static char                 *path = "/mnt/msg";
 
@@ -57,6 +59,8 @@ static SNDFILE              *file = NULL;
 
 static char                 *prev_filename;
 static pthread_t            thread;
+static bool                 thread_joinable = false;
+static bool                 worker_sending = false;
 static int16_t              samples_buf[BUF_SIZE];
 
 static uint8_t              buttons_page = 0;
@@ -68,6 +72,7 @@ static rresamp_rrrf         resamp;
 static float                resamp_buf[INTER];
 static pthread_mutex_t      mux;
 static pthread_cond_t       cond;
+static pthread_mutex_t      file_mux;
 
 static void construct_cb(lv_obj_t *parent);
 static void destruct_cb();
@@ -89,6 +94,13 @@ static void rec_stop_cb(lv_event_t * e);
 static void play_stop_cb(lv_event_t * e);
 
 static bool send_file();
+
+static void join_worker() {
+    if (thread_joinable) {
+        pthread_join(thread, NULL);
+        thread_joinable = false;
+    }
+}
 
 static button_item_t button_send            = { .label = "Send",            .press = send_cb };
 static button_item_t button_becon           = { .label = "Beacon",          .press = beacon_cb };
@@ -185,14 +197,14 @@ static bool create_file() {
 
     sfinfo.samplerate = AUDIO_CAPTURE_RATE;
     sfinfo.channels = 1;
-    sfinfo.format = SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III;
+    sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
 
     char        filename[64];
     time_t      now = time(NULL);
     struct tm   *t = localtime(&now);
 
     snprintf(filename, sizeof(filename),
-        "%s/MSG_%04i%02i%02i_%02i%02i%02i.mp3", 
+        "%s/MSG_%04i%02i%02i_%02i%02i%02i.wav",
         path, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec
     );
 
@@ -227,7 +239,12 @@ static void open_file() {
 }
 
 static void close_file() {
-    sf_close(file);
+    pthread_mutex_lock(&file_mux);
+    if (file != NULL) {
+        sf_close(file);
+        file = NULL;
+    }
+    pthread_mutex_unlock(&file_mux);
 }
 
 static void * play_thread(void *arg) {
@@ -237,11 +254,10 @@ static void * play_thread(void *arg) {
     open_file();
 
     if (file == NULL) {
+        state = MSG_VOICE_OFF;
+        if (dialog.run) queue_send(dialog.obj, EVENT_VOICE_DONE, NULL);
         return NULL;
     }
-
-    dsp_set_mute(true);
-    state = MSG_VOICE_PLAY;
 
     while (state == MSG_VOICE_PLAY) {
         int res = sf_read_short(file, samples_buf, BUF_SIZE);
@@ -255,12 +271,8 @@ static void * play_thread(void *arg) {
 
     close_file();
     audio_play_wait();
-    dsp_set_mute(false);
 
-    if (dialog.run) {
-        buttons_unload_page();
-        load_page(0);
-    }
+    if (dialog.run) queue_send(dialog.obj, EVENT_VOICE_DONE, NULL);
 
     return NULL;
 }
@@ -275,13 +287,17 @@ static void * send_thread(void *arg) {
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
-    dsp_set_mute(true);
-    radio_set_ptt(true);
     cbufferf_reset(out_buf);
 
     state = MSG_VOICE_SEND;
 
     float *buf = (float *) malloc(sizeof(float) * DECIM);
+    if (buf == NULL) {
+        state = MSG_VOICE_OFF;
+        close_file();
+        if (dialog.run) queue_send(dialog.obj, EVENT_VOICE_DONE, NULL);
+        return NULL;
+    }
 
     while (true) {
         while (cbufferf_space_available(out_buf) > INTER) {
@@ -308,31 +324,13 @@ static void * send_thread(void *arg) {
     free(buf);
     close_file();
 
-    if (!dialog.run) {
-        radio_set_ptt(false);
-        dsp_set_mute(false);
-        return NULL;
-    }
-
     if (state == MSG_VOICE_SEND_CANCEL) {
         state = MSG_VOICE_OFF;
-    } else {
-        radio_set_ptt(false);
-        dsp_set_mute(false);
     }
 
-    if (beacon == VOICE_BEACON_PLAY) {
-        beacon = VOICE_BEACON_IDLE;
+    if (dialog.run) queue_send(dialog.obj, EVENT_VOICE_DONE, NULL);
 
-        beacon_timer = lv_timer_create(beacon_timer_cb, options->msg.voice_period * 1000, NULL);
-        lv_timer_set_repeat_count(beacon_timer, 1);
-        msg_set_text_fmt("Beacon pause: %i s", options->msg.voice_period);
-    } else {
-        brass_lv_lock();
-        buttons_unload_page();
-        load_page(0);
-        brass_lv_unlock();
-    }
+    return NULL;
 }
 
 static bool send_file() {
@@ -343,8 +341,19 @@ static bool send_file() {
         return false;
     }
 
+    join_worker();
     msg_set_text_fmt("Sending message");
-    pthread_create(&thread, NULL, send_thread, NULL);
+    worker_sending = true;
+    dsp_set_mute(true);
+    radio_set_ptt(true);
+    if (pthread_create(&thread, NULL, send_thread, NULL) != 0) {
+        radio_set_ptt(false);
+        dsp_set_mute(false);
+        worker_sending = false;
+        close_file();
+        return false;
+    }
+    thread_joinable = true;
 
     return true;
 }
@@ -413,6 +422,30 @@ static void msg_cb(lv_event_t * e) {
     }
 }
 
+static void worker_done_cb(lv_event_t *e) {
+    join_worker();
+
+    if (worker_sending) {
+        radio_set_ptt(false);
+        worker_sending = false;
+    }
+    dsp_set_mute(false);
+
+    if (beacon == VOICE_BEACON_PLAY && state == MSG_VOICE_OFF) {
+        beacon = VOICE_BEACON_IDLE;
+        beacon_timer = lv_timer_create(beacon_timer_cb, options->msg.voice_period * 1000, NULL);
+        if (beacon_timer != NULL) {
+            lv_timer_set_repeat_count(beacon_timer, 1);
+            msg_set_text_fmt("Beacon pause: %i s", options->msg.voice_period);
+        } else {
+            beacon = VOICE_BEACON_OFF;
+        }
+    } else {
+        buttons_unload_page();
+        load_page(0);
+    }
+}
+
 static void construct_cb(lv_obj_t *parent) {
     dialog_init(parent, &dialog);
 
@@ -427,6 +460,7 @@ static void construct_cb(lv_obj_t *parent) {
     lv_table_set_col_width(table, 0, 770);
 
     lv_obj_add_event_cb(table, msg_cb, BRASS_EVENT_MSG_RECEIVED, NULL);
+    lv_obj_add_event_cb(dialog.obj, worker_done_cb, EVENT_VOICE_DONE, NULL);
     brass_msg_subscribe_obj(MSG_PTT, table, NULL);
 
     lv_obj_add_event_cb(table, dialog_key_cb, LV_EVENT_KEY, NULL);
@@ -438,6 +472,7 @@ static void construct_cb(lv_obj_t *parent) {
 
     pthread_mutex_init(&mux, NULL);
     pthread_cond_init(&cond, NULL);
+    pthread_mutex_init(&file_mux, NULL);
 
     resamp = rresamp_rrrf_create_default(INTER, DECIM);     /* DAC_RATE <- AUDIO_CAPTURE_RATE */
     out_buf = cbufferf_create(DAC_RATE / 4);
@@ -448,17 +483,44 @@ static void construct_cb(lv_obj_t *parent) {
 }
 
 static void destruct_cb() {
-    if (beacon != VOICE_BEACON_OFF) {
-        beacon_stop_cb(NULL);
+    if (beacon_timer != NULL) {
+        lv_timer_delete(beacon_timer);
+        beacon_timer = NULL;
+    }
+    beacon = VOICE_BEACON_OFF;
+
+    switch (state) {
+        case MSG_VOICE_RECORD:
+            rec_stop_cb(NULL);
+            break;
+
+        case MSG_VOICE_PLAY:
+        case MSG_VOICE_SEND:
+        case MSG_VOICE_SEND_CANCEL:
+            state = MSG_VOICE_OFF;
+            pthread_mutex_lock(&mux);
+            pthread_cond_signal(&cond);
+            pthread_mutex_unlock(&mux);
+            break;
+
+        default:
+            break;
     }
 
-    if (state != MSG_VOICE_OFF) {
-        send_stop_cb(NULL);
+    join_worker();
+    queue_cancel(dialog.obj, EVENT_VOICE_DONE, NULL);
+    if (worker_sending) {
+        radio_set_ptt(false);
+        worker_sending = false;
     }
+    dsp_set_mute(false);
 
     textarea_window_close();
     rresamp_rrrf_destroy(resamp);
     cbufferf_destroy(out_buf);
+    pthread_cond_destroy(&cond);
+    pthread_mutex_destroy(&mux);
+    pthread_mutex_destroy(&file_mux);
 }
 
 static bool keypad_cb(event_keypad_t *keypad) {
@@ -622,7 +684,16 @@ static void rec_stop_cb(lv_event_t * e) {
 
 static void play_cb(lv_event_t * e) {
     if (state == MSG_VOICE_OFF) {
-        pthread_create(&thread, NULL, play_thread, NULL);
+        join_worker();
+        state = MSG_VOICE_PLAY;
+        worker_sending = false;
+        dsp_set_mute(true);
+        if (pthread_create(&thread, NULL, play_thread, NULL) != 0) {
+            state = MSG_VOICE_OFF;
+            dsp_set_mute(false);
+            return;
+        }
+        thread_joinable = true;
 
         buttons_unload_page();
         buttons_load(3, &button_play_stop);
@@ -664,5 +735,9 @@ msg_voice_state_t dialog_msg_voice_get_state() {
 }
 
 void dialog_msg_voice_put_audio_samples(float *samples, size_t nsamples) {
-    sf_write_float(file, samples, nsamples);
+    pthread_mutex_lock(&file_mux);
+    if (state == MSG_VOICE_RECORD && file != NULL) {
+        sf_write_float(file, samples, nsamples);
+    }
+    pthread_mutex_unlock(&file_mux);
 }

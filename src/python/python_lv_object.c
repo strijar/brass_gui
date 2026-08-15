@@ -16,11 +16,47 @@ typedef struct {
     PyObject        *call;
 } obj_timer_t;
 
+struct obj_subscription_t {
+    brass_msg_subscription_t   *subscription;
+    PyObject                   *call;
+    obj_subscription_t         *next;
+};
+
+static void obj_clear_subscriptions(obj_object_t *self) {
+    obj_subscription_t *item = self->subscriptions;
+
+    self->subscriptions = NULL;
+    while (item != NULL) {
+        obj_subscription_t *next = item->next;
+
+        brass_msg_unsubscribe(item->subscription);
+        Py_DECREF(item->call);
+        PyMem_Free(item);
+        item = next;
+    }
+}
+
+static void obj_delete_cb(lv_event_t *event) {
+    obj_object_t *self = lv_event_get_user_data(event);
+
+    self->obj = NULL;
+    obj_clear_subscriptions(self);
+}
+
+void python_lv_set_obj(obj_object_t *self, lv_obj_t *obj) {
+    self->obj = obj;
+    if (obj != NULL) {
+        lv_obj_add_event_cb(obj, obj_delete_cb, LV_EVENT_DELETE, self);
+    }
+}
+
 static void obj_dealloc(obj_object_t *self) {
     if (self->obj != NULL) {
         lv_obj_delete(self->obj);
         self->obj = NULL;
     }
+
+    obj_clear_subscriptions(self);
 
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
@@ -29,7 +65,10 @@ static PyObject * obj_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     LV_LOG_INFO("begin");
 
     obj_object_t *self = (obj_object_t *) type->tp_alloc(type, 0);
-    self->obj = NULL;
+    if (self != NULL) {
+        self->obj = NULL;
+        self->subscriptions = NULL;
+    }
 
     return (PyObject *) self;
 }
@@ -44,7 +83,7 @@ static int obj_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_obj_create(parent);
+    python_lv_set_obj(self, lv_obj_create(parent));
 
     return 0;
 }
@@ -92,26 +131,52 @@ static void obj_msg_cb(void *s, brass_msg_t *m) {
             break;
     }
 
+    Py_INCREF(call);
     PyObject *res = PyObject_Call(call, arg, NULL);
 
     Py_XDECREF(arg);
 
     if (res) {
         Py_XDECREF(res);
+    } else {
+        PyErr_Print();
     }
+
+    Py_DECREF(call);
 }
 
 static PyObject * obj_msg_subscribe(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     uint32_t    msg_id;
     PyObject    *obj = NULL;
 
-    if (PyArg_ParseTuple(args, "iO", &msg_id, &obj)) {
-        Py_XINCREF(obj);
-
-        brass_msg_subscribe(msg_id, obj_msg_cb, obj);
+    if (!PyArg_ParseTuple(args, "iO", &msg_id, &obj)) {
+        return NULL;
     }
+
+    if (!PyCallable_Check(obj)) {
+        PyErr_SetString(PyExc_TypeError, "message callback must be callable");
+        return NULL;
+    }
+
+    obj_subscription_t *item = PyMem_Malloc(sizeof(*item));
+    if (item == NULL) {
+        return PyErr_NoMemory();
+    }
+
+    Py_INCREF(obj);
+    item->call = obj;
+    item->subscription = brass_msg_subscribe(msg_id, obj_msg_cb, obj);
+    if (item->subscription == NULL) {
+        Py_DECREF(obj);
+        PyMem_Free(item);
+        return PyErr_NoMemory();
+    }
+
+    item->next = self->subscriptions;
+    self->subscriptions = item;
 
     Py_RETURN_NONE;
 }
@@ -194,6 +259,7 @@ static PyObject * obj_timer_create(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * obj_remove_style_all(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     lv_obj_remove_style_all(self->obj);
 
     Py_RETURN_NONE;
@@ -201,6 +267,7 @@ static PyObject * obj_remove_style_all(obj_object_t *self, PyObject *args) {
 
 static PyObject * obj_add_style(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     PyObject    *obj = NULL;
     lv_part_t   selector;
@@ -220,6 +287,7 @@ static PyObject * obj_add_style(obj_object_t *self, PyObject *args) {
 
 static PyObject * obj_clear_flag(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     lv_obj_flag_t flag;
 
@@ -232,6 +300,7 @@ static PyObject * obj_clear_flag(obj_object_t *self, PyObject *args) {
 
 static PyObject * obj_add_flag(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     lv_obj_flag_t flag;
 
@@ -243,6 +312,7 @@ static PyObject * obj_add_flag(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * obj_set_pos(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     lv_coord_t x, y;
 
     if (PyArg_ParseTuple(args, "ii", &x, &y)) {
@@ -253,6 +323,7 @@ static PyObject * obj_set_pos(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * obj_set_size(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     lv_coord_t w, h;
 
     if (PyArg_ParseTuple(args, "ii", &w, &h)) {
@@ -263,6 +334,7 @@ static PyObject * obj_set_size(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * obj_set_style_line_width(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     LV_LOG_INFO("begin");
 
     lv_coord_t          width;
@@ -276,6 +348,7 @@ static PyObject * obj_set_style_line_width(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * obj_set_style_line_color(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     LV_LOG_INFO("begin");
 
     lv_color_t          color;
@@ -289,6 +362,7 @@ static PyObject * obj_set_style_line_color(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * obj_set_style_opa(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     LV_LOG_INFO("begin");
 
     lv_opa_t            opa;
@@ -302,6 +376,7 @@ static PyObject * obj_set_style_opa(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * obj_move_foreground(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     lv_obj_move_foreground(self->obj);
 
     Py_RETURN_NONE;

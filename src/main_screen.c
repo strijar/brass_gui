@@ -292,7 +292,7 @@ static void main_screen_keypad_cb(lv_event_t * e) {
         case KEYPAD_APP:
             if (keypad->state == KEYPAD_RELEASE) {
                 if (dialog_is_run()) {
-                    dialog_keypad(KEYPAD_APP);
+                    dialog_keypad(keypad);
                 } else {
                     buttons_app();
                 }

@@ -20,12 +20,13 @@ static int xmeter_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_xmeter_create(parent);
+    python_lv_set_obj(self, lv_xmeter_create(parent));
 
     return 0;
 }
 
 static PyObject * xmeter_set_value(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     float value;
 
     if (PyArg_ParseTuple(args, "f", &value)) {
@@ -36,6 +37,7 @@ static PyObject * xmeter_set_value(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * xmeter_set_slice(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     float value;
 
     if (PyArg_ParseTuple(args, "f", &value)) {
@@ -46,6 +48,7 @@ static PyObject * xmeter_set_slice(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * xmeter_set_part(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     uint8_t index;
     float   value;
 
@@ -57,6 +60,7 @@ static PyObject * xmeter_set_part(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * xmeter_set_label(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     uint8_t index;
     char    *text;
     float   value;
@@ -69,6 +73,7 @@ static PyObject * xmeter_set_label(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * xmeter_set_range(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     float   min;
     float   max;
 

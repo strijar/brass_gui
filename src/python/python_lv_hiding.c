@@ -20,12 +20,13 @@ static int hiding_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_hiding_create(parent);
+    python_lv_set_obj(self, lv_hiding_create(parent));
 
     return 0;
 }
 
 static PyObject * hiding_set_timeout(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     uint16_t timeout;
 
     if (PyArg_ParseTuple(args, "H", &timeout)) {
@@ -36,6 +37,7 @@ static PyObject * hiding_set_timeout(obj_object_t *self, PyObject *args) {
 }
 
 static PyObject * hiding_touch(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     lv_hiding_touch(self->obj);
 
     Py_RETURN_NONE;

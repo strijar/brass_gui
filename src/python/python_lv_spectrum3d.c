@@ -21,13 +21,14 @@ static int spectrum3d_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_spectrum3d_create(parent);
+    python_lv_set_obj(self, lv_spectrum3d_create(parent));
 
     return 0;
 }
 
 static PyObject * spectrum3d_set_data_size(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     int size;
     int depth;
@@ -41,6 +42,7 @@ static PyObject * spectrum3d_set_data_size(obj_object_t *self, PyObject *args) {
 
 static PyObject * spectrum3d_set_grad(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     PyObject *grad = NULL;
 
@@ -53,6 +55,7 @@ static PyObject * spectrum3d_set_grad(obj_object_t *self, PyObject *args) {
 
 static PyObject * spectrum3d_clear_data(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     lv_spectrum3d_clear_data(self->obj);
 

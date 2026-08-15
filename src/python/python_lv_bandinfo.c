@@ -21,13 +21,14 @@ static int bandinfo_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_bandinfo_create(parent);
+    python_lv_set_obj(self, lv_bandinfo_create(parent));
 
     return 0;
 }
 
 static PyObject * bandinfo_set_span(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     int32_t span;
 
@@ -40,6 +41,7 @@ static PyObject * bandinfo_set_span(obj_object_t *self, PyObject *args) {
 
 static PyObject * bandinfo_set_center(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     uint64_t center;
 

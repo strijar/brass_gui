@@ -19,7 +19,7 @@ static int btn_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_btn_create(parent);
+    python_lv_set_obj(self, lv_btn_create(parent));
 
     return 0;
 }

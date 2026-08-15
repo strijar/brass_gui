@@ -19,12 +19,13 @@ static int label_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_label_create(parent);
+    python_lv_set_obj(self, lv_label_create(parent));
 
     return 0;
 }
 
 static PyObject * label_set_text(obj_object_t *self, PyObject *args) {
+    PYTHON_LV_REQUIRE_OBJ(self);
     const char *text;
 
     if (PyArg_ParseTuple(args, "s", &text)) {

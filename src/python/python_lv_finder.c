@@ -20,13 +20,14 @@ static int finder_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
         parent = python_lv_get_obj(obj);
     }
 
-    self->obj = lv_finder_create(parent);
+    python_lv_set_obj(self, lv_finder_create(parent));
 
     return 0;
 }
 
 static PyObject * finder_set_cursor(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
+    PYTHON_LV_REQUIRE_OBJ(self);
 
     uint8_t index;
     int     hz;
