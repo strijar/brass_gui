@@ -12,3 +12,4 @@
 #include <stdint.h>
 
 void msg_set_text_fmt(const char * fmt, ...);
+void msg_set_text_long_fmt(const char * fmt, ...);

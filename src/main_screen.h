@@ -27,6 +27,7 @@ typedef enum {
     APP_MSG_VOICE,
     APP_AUDIO_SETTINGS,
     APP_RF_SETTINGS,
+    APP_BLUETOOTH,
 } app_t;
 
 lv_obj_t * main_screen();

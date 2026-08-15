@@ -48,6 +48,9 @@ void queue_work() {
         } else if (item->event_code == EVENT_MSG_UPDATE) {
             brass_msg_send(MSG_MSG, item->param);
             item->param = NULL;
+        } else if (item->event_code == EVENT_MSG_LONG_UPDATE) {
+            brass_msg_send(MSG_MSG_LONG, item->param);
+            item->param = NULL;
         } else if (item->event_code == EVENT_MSG_TINY_UPDATE) {
             brass_msg_send(MSG_MSG_TINY, item->param);
             item->param = NULL;

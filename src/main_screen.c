@@ -38,6 +38,7 @@
 #include "dialog_qth.h"
 #include "dialog_recorder.h"
 #include "dialog_callsign.h"
+#include "dialog_bluetooth.h"
 #include "backlight.h"
 #include "buttons.h"
 #include "recorder.h"
@@ -182,6 +183,11 @@ void main_screen_app(app_t app) {
         case APP_RF_SETTINGS:
             dialog_construct(dialog_rf_settings, obj);
             voice_say_text_fmt("R F settings window");
+            break;
+
+        case APP_BLUETOOTH:
+            dialog_construct(dialog_bluetooth, obj);
+            voice_say_text_fmt("BlueTooth window");
             break;
 
         default:

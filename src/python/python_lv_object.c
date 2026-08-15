@@ -110,6 +110,7 @@ static void obj_msg_cb(void *s, brass_msg_t *m) {
         } break;
 
         case MSG_MSG:
+        case MSG_MSG_LONG:
         case MSG_MSG_TINY: {
             const char *x = brass_msg_get_payload(m);
 

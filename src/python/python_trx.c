@@ -407,6 +407,7 @@ PyMODINIT_FUNC PyInit_trx() {
     PyModule_AddObjectRef(m, "MSG_FINDER_CURSOR",       PyLong_FromLong(MSG_FINDER_CURSOR));
     PyModule_AddObjectRef(m, "MSG_RECORDER",            PyLong_FromLong(MSG_RECORDER));
     PyModule_AddObjectRef(m, "MSG_MSG",                 PyLong_FromLong(MSG_MSG));
+    PyModule_AddObjectRef(m, "MSG_MSG_LONG",            PyLong_FromLong(MSG_MSG_LONG));
     PyModule_AddObjectRef(m, "MSG_MSG_TINY",            PyLong_FromLong(MSG_MSG_TINY));
     PyModule_AddObjectRef(m, "MSG_SMETER",              PyLong_FromLong(MSG_SMETER));
     PyModule_AddObjectRef(m, "MSG_AGC_CHANGED",         PyLong_FromLong(MSG_AGC_CHANGED));

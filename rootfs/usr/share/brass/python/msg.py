@@ -20,8 +20,14 @@ class Msg(lv.hiding):
 
 		self.label = label
 		self.msg_subscribe(trx.MSG_MSG, self.msg_msg)
+		self.msg_subscribe(trx.MSG_MSG_LONG, self.msg_msg)
 
 	def msg_msg(self, msg, payload = None):
+		if msg == trx.MSG_MSG_LONG:
+			self.set_timeout(60000)
+		else:
+			self.set_timeout(2000)
+
 		if payload[0] == "^":
 			payload = payload[1:]
 			self.label.add_style(msg_label_normal_style, LV_PART_MAIN)

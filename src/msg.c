@@ -14,12 +14,23 @@
 
 static char         buf[512];
 
+static void msg_set_text_v(uint32_t event_code, const char *fmt, va_list args) {
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    queue_send(NULL, event_code, buf);
+}
+
 void msg_set_text_fmt(const char * fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, args);
+    msg_set_text_v(EVENT_MSG_UPDATE, fmt, args);
     va_end(args);
+}
 
-    queue_send(NULL, EVENT_MSG_UPDATE, buf);
+void msg_set_text_long_fmt(const char * fmt, ...) {
+    va_list args;
+
+    va_start(args, fmt);
+    msg_set_text_v(EVENT_MSG_LONG_UPDATE, fmt, args);
+    va_end(args);
 }

@@ -20,11 +20,13 @@ uint32_t        EVENT_RADIO_TX;
 uint32_t        EVENT_RADIO_RX;
 uint32_t        EVENT_PANNEL_UPDATE;
 uint32_t        EVENT_MSG_UPDATE;
+uint32_t        EVENT_MSG_LONG_UPDATE;
 uint32_t        EVENT_MSG_TINY_UPDATE;
 uint32_t        EVENT_FREQ_UPDATE;
 uint32_t        EVENT_FT8_MSG;
 uint32_t        EVENT_GPS;
 uint32_t        EVENT_VOICE_DONE;
+uint32_t        EVENT_BLUETOOTH_MSG;
 
 void event_init() {
     EVENT_ROTARY = lv_event_register_id();
@@ -34,9 +36,11 @@ void event_init() {
     EVENT_RADIO_RX = lv_event_register_id();
     EVENT_PANNEL_UPDATE = lv_event_register_id();
     EVENT_MSG_UPDATE = lv_event_register_id();
+    EVENT_MSG_LONG_UPDATE = lv_event_register_id();
     EVENT_MSG_TINY_UPDATE = lv_event_register_id();
     EVENT_FREQ_UPDATE = lv_event_register_id();
     EVENT_FT8_MSG = lv_event_register_id();
     EVENT_GPS = lv_event_register_id();
     EVENT_VOICE_DONE = lv_event_register_id();
+    EVENT_BLUETOOTH_MSG = lv_event_register_id();
 }

@@ -47,6 +47,7 @@
 #include "settings/hw.h"
 #include "olivia/olivia.h"
 #include "bands/bands.h"
+#include "dbus/dbus.h"
 
 rotary_t                    *vol;
 encoder_t                   *mfk;
@@ -101,6 +102,7 @@ int main(void) {
     gpio_init();
     iio_init();
     bands_init();
+    dbus_init();
 
     lv_timer_t *timer = lv_display_get_refr_timer(display);
 
