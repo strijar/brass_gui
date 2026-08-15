@@ -23,32 +23,12 @@ extern "C" {
 
 #define LV_SMETER_LABELS 7
 
-/**********************
- *      TYPEDEFS
- **********************/
-
 enum {
     LV_PART_METER_1     = LV_PART_CUSTOM_FIRST,
     LV_PART_METER_2     = LV_PART_CUSTOM_FIRST + 0x10000,
     LV_PART_METER_3     = LV_PART_CUSTOM_FIRST + 0x20000,
     LV_PART_METER_4     = LV_PART_CUSTOM_FIRST + 0x30000
 };
-
-typedef struct {
-    char    text[32];
-    float   value;
-} lv_xmeter_label_t;
-
-typedef struct {
-    lv_obj_t            obj;
-
-    float               min;
-    float               max;
-    float               value;
-    float               slice_value;
-    float               part[3];
-    lv_xmeter_label_t   labels[LV_SMETER_LABELS];
-} lv_xmeter_t;
 
 extern const lv_obj_class_t lv_xmeter_class;
 

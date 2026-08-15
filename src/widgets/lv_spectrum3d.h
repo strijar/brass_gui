@@ -17,28 +17,6 @@ extern "C" {
 
 #include "lvgl/lvgl.h"
 
-/**********************
- *      TYPEDEFS
- **********************/
-
-typedef struct {
-    lv_obj_t            obj;
-
-    uint16_t            depth;
-    uint16_t            data_size;
-    uint8_t             *data_buf;
-    uint8_t             *line_buf;
-    lv_coord_t          *top_buf;
-
-    lv_color_t          palette[256];
-
-    int16_t             min;
-    int16_t             max;
-    int32_t             span;
-    int16_t             scroll_surplus;
-    int32_t             scroll;
-} lv_spectrum3d_t;
-
 extern const lv_obj_class_t lv_spectrum3d_class;
 
 /**********************

@@ -198,10 +198,10 @@ void radio_freq_update() {
     radio_rf_route();
 }
 
-static void radio_msg_cb(void *s, lv_msg_t *m) {
-    switch (lv_msg_get_id(m)) {
+static void radio_msg_cb(void *s, brass_msg_t *m) {
+    switch (brass_msg_get_id(m)) {
         case MSG_PTT: {
-            const int *on = lv_msg_get_payload(m);
+            const int *on = brass_msg_get_payload(m);
 
             if (*on) {
                 if (band_settings && band_settings->tx) {
@@ -229,7 +229,7 @@ void radio_init(lv_obj_t *obj) {
     radio_freq_update();
     radio_load_atu();
 
-    lv_msg_subsribe(MSG_PTT, radio_msg_cb, NULL);
+    brass_msg_subscribe(MSG_PTT, radio_msg_cb, NULL);
 }
 
 radio_state_t radio_get_state() {
@@ -255,7 +255,7 @@ void radio_set_freq_rx(uint64_t freq) {
     radio_rf_route();
     radio_load_bpf();
 
-    lv_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);
+    brass_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);
 }
 
 void radio_set_freq_tx(uint64_t freq) {
@@ -277,7 +277,7 @@ void radio_set_freq_tx(uint64_t freq) {
     radio_load_lpf();
     radio_load_atu();
 
-    lv_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
+    brass_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
 }
 
 uint64_t radio_set_freqs(uint64_t rx, uint64_t tx) {
@@ -285,21 +285,21 @@ uint64_t radio_set_freqs(uint64_t rx, uint64_t tx) {
 
     switch (op_work->split) {
         case SPLIT_NONE:
-            lv_msg_send(MSG_FREQ_RX_PRE_CHANGED, &rx);
-            lv_msg_send(MSG_FREQ_TX_PRE_CHANGED, &tx);
+            brass_msg_send(MSG_FREQ_RX_PRE_CHANGED, &rx);
+            brass_msg_send(MSG_FREQ_TX_PRE_CHANGED, &tx);
             radio_set_freq_rx(rx);
             radio_set_freq_tx(tx);
             ret = rx;
             break;
 
         case SPLIT_RX:
-            lv_msg_send(MSG_FREQ_RX_PRE_CHANGED, &rx);
+            brass_msg_send(MSG_FREQ_RX_PRE_CHANGED, &rx);
             radio_set_freq_rx(rx);
             ret = rx;
             break;
 
         case SPLIT_TX:
-            lv_msg_send(MSG_FREQ_TX_PRE_CHANGED, &tx);
+            brass_msg_send(MSG_FREQ_TX_PRE_CHANGED, &tx);
             radio_set_freq_tx(tx);
             ret = tx;
     }
@@ -312,7 +312,7 @@ void radio_set_freq_fft(uint64_t freq) {
     op_work->fft = freq;
 
     control_set_fft_freq(freq - op_work->shift - op_work->corr);
-    lv_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
+    brass_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
 }
 
 bool check_freq(uint64_t freq, uint32_t *shift, int32_t *corr) {
@@ -581,13 +581,13 @@ void radio_set_ptt(bool on) {
         gpio_set_tx(true);
 
         state = RADIO_TX;
-        lv_msg_send(MSG_TX, NULL);
+        brass_msg_send(MSG_TX, NULL);
     } else {
         gpio_set_preamp(true);
         gpio_set_tx(false);
 
         state = RADIO_RX;
-        lv_msg_send(MSG_RX, NULL);
+        brass_msg_send(MSG_RX, NULL);
     }
 }
 

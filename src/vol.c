@@ -141,7 +141,7 @@ void vol_update(int16_t diff, bool voice) {
             msg_set_text_fmt("%c Split: %s", mode, str);
 
             if (diff) {
-                lv_msg_send(MSG_SPLIT_CHANGED, &op_work->split);
+                brass_msg_send(MSG_SPLIT_CHANGED, &op_work->split);
                 voice_say_text("Split mode", str);
             } else if (voice) {
                 voice_say_text_fmt("Split mode selector");

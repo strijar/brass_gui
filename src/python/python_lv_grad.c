@@ -38,6 +38,11 @@ static PyObject * grad_set_stops_count(grad_object_t *self, PyObject *args) {
     uint8_t value;
 
     if (PyArg_ParseTuple(args, "b", &value)) {
+        if (value == 0 || value > LV_GRADIENT_MAX_STOPS) {
+            PyErr_Format(PyExc_ValueError, "gradient stops count must be between 1 and %d",
+                         LV_GRADIENT_MAX_STOPS);
+            return NULL;
+        }
         self->grad.stops_count = value;
     }
 
@@ -52,8 +57,14 @@ static PyObject * grad_set_stop(grad_object_t *self, PyObject *args) {
     lv_color_t  color;
 
     if (PyArg_ParseTuple(args, "bbI", &index, &frac, &color)) {
+        if (index >= LV_GRADIENT_MAX_STOPS) {
+            PyErr_Format(PyExc_IndexError, "gradient stop index must be less than %d",
+                         LV_GRADIENT_MAX_STOPS);
+            return NULL;
+        }
         self->grad.stops[index].frac = frac;
         self->grad.stops[index].color = color;
+        self->grad.stops[index].opa = LV_OPA_COVER;
     }
 
     Py_RETURN_NONE;

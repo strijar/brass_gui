@@ -129,9 +129,9 @@ void cw_decoder_init() {
 }
 
 static void cw_decoder_ans(char *ans) {
-    lv_lock();
+    brass_lv_lock();
     pannel_add_text(ans);
-    lv_unlock();
+    brass_lv_unlock();
 }
 
 static void cw_decoder_wpm(uint16_t wpm) {
@@ -304,4 +304,3 @@ void cw_decoder_signal(bool on, float ms) {
         cw_decoder_word_space();
     }
 }
-

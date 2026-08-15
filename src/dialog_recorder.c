@@ -14,6 +14,8 @@
 #include <sndfile.h>
 #include <dirent.h>
 #include <pthread.h>
+#include <stdatomic.h>
+#include <string.h>
 
 #include "lvgl/lvgl.h"
 #include "audio.h"
@@ -30,13 +32,14 @@
 #include "msgs.h"
 #include "buttons.h"
 #include "dsp.h"
+#include "main.h"
 
 #define BUF_SIZE 1024
 
 static lv_obj_t             *table;
 static int16_t              table_rows = 0;
 static SNDFILE              *file = NULL;
-static bool                 play_state = false;
+static atomic_bool          play_state = false;
 
 static char                 *prev_filename;
 static pthread_t            thread;
@@ -129,8 +132,8 @@ static const char* get_item() {
         return NULL;
     }
 
-    int16_t     row = 0;
-    int16_t     col = 0;
+    uint32_t    row = 0;
+    uint32_t    col = 0;
 
     lv_table_get_selected_cell(table, &row, &col);
 
@@ -168,15 +171,13 @@ static void play_item() {
         recorder_set_on(false);
     }
 
-    play_state = true;
-
-    while (play_state) {
+    while (atomic_load(&play_state)) {
         int res = sf_read_short(file, samples_buf, BUF_SIZE);
 
         if (res > 0) {
             audio_play(samples_buf, res);
         } else {
-            play_state = false;
+            atomic_store(&play_state, false);
         }
     }
 
@@ -190,10 +191,14 @@ static void * play_thread(void *arg) {
 
     play_item();
 
+    brass_lv_lock();
     if (dialog.run) {
         buttons_unload_page();
         buttons_default();
     }
+    brass_lv_unlock();
+
+    return NULL;
 }
 
 static void textarea_window_close_cb() {
@@ -225,15 +230,15 @@ static void textarea_window_edit_ok_cb() {
 }
 
 static void msg_cb(lv_event_t * e) {
-    lv_msg_t *m = lv_event_get_msg(e);
+    brass_msg_t *m = brass_event_get_msg(e);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_PTT: {
-            const int *on = lv_msg_get_payload(m);
+            const int *on = brass_msg_get_payload(m);
 
             if (*on) {
-                if (play_state) {
-                    play_state = false;
+                if (atomic_load(&play_state)) {
+                    atomic_store(&play_state, false);
 
                     buttons_unload_page();
                     buttons_default();
@@ -257,8 +262,8 @@ static void construct_cb(lv_obj_t *parent) {
     lv_table_set_col_width(table, 0, 770);
 
     lv_obj_add_event_cb(table, dialog_key_cb, LV_EVENT_KEY, NULL);
-    lv_obj_add_event_cb(table, msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
-    lv_msg_subsribe_obj(MSG_PTT, table, NULL);
+    lv_obj_add_event_cb(table, msg_cb, BRASS_EVENT_MSG_RECEIVED, NULL);
+    brass_msg_subscribe_obj(MSG_PTT, table, NULL);
 
     lv_group_add_obj(keyboard_group, table);
     lv_group_set_editing(keyboard_group, true);
@@ -275,7 +280,7 @@ static void construct_cb(lv_obj_t *parent) {
 }
 
 static void destruct_cb() {
-    play_state = false;
+    atomic_store(&play_state, false);
     textarea_window_close();
 }
 
@@ -289,18 +294,25 @@ static void rec_stop_cb(lv_event_t * e) {
 }
 
 static void play_start_cb(lv_event_t * e) {
-    pthread_create(&thread, NULL, play_thread, NULL);
+    atomic_store(&play_state, true);
+    if (pthread_create(&thread, NULL, play_thread, NULL) != 0) {
+        atomic_store(&play_state, false);
+        return;
+    }
 
     buttons_unload_page();
     buttons_load(3, &button_play_stop);
 }
 
 static void play_stop_cb(lv_event_t * e) {
-    play_state = false;
+    atomic_store(&play_state, false);
+    buttons_unload_page();
+    buttons_default();
 }
 
 static void rename_cb(lv_event_t * e) {
-    prev_filename = strdup(get_item());
+    const char *item = get_item();
+    prev_filename = item ? strdup(item) : NULL;
 
     if (prev_filename) {
         lv_group_remove_obj(table);

@@ -7,6 +7,8 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <linux/input.h>
@@ -16,9 +18,9 @@
 #include "backlight.h"
 #include "main.h"
 
-static void rotary_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
+static void rotary_input_read(lv_indev_t *indev, lv_indev_data_t *data) {
     struct input_event  in;
-    rotary_t            *rotary = (rotary_t*) drv->user_data;
+    rotary_t            *rotary = lv_indev_get_user_data(indev);
     bool                send = false;
 
     while (read(rotary->fd, &in, sizeof(struct input_event)) > 0) {
@@ -36,7 +38,7 @@ static void rotary_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
             backlight_tick();
     
             if (rotary->left[0] == 0 && rotary->right[0] == 0) {
-                lv_event_send(lv_scr_act(), EVENT_ROTARY, (void *) diff);
+                lv_obj_send_event(lv_scr_act(), EVENT_ROTARY, (void *) (intptr_t) diff);
             } else {
                 data->state = LV_INDEV_STATE_PRESSED;
                 data->key = diff < 0 ? rotary->left[rotary->mode] : rotary->right[rotary->mode];
@@ -63,13 +65,10 @@ rotary_t * rotary_init(char *dev_name, uint8_t div) {
     rotary->div = div;
     rotary->accum = 0;
     
-    lv_indev_drv_init(&rotary->indev_drv);
-
-    rotary->indev_drv.type = LV_INDEV_TYPE_KEYPAD;
-    rotary->indev_drv.read_cb = rotary_input_read;
-    rotary->indev_drv.user_data = rotary;
-    
-    rotary->indev = lv_indev_drv_register(&rotary->indev_drv);
+    rotary->indev = lv_indev_create();
+    lv_indev_set_type(rotary->indev, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(rotary->indev, rotary_input_read);
+    lv_indev_set_user_data(rotary->indev, rotary);
 
     lv_indev_set_group(rotary->indev, keyboard_group);
     

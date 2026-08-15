@@ -145,8 +145,8 @@ static void textarea_window_new_ok_cb() {
 
 static void textarea_window_edit_ok_cb() {
     const char *val = textarea_window_get();
-    int16_t     row = 0;
-    int16_t     col = 0;
+    uint32_t    row = 0;
+    uint32_t    col = 0;
 
     lv_table_get_selected_cell(table, &row, &col);
     lv_table_set_cell_value(table, row, col, val);
@@ -159,8 +159,8 @@ static const char* get_msg() {
         return NULL;
     }
 
-    int16_t     row = 0;
-    int16_t     col = 0;
+    uint32_t    row = 0;
+    uint32_t    col = 0;
 
     lv_table_get_selected_cell(table, &row, &col);
 
@@ -250,8 +250,8 @@ void dialog_msg_cw_delete_cb(lv_event_t * e) {
         return;
     }
 
-    int16_t     row = 0;
-    int16_t     col = 0;
+    uint32_t    row = 0;
+    uint32_t    col = 0;
 
     lv_table_get_selected_cell(table, &row, &col);
 

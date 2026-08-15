@@ -21,26 +21,20 @@
 #include "python_lv_xmeter.h"
 
 static PyObject * lv_load_font(PyObject *self, PyObject *args) {
-    const char      *path;
-    lv_coord_t      font_size;
-    lv_ft_info_t    info;
-    PyObject        *res;
+    LV_UNUSED(self);
+    const char * path;
+    unsigned int font_size;
 
-    if (PyArg_ParseTuple(args, "si", &path, &font_size)) {
-        info.name = path;
-        info.weight = font_size;
-        info.style = FT_FONT_STYLE_NORMAL;
-        info.mem = NULL;
+    if (!PyArg_ParseTuple(args, "sI", &path, &font_size)) return NULL;
 
-        if (!lv_ft_font_init(&info)) {
-            LV_LOG_ERROR("create failed.");
-        }
+    lv_font_t * font = lv_freetype_font_create(path, LV_FREETYPE_FONT_RENDER_MODE_BITMAP,
+                                                font_size, LV_FREETYPE_FONT_STYLE_NORMAL);
+    if (font == NULL) {
+        PyErr_Format(PyExc_RuntimeError, "unable to load font: %s", path);
+        return NULL;
     }
 
-    res = PyLong_FromVoidPtr((void *) info.font);
-    Py_XINCREF(res);
-
-    return res;
+    return PyLong_FromVoidPtr(font);
 };
 
 static PyMethodDef lv_methods[] = {

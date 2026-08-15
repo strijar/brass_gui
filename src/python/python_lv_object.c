@@ -10,8 +10,18 @@
 #include "python_lv_style.h"
 #include "src/msgs.h"
 
+typedef struct {
+    lv_timer_t      *timer;
+    obj_object_t    *owner;
+    PyObject        *call;
+} obj_timer_t;
+
 static void obj_dealloc(obj_object_t *self) {
-    lv_obj_del(self->obj);
+    if (self->obj != NULL) {
+        lv_obj_delete(self->obj);
+        self->obj = NULL;
+    }
+
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
@@ -39,30 +49,30 @@ static int obj_init(obj_object_t *self, PyObject *args, PyObject *kwds) {
     return 0;
 }
 
-static void obj_msg_cb(void *s, lv_msg_t *m) {
-    PyObject    *call = lv_msg_get_user_data(m);
+static void obj_msg_cb(void *s, brass_msg_t *m) {
+    PyObject    *call = brass_msg_get_user_data(m);
     PyObject    *arg;
-    uint32_t    msg = lv_msg_get_id(m);
+    uint32_t    msg = brass_msg_get_id(m);
 
     switch (msg) {
         case MSG_FREQ_FFT_CHANGED:
         case MSG_FREQ_TX_CHANGED:
         case MSG_FREQ_RX_CHANGED: {
-            const uint64_t *x = lv_msg_get_payload(m);
+            const uint64_t *x = brass_msg_get_payload(m);
 
             arg = Py_BuildValue("IL", msg, *x);
         } break;
 
         case MSG_MIC:
         case MSG_RECORDER: {
-            const bool *x = lv_msg_get_payload(m);
+            const bool *x = brass_msg_get_payload(m);
 
             arg = Py_BuildValue("Ib", msg, *x);
         } break;
 
         case MSG_MSG:
         case MSG_MSG_TINY: {
-            const char *x = lv_msg_get_payload(m);
+            const char *x = brass_msg_get_payload(m);
 
             arg = Py_BuildValue("Is", msg, x);
         } break;
@@ -72,7 +82,7 @@ static void obj_msg_cb(void *s, lv_msg_t *m) {
         case MSG_ANT_CHANGED:
         case MSG_SPLIT_CHANGED:
         case MSG_MODE_CHANGED: {
-            const uint8_t *x = lv_msg_get_payload(m);
+            const uint8_t *x = brass_msg_get_payload(m);
 
             arg = Py_BuildValue("Ib", msg, *x);
         } break;
@@ -100,32 +110,85 @@ static PyObject * obj_msg_subscribe(obj_object_t *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "iO", &msg_id, &obj)) {
         Py_XINCREF(obj);
 
-        lv_msg_subscribe(msg_id, obj_msg_cb, obj);
+        brass_msg_subscribe(msg_id, obj_msg_cb, obj);
     }
 
     Py_RETURN_NONE;
 }
 
-static void obj_timer_cb(lv_timer_t *timer) {
-    PyObject    *call = (PyObject *) timer->user_data;
+static void obj_timer_delete_cb(lv_event_t *event) {
+    obj_timer_t *timer = lv_event_get_user_data(event);
+
+    /* The LVGL object can be deleted by its parent while its Python wrapper
+     * is still alive.  Mark it invalid before releasing the bound method:
+     * its DECREF can immediately run obj_dealloc(). */
+    timer->owner->obj = NULL;
+
+    if (timer->timer != NULL) {
+        lv_timer_delete(timer->timer);
+        timer->timer = NULL;
+    }
+
+    Py_DECREF(timer->call);
+    lv_free(timer);
+}
+
+static void obj_timer_cb(lv_timer_t *lv_timer) {
+    obj_timer_t *timer = lv_timer_get_user_data(lv_timer);
+    PyObject    *call = timer->call;
+
+    /* The callback is allowed to delete its owner and therefore the timer
+     * context. Keep the callable alive until PyObject_CallNoArgs returns. */
+    Py_INCREF(call);
     PyObject    *res = PyObject_CallNoArgs(call);
 
-    if (res) {
-        Py_XDECREF(res);
+    if (res != NULL) {
+        Py_DECREF(res);
+    } else {
+        PyErr_Print();
     }
+
+    Py_DECREF(call);
 }
 
 static PyObject * obj_timer_create(obj_object_t *self, PyObject *args) {
     LV_LOG_INFO("begin");
 
     uint32_t    period;
-    PyObject    *obj = NULL;
+    PyObject    *call = NULL;
 
-    if (PyArg_ParseTuple(args, "Oi", &obj, &period)) {
-        Py_XINCREF(obj);
-
-        lv_timer_create(obj_timer_cb, period, obj);
+    if (!PyArg_ParseTuple(args, "OI", &call, &period)) {
+        return NULL;
     }
+
+    if (!PyCallable_Check(call)) {
+        PyErr_SetString(PyExc_TypeError, "timer callback must be callable");
+        return NULL;
+    }
+
+    if (self->obj == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "cannot create timer for deleted LVGL object");
+        return NULL;
+    }
+
+    obj_timer_t *timer = lv_malloc(sizeof(*timer));
+
+    if (timer == NULL) {
+        return PyErr_NoMemory();
+    }
+
+    Py_INCREF(call);
+    timer->owner = self;
+    timer->call = call;
+    timer->timer = lv_timer_create(obj_timer_cb, period, timer);
+
+    if (timer->timer == NULL) {
+        Py_DECREF(call);
+        lv_free(timer);
+        return PyErr_NoMemory();
+    }
+
+    lv_obj_add_event_cb(self->obj, obj_timer_delete_cb, LV_EVENT_DELETE, timer);
 
     Py_RETURN_NONE;
 }

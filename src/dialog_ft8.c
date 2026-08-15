@@ -154,6 +154,7 @@ static uint64_t             waterfall_time;
 static pthread_cond_t       audio_cond;
 static pthread_mutex_t      audio_mutex;
 static cbuffercf            audio_buf;
+static float complex       *audio_frame;
 static pthread_t            thread;
 
 static complex float        *rx_window = NULL;
@@ -190,6 +191,7 @@ static void mode_ft4_cb(lv_event_t * e);
 
 static void tx_cq_dis_cb(lv_event_t * e);
 static void tx_cq_en_cb(lv_event_t * e);
+static void tx_cq_hold_cb(void * data);
 
 static void tx_call_dis_cb(lv_event_t * e);
 static void tx_call_en_cb(lv_event_t * e);
@@ -208,8 +210,8 @@ static button_item_t button_mode_ft4 = { .label = "Mode\nFT4", .press = mode_ft4
 static button_item_t button_tx_cq_dis = { .label = "TX CQ\nDisabled", .press = tx_cq_dis_cb };
 static button_item_t button_tx_cq_en = { .label = "TX CQ\nEnabled", .press = tx_cq_en_cb };
 
-static button_item_t button_tx_call_dis = { .label = "TX Call\nDisabled", .press = tx_call_dis_cb, .hold = tx_cq_en_cb };
-static button_item_t button_tx_call_en = { .label = "TX Call\nEnabled", .press = tx_call_en_cb, .hold = tx_cq_en_cb };
+static button_item_t button_tx_call_dis = { .label = "TX Call\nDisabled", .press = tx_call_dis_cb, .hold = tx_cq_hold_cb };
+static button_item_t button_tx_call_en = { .label = "TX Call\nEnabled", .press = tx_call_en_cb, .hold = tx_cq_hold_cb };
 
 static button_item_t button_auto_dis = { .label = "Auto\nDisabled", .press = mode_auto_cb };
 static button_item_t button_auto_en = { .label = "Auto\nEnabled", .press = mode_auto_cb };
@@ -253,6 +255,7 @@ static void init() {
     subblock_size = block_size / TIME_OSR;
     nfft = block_size * FREQ_OSR;
     fft_norm = 2.0f / nfft;
+    audio_frame = malloc(block_size * sizeof(*audio_frame));
 
     const uint32_t max_blocks = slot_time / symbol_period;
     const uint32_t num_bins = ADC_RATE * symbol_period / 2;
@@ -326,6 +329,8 @@ static void done() {
     free(waterfall_psd);
 
     free(rx_window);
+    free(audio_frame);
+    audio_frame = NULL;
 }
 
 static void send_info(const char * fmt, ...) {
@@ -339,7 +344,7 @@ static void send_info(const char * fmt, ...) {
 
     msg->msg = strdup(buf);
 
-    msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
+    msg->cell = lv_malloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_RX_INFO;
 
     queue_send(table, EVENT_FT8_MSG, msg);
@@ -384,7 +389,7 @@ static void send_rx_text(int16_t snr, const char * text) {
 
     msg->msg = strdup(text);
 
-    msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
+    msg->cell = lv_malloc(sizeof(ft8_cell_t));
     msg->cell->snr = snr;
     msg->cell->type = type;
     msg->cell->odd = odd;
@@ -405,10 +410,31 @@ static void send_tx_text(const char * text) {
 
     msg->msg = strdup(text);
 
-    msg->cell = lv_mem_alloc(sizeof(ft8_cell_t));
+    msg->cell = lv_malloc(sizeof(ft8_cell_t));
     msg->cell->type = MSG_TX_MSG;
 
     queue_send(table, EVENT_FT8_MSG, msg);
+}
+
+static void free_pending_msg(void *param) {
+    ft8_msg_t *msg = param;
+
+    free(msg->msg);
+    lv_free(msg->cell);
+    free(msg);
+}
+
+static void free_table_cells() {
+    if (table == NULL) return;
+
+    uint32_t rows = lv_table_get_row_count(table);
+    for (uint32_t row = 0; row < rows; row++) {
+        ft8_cell_t *cell = lv_table_get_cell_user_data(table, row, 0);
+        if (cell != NULL) {
+            lv_free(cell);
+            lv_table_set_cell_user_data(table, row, 0, NULL);
+        }
+    }
 }
 
 static void decode() {
@@ -467,9 +493,9 @@ void static waterfall_process(float complex *frame, const size_t size) {
 
         spgramcf_get_psd(waterfall_sg, waterfall_psd);
 
-        lv_lock();
+        brass_lv_lock();
         lv_waterfall_add_data(waterfall, &waterfall_psd[low_bin], high_bin - low_bin);
-        lv_unlock();
+        brass_lv_unlock();
 
         waterfall_time = now;
         spgramcf_reset(waterfall_sg);
@@ -583,15 +609,16 @@ static void rx_worker(bool sync) {
         pthread_cond_wait(&audio_cond, &audio_mutex);
     }
 
-    pthread_mutex_unlock(&audio_mutex);
-
-    while (cbuffercf_size(audio_buf) > block_size) {
+    while (cbuffercf_size(audio_buf) >= block_size) {
         cbuffercf_read(audio_buf, block_size, &buf, &n);
+        memcpy(audio_frame, buf, block_size * sizeof(*audio_frame));
+        cbuffercf_release(audio_buf, block_size);
+        pthread_mutex_unlock(&audio_mutex);
 
-        waterfall_process(buf, block_size);
+        waterfall_process(audio_frame, block_size);
 
         if (sync) {
-            process(buf);
+            process(audio_frame);
 
             if (wf.num_blocks >= wf.max_blocks) {
                 decode();
@@ -599,8 +626,10 @@ static void rx_worker(bool sync) {
             }
         }
 
-        cbuffercf_release(audio_buf, block_size);
+        pthread_mutex_lock(&audio_mutex);
     }
+
+    pthread_mutex_unlock(&audio_mutex);
 }
 
 static void tx_worker() {
@@ -704,8 +733,8 @@ static void * decode_thread(void *arg) {
 
 static void add_msg_cb(lv_event_t * e) {
     ft8_msg_t   *msg = (ft8_msg_t *) lv_event_get_param(e);
-    int16_t     row = 0;
-    int16_t     col = 0;
+    uint32_t    row = 0;
+    uint32_t    col = 0;
     bool        scroll;
 
     lv_table_get_selected_cell(table, &row, &col);
@@ -734,100 +763,78 @@ static void add_msg_cb(lv_event_t * e) {
         int32_t *c = malloc(sizeof(int32_t));
         *c = LV_KEY_DOWN;
 
-        lv_event_send(table, LV_EVENT_KEY, c);
+        lv_obj_send_event(table, LV_EVENT_KEY, c);
     }
 
     table_rows++;
+    free(msg->msg);
+    msg->msg = NULL;
 }
 
-static void fill_style(lv_obj_t *obj, lv_obj_draw_part_dsc_t *dsc, lv_style_selector_t part) {
-    dsc->label_dsc->font = lv_obj_get_style_text_font(obj, part);
-    dsc->label_dsc->color = lv_obj_get_style_text_color(obj, part);
-    dsc->label_dsc->align = lv_obj_get_style_text_align(obj, part);
+static void fill_style(lv_obj_t *obj, lv_draw_label_dsc_t *dsc, lv_style_selector_t part) {
+    dsc->font = lv_obj_get_style_text_font(obj, part);
+    dsc->color = lv_obj_get_style_text_color(obj, part);
+    dsc->align = lv_obj_get_style_text_align(obj, part);
 }
 
-static void table_draw_part_begin_cb(lv_event_t * e) {
-    lv_obj_t                *obj = lv_event_get_target(e);
-    lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
+static void table_draw_task_cb(lv_event_t * e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+    lv_draw_task_t *task = lv_event_get_draw_task(e);
+    lv_draw_label_dsc_t *dsc = lv_draw_task_get_label_dsc(task);
+    if (dsc == NULL || dsc->base.id1 == UINT32_MAX) return;
 
-    if (dsc->part == LV_PART_ITEMS) {
-        uint32_t    row = dsc->id / lv_table_get_col_cnt(obj);
-        uint32_t    col = dsc->id - row * lv_table_get_col_cnt(obj);
-        ft8_cell_t  *cell = lv_table_get_cell_user_data(obj, row, col);
+    uint32_t row = dsc->base.id1;
+    uint32_t col = dsc->base.id2;
+    if (row >= lv_table_get_row_cnt(obj) || col >= lv_table_get_col_cnt(obj)) return;
 
-        if (cell == NULL) {
-            fill_style(obj, dsc, LV_PART_RX_INFO);
-            return;
-        }
-
-        switch (cell->type) {
-            case MSG_RX_INFO:
-                fill_style(obj, dsc, LV_PART_RX_INFO);
-                break;
-
-            case MSG_RX_MSG:
-                fill_style(obj, dsc, LV_PART_RX_MSG);
-                break;
-
-            case MSG_RX_CQ:
-                fill_style(obj, dsc, LV_PART_RX_CQ);
-                break;
-
-            case MSG_RX_TO_ME:
-                fill_style(obj, dsc, LV_PART_RX_TO_ME);
-                break;
-
-            case MSG_TX_MSG:
-                fill_style(obj, dsc, LV_PART_TX_MSG);
-                break;
-        }
+    ft8_cell_t *cell = lv_table_get_cell_user_data(obj, row, col);
+    if (cell == NULL) {
+        fill_style(obj, dsc, LV_PART_RX_INFO);
+        return;
     }
-}
 
-static void table_draw_part_end_cb(lv_event_t * e) {
-    lv_obj_t                *obj = lv_event_get_target(e);
-    lv_obj_draw_part_dsc_t  *dsc = lv_event_get_draw_part_dsc(e);
+    switch (cell->type) {
+        case MSG_RX_INFO:  fill_style(obj, dsc, LV_PART_RX_INFO); break;
+        case MSG_RX_MSG:   fill_style(obj, dsc, LV_PART_RX_MSG); break;
+        case MSG_RX_CQ:    fill_style(obj, dsc, LV_PART_RX_CQ); break;
+        case MSG_RX_TO_ME: fill_style(obj, dsc, LV_PART_RX_TO_ME); break;
+        case MSG_TX_MSG:   fill_style(obj, dsc, LV_PART_TX_MSG); break;
+    }
 
-    if (dsc->part == LV_PART_ITEMS) {
-        uint32_t    row = dsc->id / lv_table_get_col_cnt(obj);
-        uint32_t    col = dsc->id - row * lv_table_get_col_cnt(obj);
-        ft8_cell_t  *cell = lv_table_get_cell_user_data(obj, row, col);
+    if (cell->type == MSG_RX_MSG || cell->type == MSG_RX_CQ || cell->type == MSG_RX_TO_ME) {
+        char buf[64];
+        lv_area_t area;
+        lv_draw_task_get_area(task, &area);
 
-        if (cell == NULL) {
-            return;
-        }
+        lv_draw_label_dsc_t extra = *dsc;
+        extra.base.id1 = UINT32_MAX;
+        extra.base.id2 = UINT32_MAX;
+        extra.align = LV_TEXT_ALIGN_RIGHT;
+        extra.text_local = 1;
+        extra.text_static = 0;
+        extra.hint = NULL;
 
-        if (cell->type == MSG_RX_MSG || cell->type == MSG_RX_CQ || cell->type == MSG_RX_TO_ME) {
-            char                buf[64];
-            const lv_coord_t    cell_top = lv_obj_get_style_pad_top(obj, LV_PART_ITEMS);
-            const lv_coord_t    cell_bottom = lv_obj_get_style_pad_bottom(obj, LV_PART_ITEMS);
-            lv_area_t           area;
+        area.x2 -= 15;
+        area.x1 = area.x2 - 120;
+        snprintf(buf, sizeof(buf), "%i dB", cell->snr);
+        extra.text = buf;
+        extra.text_length = strlen(buf);
+        lv_draw_label(extra.base.layer, &extra, &area);
 
-            dsc->label_dsc->align = LV_TEXT_ALIGN_RIGHT;
-
-            area.y1 = dsc->draw_area->y1 + cell_top;
-            area.y2 = dsc->draw_area->y2 - cell_bottom;
-
-            area.x2 = dsc->draw_area->x2 - 15;
-            area.x1 = area.x2 - 120;
-
-            snprintf(buf, sizeof(buf), "%i dB", cell->snr);
-            lv_draw_label(dsc->draw_ctx, dsc->label_dsc, &area, buf, NULL);
-
-            if (cell->dist > 0) {
-                area.x2 = area.x1 - 10;
-                area.x1 = area.x2 - 200;
-
-                snprintf(buf, sizeof(buf), "%i km", cell->dist);
-                lv_draw_label(dsc->draw_ctx, dsc->label_dsc, &area, buf, NULL);
-            }
+        if (cell->dist > 0) {
+            area.x2 = area.x1 - 10;
+            area.x1 = area.x2 - 200;
+            snprintf(buf, sizeof(buf), "%i km", cell->dist);
+            extra.text = buf;
+            extra.text_length = strlen(buf);
+            lv_draw_label(extra.base.layer, &extra, &area);
         }
     }
 }
 
 static void selected_msg_cb(lv_event_t * e) {
-    int16_t     row;
-    int16_t     col;
+    uint32_t    row;
+    uint32_t    col;
 
     lv_table_get_selected_cell(table, &row, &col);
 }
@@ -835,7 +842,24 @@ static void selected_msg_cb(lv_event_t * e) {
 static void destruct_cb() {
     done();
 
+    if (timer != NULL) {
+        lv_timer_delete(timer);
+        timer = NULL;
+    }
+    lv_anim_delete(table, NULL);
+    fade_run = false;
+    queue_cancel(table, EVENT_FT8_MSG, free_pending_msg);
+
     free(audio_buf);
+    audio_buf = NULL;
+
+    free_table_cells();
+    lv_obj_delete(table);
+    table = NULL;
+
+    lv_obj_delete(waterfall);
+    waterfall = NULL;
+    finder = NULL;
     op_work_restore();
 
     main_screen_lock_mode(false);
@@ -860,6 +884,7 @@ static void load_band() {
 static void clean() {
     reset();
 
+    free_table_cells();
     lv_table_set_row_cnt(table, 1);
     lv_table_set_cell_value(table, 0, 0, "Wait sync");
 
@@ -870,7 +895,7 @@ static void clean() {
     int32_t *c = malloc(sizeof(int32_t));
     *c = LV_KEY_UP;
 
-    lv_event_send(table, LV_EVENT_KEY, c);
+    lv_obj_send_event(table, LV_EVENT_KEY, c);
 }
 
 static void make_tx_msg(ft8_tx_msg_t msg, int16_t snr) {
@@ -1154,8 +1179,8 @@ static void construct_cb(lv_obj_t *parent) {
     lv_obj_add_event_cb(table, selected_msg_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(table, tx_call_dis_cb, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(table, dialog_key_cb, LV_EVENT_KEY, NULL);
-    lv_obj_add_event_cb(table, table_draw_part_begin_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
-    lv_obj_add_event_cb(table, table_draw_part_end_cb, LV_EVENT_DRAW_PART_END, NULL);
+    lv_obj_add_flag(table, LV_OBJ_FLAG_SEND_DRAW_TASK_EVENTS);
+    lv_obj_add_event_cb(table, table_draw_task_cb, LV_EVENT_DRAW_TASK_ADDED, NULL);
 
     lv_group_add_obj(keyboard_group, table);
     lv_group_set_editing(keyboard_group, true);
@@ -1268,6 +1293,11 @@ static void tx_cq_en_cb(lv_event_t * e) {
     qso = QSO_IDLE;
 }
 
+static void tx_cq_hold_cb(void * data) {
+    LV_UNUSED(data);
+    tx_cq_en_cb(NULL);
+}
+
 static void tx_call_off() {
     buttons_load(2, &button_tx_call_dis);
     state = TX_STOP;
@@ -1284,8 +1314,8 @@ static void tx_call_dis_cb(lv_event_t * e) {
     if (state == TX_PROCESS) {
         tx_call_off();
     } else {
-        int16_t     row;
-        int16_t     col;
+        uint32_t    row;
+        uint32_t    col;
 
         lv_table_get_selected_cell(table, &row, &col);
 
@@ -1312,18 +1342,30 @@ static void tx_call_en_cb(lv_event_t * e) {
 }
 
 static void audio_cb(float complex *samples, size_t n) {
+    static uint64_t last_overflow_log;
+
     if (state == NOT_READY) {
         return;
     }
 
     if (state == IDLE || state == RX_PROCESS) {
+        bool overflow = false;
+
+        pthread_mutex_lock(&audio_mutex);
         if (cbuffercf_space_available(audio_buf) >= n) {
-            pthread_mutex_lock(&audio_mutex);
-            pthread_cond_broadcast(&audio_cond);
             cbuffercf_write(audio_buf, samples, n);
-            pthread_mutex_unlock(&audio_mutex);
+            pthread_cond_signal(&audio_cond);
         } else {
-            LV_LOG_WARN("Buffer over");
+            overflow = true;
+        }
+        pthread_mutex_unlock(&audio_mutex);
+
+        if (overflow) {
+            uint64_t now = get_time();
+            if (now - last_overflow_log >= 1000) {
+                LV_LOG_WARN("Audio buffer overflow");
+                last_overflow_log = now;
+            }
         }
     }
 }

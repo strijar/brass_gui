@@ -7,7 +7,8 @@
  */
 
 #include "lvgl/lvgl.h"
-#include "lv_drivers/display/fbdev.h"
+#include "lvgl/src/drivers/display/fb/lv_linux_fbdev.h"
+#include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <time.h>
@@ -37,7 +38,6 @@
 #include "python/python.h"
 #include "mic.h"
 #include "vt.h"
-#include "render/render.h"
 #include "hw/gpio.h"
 #include "hw/iio.h"
 #include "settings/bands.h"
@@ -48,22 +48,21 @@
 #include "olivia/olivia.h"
 #include "bands/bands.h"
 
-#define DISP_BUF_SIZE (800 * 480)
-
 rotary_t                    *vol;
 encoder_t                   *mfk;
 
-static lv_color_t           buf_1[DISP_BUF_SIZE];
-static lv_color_t           buf_2[DISP_BUF_SIZE];
-static lv_disp_draw_buf_t   disp_buf;
-static lv_disp_drv_t        disp_drv;
 static pthread_mutex_t      mux;
 
-void lv_lock() {
+static void lv_log_stderr_cb(lv_log_level_t level, const char *buf) {
+    (void) level;
+    fprintf(stderr, "%s\n", buf);
+}
+
+void brass_lv_lock() {
     pthread_mutex_lock(&mux);
 }
 
-void lv_unlock() {
+void brass_lv_unlock() {
     pthread_mutex_unlock(&mux);
 }
 
@@ -86,9 +85,14 @@ int main(void) {
     settings_rf_load();
 
     lv_init();
-    lv_png_init();
+    lv_libpng_init();
 
-    fbdev_init();
+    lv_display_t *display = lv_linux_fbdev_create();
+    if (display == NULL || lv_linux_fbdev_set_file(display, "/dev/fb0") != LV_RESULT_OK) {
+        LV_LOG_ERROR("unable to initialize /dev/fb0");
+        return 1;
+    }
+
     mic_init();
     audio_init();
     recorder_init();
@@ -98,25 +102,7 @@ int main(void) {
     iio_init();
     bands_init();
 
-    lv_disp_draw_buf_init(&disp_buf, buf_1, buf_2, DISP_BUF_SIZE);
-    lv_disp_drv_init(&disp_drv);
-
-    disp_drv.draw_buf   = &disp_buf;
-    disp_drv.flush_cb   = fbdev_flush;
-    disp_drv.hor_res    = 800;
-    disp_drv.ver_res    = 480;
-
-#if 1
-    disp_drv.draw_ctx_init = brass_draw_ctx_init;
-    disp_drv.draw_ctx_size = sizeof(brass_draw_ctx_t);
-#endif
-
-    lv_disp_drv_register(&disp_drv);
-
-    lv_disp_set_bg_color(lv_disp_get_default(), lv_color_black());
-    lv_disp_set_bg_opa(lv_disp_get_default(), LV_OPA_COVER);
-
-    lv_timer_t *timer = _lv_disp_get_refr_timer(lv_disp_get_default());
+    lv_timer_t *timer = lv_display_get_refr_timer(display);
 
     lv_timer_set_period(timer, 15);
 
@@ -128,6 +114,10 @@ int main(void) {
     keypad_t *keypad = keypad_init("/dev/input/event3");
     keypad_t *gpio = keypad_init("/dev/input/event4");
 
+    if (vol == NULL || mfk == NULL || main == NULL || keypad == NULL || gpio == NULL) {
+        return 1;
+    }
+
     vol->left[VOL_EDIT] = KEY_VOL_LEFT_EDIT;
     vol->right[VOL_EDIT] = KEY_VOL_RIGHT_EDIT;
 
@@ -138,6 +128,9 @@ int main(void) {
     styles_init();
 
     lv_obj_t *main_obj = main_screen();
+    if (main_obj == NULL) {
+        return 1;
+    }
 
     cw_init();
     cw_key_init();
@@ -156,12 +149,10 @@ int main(void) {
     uint64_t prev_time = get_time();
 
     lv_scr_load(main_obj);
+    bool first_loop = true;
 
     while (1) {
-        lv_lock();
-
-        lv_timer_handler();
-        queue_work();
+        brass_lv_lock();
 
         uint64_t now = get_time();
         uint64_t delta = now - prev_time;
@@ -169,7 +160,12 @@ int main(void) {
         lv_tick_inc(delta);
         prev_time = now;
 
-        lv_unlock();
+        lv_timer_handler();
+
+        queue_work();
+        first_loop = false;
+
+        brass_lv_unlock();
         usleep(100);
     }
 

@@ -210,12 +210,12 @@ void dsp_set_filter(filter_t *filter) {
     firdes_band_pass(1.0f, ADC_RATE, filter->low, filter->high, filter_taps, filter_len);
     filter_need_update = true;
 
-    lv_msg_send(MSG_FILTER_CHANGED, NULL);
+    brass_msg_send(MSG_FILTER_CHANGED, NULL);
 }
 
 void dsp_set_rx_agc(uint8_t mode) {
     agc_set_mode(rx_agc, mode);
-    lv_msg_send(MSG_AGC_CHANGED, &mode);
+    brass_msg_send(MSG_AGC_CHANGED, &mode);
 }
 
 int dsp_change_denoise(int16_t d) {
@@ -275,7 +275,7 @@ static void spectrum_timer_cb(lv_timer_t *t) {
         lpf(&spectrum_data_msg.data[i], dB(x), options->spectrum.beta);
     }
 
-    lv_msg_send(MSG_SPECTRUM_DATA, &spectrum_data_msg);
+    brass_msg_send(MSG_SPECTRUM_DATA, &spectrum_data_msg);
 
     spectrum_psd_count = 0;
     memset(spectrum_psd, 0, spectrum_data_msg.size * sizeof(float));
@@ -296,7 +296,7 @@ static void waterfall_timer_cb(lv_timer_t *t) {
         waterfall_psd[i] = dB(x);
     }
 
-    lv_msg_send(MSG_WATERFALL_DATA, &waterfall_data_msg);
+    brass_msg_send(MSG_WATERFALL_DATA, &waterfall_data_msg);
 
     waterfall_psd_count = 0;
     memset(waterfall_psd, 0, FFT_SAMPLES * sizeof(float));
@@ -422,7 +422,7 @@ static void meter_timer_cb(lv_timer_t *t) {
     if (radio_get_state() == RADIO_RX) {
         lpf(&meter_avr_db, meter_sum_db / meter_count, 0.5f);
 
-        lv_msg_send(MSG_SMETER, &meter_avr_db);
+        brass_msg_send(MSG_SMETER, &meter_avr_db);
     }
 
     meter_count = 0;
@@ -584,7 +584,7 @@ void dsp_adc(float complex *data, uint16_t samples) {
 
 void dsp_set_spectrum_factor(uint8_t x) {
     control_set_fft_rate(240 * x);
-    lv_msg_send(MSG_RATE_FFT_CHANGED, &x);
+    brass_msg_send(MSG_RATE_FFT_CHANGED, &x);
 }
 
 void dsp_auto_clear() {
@@ -645,8 +645,8 @@ static void calc_auto() {
         lpf(&waterfall_auto_msg.max, max, 0.4f);
     }
 
-    lv_msg_send(MSG_SPECTRUM_AUTO, &spectrum_auto_msg);
-    lv_msg_send(MSG_WATERFALL_AUTO, &waterfall_auto_msg);
+    brass_msg_send(MSG_SPECTRUM_AUTO, &spectrum_auto_msg);
+    brass_msg_send(MSG_WATERFALL_AUTO, &waterfall_auto_msg);
 }
 
 void dsp_change_mute() {

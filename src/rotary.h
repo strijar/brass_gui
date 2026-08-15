@@ -19,7 +19,6 @@ typedef struct {
     uint8_t         mode;
     uint8_t         div;
     
-    lv_indev_drv_t  indev_drv;
     lv_indev_t      *indev;
     int16_t         accum;
 } rotary_t;

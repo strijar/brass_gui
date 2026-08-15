@@ -58,7 +58,7 @@ static bool         band_lock = false;
 static void freq_shift(int16_t diff);
 static void next_freq_step(bool up);
 static uint64_t freq_update();
-static void band_changed_cb(void *s, lv_msg_t *m);
+static void band_changed_cb(void *s, brass_msg_t *m);
 
 void mem_load(uint16_t id) {
     /* REWRITE
@@ -531,48 +531,40 @@ static void freq_shift(int16_t diff) {
     uint64_t    freq_rx = align_long(prev_freq_rx + df, abs(df));
     uint64_t    freq_tx = align_long(prev_freq_tx + df, abs(df));
     uint64_t    freq_fft = align_long(prev_freq_fft + df, abs(df));
-    int32_t     freq_delta = 0;
     int32_t     freq_shift = 0;
-    int32_t     half = 45000 / op_mode->spectrum_factor;
-
-    switch (op_work->split) {
-        case SPLIT_NONE:
-        case SPLIT_RX:
-            freq_delta = freq_rx - freq_fft;
-            break;
-
-        case SPLIT_TX:
-            freq_delta = freq_tx - freq_fft;
-            break;
-    }
 
     switch (options->freq.mode) {
         case FREQ_MODE_JOIN:
             radio_set_freq_fft(freq_fft);
             radio_set_freqs(freq_rx, freq_tx);
             freq_shift = freq_fft - prev_freq_fft;
-            lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
+            brass_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             voice_say_freq(freq_rx);
             break;
 
         case FREQ_MODE_SLIDE:
-            if (freq_delta < -half) {
-                freq_fft += freq_delta + half - df;
+        {
+            uint64_t tuned_freq = op_work->split == SPLIT_TX ? freq_tx : freq_rx;
+            int32_t span = 100000 / op_mode->spectrum_factor;
+            int32_t trigger = span * 45 / 100;
+            int64_t offset = (int64_t)tuned_freq - (int64_t)prev_freq_fft;
+
+            if (offset < -trigger) {
+                freq_fft = tuned_freq + trigger;
                 freq_shift = freq_fft - prev_freq_fft;
-            } else if (freq_delta > half) {
-                freq_fft += freq_delta - half - df;
+            } else if (offset > trigger) {
+                freq_fft = tuned_freq - trigger;
                 freq_shift = freq_fft - prev_freq_fft;
-            } else {
-                freq_shift = 0;
             }
 
             if (freq_shift != 0) {
                 radio_set_freq_fft(freq_fft);
-                lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
+                brass_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             }
 
             radio_set_freqs(freq_rx, freq_tx);
             break;
+        }
 
         case FREQ_MODE_RX_ONLY:
             radio_set_freqs(freq_rx, freq_tx);
@@ -581,7 +573,7 @@ static void freq_shift(int16_t diff) {
         case FREQ_MODE_FFT_ONLY:
             radio_set_freq_fft(freq_fft);
             freq_shift = freq_fft - prev_freq_fft;
-            lv_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
+            brass_msg_send(MSG_FREQ_FFT_SHIFT, &freq_shift);
             break;
 
         default:
@@ -605,7 +597,7 @@ static void freq_shift(int16_t diff) {
 }
 
 static void main_screen_rotary_cb(lv_event_t * e) {
-    int32_t     diff = lv_event_get_param(e);
+    int32_t     diff = (int32_t) (intptr_t) lv_event_get_param(e);
 
     freq_shift(diff);
     dialog_rotary(diff);
@@ -745,7 +737,7 @@ static void main_screen_pressed_cb(lv_event_t * e) {
     mfk_update(0, false);
 }
 
-static void mode_changed_cb(void *s, lv_msg_t *m) {
+static void mode_changed_cb(void *s, brass_msg_t *m) {
     main_screen_update_finder();
 }
 
@@ -788,22 +780,22 @@ lv_obj_t * main_screen() {
     lv_obj_add_event_cb(obj, main_screen_key_cb, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(obj, main_screen_pressed_cb, LV_EVENT_PRESSED, NULL);
 
-    lv_msg_subsribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
-    lv_msg_subsribe(MSG_BAND_CHANGED, band_changed_cb, NULL);
+    brass_msg_subscribe(MSG_MODE_CHANGED, mode_changed_cb, NULL);
+    brass_msg_subscribe(MSG_BAND_CHANGED, band_changed_cb, NULL);
 
     main_screen_keys_enable(true);
 
     buttons_init();
     pannel_init(obj);
 
-    lv_msg_send(MSG_MODE_CHANGED, &op_work->mode);
-    lv_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);
-    lv_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
-    lv_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
+    brass_msg_send(MSG_MODE_CHANGED, &op_work->mode);
+    brass_msg_send(MSG_FREQ_RX_CHANGED, &op_work->rx);
+    brass_msg_send(MSG_FREQ_TX_CHANGED, &op_work->tx);
+    brass_msg_send(MSG_FREQ_FFT_CHANGED, &op_work->fft);
 
-    lv_msg_send(MSG_AGC_CHANGED, &op_mode->agc);
-    lv_msg_send(MSG_ANT_CHANGED, &rf->ant);
-    lv_msg_send(MSG_SPLIT_CHANGED, &op_work->split);
+    brass_msg_send(MSG_AGC_CHANGED, &op_mode->agc);
+    brass_msg_send(MSG_ANT_CHANGED, &rf->ant);
+    brass_msg_send(MSG_SPLIT_CHANGED, &op_work->split);
 
     dsp_auto_clear();
 
@@ -816,9 +808,9 @@ bool main_screen_ready() {
     return obj != NULL;
 }
 
-static void band_changed_cb(void *s, lv_msg_t *m) {
-    lv_msg_send(MSG_ANT_CHANGED, &rf->ant);
-    lv_msg_send(MSG_SPLIT_CHANGED, &op_work->split);
+static void band_changed_cb(void *s, brass_msg_t *m) {
+    brass_msg_send(MSG_ANT_CHANGED, &rf->ant);
+    brass_msg_send(MSG_SPLIT_CHANGED, &op_work->split);
 
     dsp_auto_clear();
 
@@ -868,5 +860,5 @@ void main_screen_update_finder() {
             break;
     }
 
-    lv_msg_send(MSG_FINDER_CURSOR, &msg);
+    brass_msg_send(MSG_FINDER_CURSOR, &msg);
 }

@@ -16,6 +16,7 @@
 #include <sndfile.h>
 #include <dirent.h>
 #include <pthread.h>
+#include <string.h>
 
 #include "lvgl/lvgl.h"
 #include "main.h"
@@ -165,8 +166,8 @@ static const char* get_item() {
         return NULL;
     }
 
-    int16_t     row = 0;
-    int16_t     col = 0;
+    uint32_t    row = 0;
+    uint32_t    col = 0;
 
     lv_table_get_selected_cell(table, &row, &col);
 
@@ -327,10 +328,10 @@ static void * send_thread(void *arg) {
         lv_timer_set_repeat_count(beacon_timer, 1);
         msg_set_text_fmt("Beacon pause: %i s", options->msg.voice_period);
     } else {
-        lv_lock();
+        brass_lv_lock();
         buttons_unload_page();
         load_page(0);
-        lv_unlock();
+        brass_lv_unlock();
     }
 }
 
@@ -377,11 +378,11 @@ static void textarea_window_edit_ok_cb() {
 }
 
 static void msg_cb(lv_event_t * e) {
-    lv_msg_t *m = lv_event_get_msg(e);
+    brass_msg_t *m = brass_event_get_msg(e);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_PTT: {
-            const int *on = lv_msg_get_payload(m);
+            const int *on = brass_msg_get_payload(m);
 
             if (*on) {
                 if (beacon == VOICE_BEACON_IDLE) {
@@ -425,8 +426,8 @@ static void construct_cb(lv_obj_t *parent) {
     lv_table_set_col_cnt(table, 1);
     lv_table_set_col_width(table, 0, 770);
 
-    lv_obj_add_event_cb(table, msg_cb, LV_EVENT_MSG_RECEIVED, NULL);
-    lv_msg_subsribe_obj(MSG_PTT, table, NULL);
+    lv_obj_add_event_cb(table, msg_cb, BRASS_EVENT_MSG_RECEIVED, NULL);
+    brass_msg_subscribe_obj(MSG_PTT, table, NULL);
 
     lv_obj_add_event_cb(table, dialog_key_cb, LV_EVENT_KEY, NULL);
 
@@ -633,7 +634,8 @@ static void play_stop_cb(lv_event_t * e) {
 }
 
 static void rename_cb(lv_event_t * e) {
-    prev_filename = strdup(get_item());
+    const char *item = get_item();
+    prev_filename = item ? strdup(item) : NULL;
 
     if (prev_filename) {
         lv_group_remove_obj(table);

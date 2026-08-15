@@ -230,9 +230,9 @@ static void add_symbol(float pwr) {
                     if (c) {
                         char str[2] = { c, 0 };
 
-                        lv_lock();
+                        brass_lv_lock();
                         pannel_add_text(str);
-                        lv_unlock();
+                        brass_lv_unlock();
                     }
                 }
                 rx_state = RX_STATE_IDLE;

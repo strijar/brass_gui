@@ -43,8 +43,8 @@ static PyObject * style_set_bg(style_object_t *self, PyObject *args, PyObject *k
 
     if (color != -1)        lv_style_set_bg_color(&self->style, lv_color_hex(color));
     if (opa != -1)          lv_style_set_bg_opa(&self->style, (lv_opa_t) opa);
-    if (img_src != NULL)    lv_style_set_bg_img_src(&self->style, strdup(img_src));
-    if (img_opa != -1)      lv_style_set_bg_img_opa(&self->style, (lv_opa_t) img_opa);
+    if (img_src != NULL)    lv_style_set_bg_image_src(&self->style, strdup(img_src));
+    if (img_opa != -1)      lv_style_set_bg_image_opa(&self->style, (lv_opa_t) img_opa);
     if (grad_color != -1)   lv_style_set_bg_grad_color(&self->style, lv_color_hex(grad_color));
     if (grad_dir != -1)     lv_style_set_bg_grad_dir(&self->style, (lv_grad_dir_t) grad_dir);
     if (main_stop != -1)    lv_style_set_bg_main_stop(&self->style, main_stop);

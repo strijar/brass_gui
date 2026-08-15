@@ -21,13 +21,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 
-typedef struct {
-    lv_obj_t            obj;
-    lv_timer_t          *timer;
-    lv_anim_t           fade;
-    bool                fade_run;
-    uint16_t            timeout;
-} lv_hiding_t;
+typedef struct lv_hiding_t lv_hiding_t;
 
 extern const lv_obj_class_t lv_hiding_class;
 

@@ -95,7 +95,7 @@ void recorder_set_on(bool x) {
         sf_close(file);
     }
 
-    lv_msg_send(MSG_RECORDER, &on);
+    brass_msg_send(MSG_RECORDER, &on);
     dialog_recorder_set_on(on);
 }
 

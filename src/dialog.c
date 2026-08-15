@@ -7,6 +7,8 @@
  */
 
 #include "lvgl/lvgl.h"
+#include <stdio.h>
+#include <string.h>
 #include "dialog.h"
 #include "styles.h"
 #include "main_screen.h"
@@ -28,7 +30,7 @@
 #define SMALL_WIDTH 57
 
 static lv_coord_t   col_dsc[] = { 740 - (SMALL_1 + SMALL_PAD) * 6, SMALL_1, SMALL_1, SMALL_1, SMALL_1, SMALL_1, SMALL_1, LV_GRID_TEMPLATE_LAST };
-static lv_coord_t   row_dsc[64] = { 1 };
+static lv_coord_t   row_dsc[64];
 
 static lv_obj_t     *obj;
 static dialog_t     *current_dialog = NULL;
@@ -79,7 +81,7 @@ void dialog_destruct() {
 
 void dialog_send(lv_event_code_t event_code, void *param) {
     if (dialog_is_run()) {
-        lv_event_send(current_dialog->obj, event_code, param);
+        lv_obj_send_event(current_dialog->obj, event_code, param);
     }
 }
 
@@ -138,8 +140,13 @@ void dialog_grid(lv_obj_t *parent, dialog_t *dialog) {
 
     lv_obj_t *grid = lv_obj_create(dialog->obj);
 
-    lv_obj_set_layout(grid, LV_LAYOUT_GRID);
     lv_obj_add_style(grid, dialog_grid_style, LV_PART_MAIN);
+
+    memset(row_dsc, 0, sizeof(row_dsc));
+    row_dsc[0] = 1;
+    row_dsc[1] = LV_GRID_TEMPLATE_LAST;
+    lv_obj_set_grid_dsc_array(grid, col_dsc, row_dsc);
+    lv_obj_set_layout(grid, LV_LAYOUT_GRID);
 
     dialog->grid = grid;
     dialog->row = 0;
@@ -223,6 +230,7 @@ void dialog_title(dialog_t *dialog, const char *text) {
     dialog->col = 1;
     dialog->row++;
     row_dsc[dialog->row] = LV_GRID_CONTENT;
+    row_dsc[dialog->row + 1] = LV_GRID_TEMPLATE_LAST;
 
     lv_obj_t *obj = lv_label_create(dialog->grid);
     lv_obj_add_style(obj, dialog_title_style, LV_PART_MAIN);
@@ -242,6 +250,7 @@ void dialog_label(dialog_t *dialog, bool title, const char *fmt, ...) {
     dialog->col = 1;
     dialog->row++;
     row_dsc[dialog->row] = LV_GRID_CONTENT;
+    row_dsc[dialog->row + 1] = LV_GRID_TEMPLATE_LAST;
 
     lv_obj_t *obj = lv_label_create(dialog->grid);
     lv_obj_add_style(obj, title ? dialog_title_label_style : dialog_label_style, LV_PART_MAIN);

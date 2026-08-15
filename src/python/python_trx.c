@@ -25,32 +25,32 @@
 
 /* Spectrum */
 
-static void spectrum_msg_cb(void *s, lv_msg_t *m) {
-    lv_obj_t *spectrum = lv_msg_get_user_data(m);
+static void spectrum_msg_cb(void *s, brass_msg_t *m) {
+    lv_obj_t *spectrum = brass_msg_get_user_data(m);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_FREQ_FFT_SHIFT: {
-            const int32_t *df = lv_msg_get_payload(m);
+            const int32_t *df = brass_msg_get_payload(m);
 
             lv_spectrum_scroll_data(spectrum, *df);
         } break;
 
         case MSG_RATE_FFT_CHANGED: {
-            const uint8_t *zoom = lv_msg_get_payload(m);
+            const uint8_t *zoom = brass_msg_get_payload(m);
 
             lv_spectrum_set_span(spectrum, 100000 / *zoom);
             lv_spectrum_clear_data(spectrum);
         } break;
 
         case MSG_SPECTRUM_AUTO: {
-            const msgs_auto_t *msg = lv_msg_get_payload(m);
+            const msgs_auto_t *msg = brass_msg_get_payload(m);
 
             lv_spectrum_set_min(spectrum, msg->min + 3.0f);
             lv_spectrum_set_max(spectrum, msg->max + 10.0f);
         } break;
 
         case MSG_SPECTRUM_DATA: {
-            const msgs_floats_t *msg = lv_msg_get_payload(m);
+            const msgs_floats_t *msg = brass_msg_get_payload(m);
 
             lv_spectrum_add_data(spectrum, msg->data, msg->size);
             lv_obj_invalidate(spectrum);
@@ -66,10 +66,10 @@ static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *spectrum = python_lv_get_obj(obj);
 
-        lv_msg_subsribe(MSG_FREQ_FFT_SHIFT, spectrum_msg_cb, spectrum);
-        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, spectrum_msg_cb, spectrum);
-        lv_msg_subsribe(MSG_SPECTRUM_AUTO, spectrum_msg_cb, spectrum);
-        lv_msg_subsribe(MSG_SPECTRUM_DATA, spectrum_msg_cb, spectrum);
+        brass_msg_subscribe(MSG_FREQ_FFT_SHIFT, spectrum_msg_cb, spectrum);
+        brass_msg_subscribe(MSG_RATE_FFT_CHANGED, spectrum_msg_cb, spectrum);
+        brass_msg_subscribe(MSG_SPECTRUM_AUTO, spectrum_msg_cb, spectrum);
+        brass_msg_subscribe(MSG_SPECTRUM_DATA, spectrum_msg_cb, spectrum);
     }
 
     Py_RETURN_NONE;
@@ -77,32 +77,32 @@ static PyObject * trx_connect_spectrum(PyObject *self, PyObject *args) {
 
 /* Spectrum3D */
 
-static void spectrum3d_msg_cb(void *s, lv_msg_t *m) {
-    lv_obj_t *spectrum3d = lv_msg_get_user_data(m);
+static void spectrum3d_msg_cb(void *s, brass_msg_t *m) {
+    lv_obj_t *spectrum3d = brass_msg_get_user_data(m);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_FREQ_FFT_SHIFT: {
-            const int32_t *df = lv_msg_get_payload(m);
+            const int32_t *df = brass_msg_get_payload(m);
 
             lv_spectrum3d_scroll_data(spectrum3d, *df);
         } break;
 
         case MSG_RATE_FFT_CHANGED: {
-            const uint8_t *zoom = lv_msg_get_payload(m);
+            const uint8_t *zoom = brass_msg_get_payload(m);
 
             lv_spectrum3d_set_span(spectrum3d, 100000 / *zoom);
             lv_spectrum3d_clear_data(spectrum3d);
         } break;
 
         case MSG_WATERFALL_AUTO: {
-            const msgs_auto_t *msg = lv_msg_get_payload(m);
+            const msgs_auto_t *msg = brass_msg_get_payload(m);
 
             lv_spectrum3d_set_min(spectrum3d, msg->min + 3.0f);
             lv_spectrum3d_set_max(spectrum3d, msg->max + 3.0f);
         } break;
 
         case MSG_WATERFALL_DATA: {
-            const msgs_floats_t *msg = lv_msg_get_payload(m);
+            const msgs_floats_t *msg = brass_msg_get_payload(m);
 
             lv_spectrum3d_add_data(spectrum3d, msg->data, msg->size);
             lv_obj_invalidate(spectrum3d);
@@ -118,10 +118,10 @@ static PyObject * trx_connect_spectrum3d(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *spectrum3d = python_lv_get_obj(obj);
 
-        lv_msg_subsribe(MSG_FREQ_FFT_SHIFT, spectrum3d_msg_cb, spectrum3d);
-        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, spectrum3d_msg_cb, spectrum3d);
-        lv_msg_subsribe(MSG_WATERFALL_AUTO, spectrum3d_msg_cb, spectrum3d);
-        lv_msg_subsribe(MSG_WATERFALL_DATA, spectrum3d_msg_cb, spectrum3d);
+        brass_msg_subscribe(MSG_FREQ_FFT_SHIFT, spectrum3d_msg_cb, spectrum3d);
+        brass_msg_subscribe(MSG_RATE_FFT_CHANGED, spectrum3d_msg_cb, spectrum3d);
+        brass_msg_subscribe(MSG_WATERFALL_AUTO, spectrum3d_msg_cb, spectrum3d);
+        brass_msg_subscribe(MSG_WATERFALL_DATA, spectrum3d_msg_cb, spectrum3d);
     }
 
     Py_RETURN_NONE;
@@ -129,36 +129,36 @@ static PyObject * trx_connect_spectrum3d(PyObject *self, PyObject *args) {
 
 /* Waterfall */
 
-static void waterfall_msg_cb(void *s, lv_msg_t *m) {
-    lv_obj_t *waterfall = lv_msg_get_user_data(m);
+static void waterfall_msg_cb(void *s, brass_msg_t *m) {
+    lv_obj_t *waterfall = brass_msg_get_user_data(m);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_BAND_CHANGED:
             lv_waterfall_clear_data(waterfall);
             break;
 
         case MSG_FREQ_FFT_SHIFT: {
-            const int32_t   *df = lv_msg_get_payload(m);
+            const int32_t   *df = brass_msg_get_payload(m);
 
             lv_waterfall_scroll_data(waterfall, *df);
         } break;
 
         case MSG_RATE_FFT_CHANGED: {
-            const uint8_t *zoom = lv_msg_get_payload(m);
+            const uint8_t *zoom = brass_msg_get_payload(m);
 
             lv_waterfall_set_span(waterfall, 100000 / *zoom);
             lv_waterfall_clear_data(waterfall);
         } break;
 
         case MSG_WATERFALL_AUTO: {
-            const msgs_auto_t *msg = lv_msg_get_payload(m);
+            const msgs_auto_t *msg = brass_msg_get_payload(m);
 
             lv_waterfall_set_min(waterfall, msg->min + 3.0f);
             lv_waterfall_set_max(waterfall, msg->max + 3.0f);
         } break;
 
         case MSG_WATERFALL_DATA: {
-            const msgs_floats_t *msg = lv_msg_get_payload(m);
+            const msgs_floats_t *msg = brass_msg_get_payload(m);
 
             lv_waterfall_add_data(waterfall, msg->data, msg->size);
             lv_obj_invalidate(waterfall);
@@ -174,11 +174,11 @@ static PyObject * trx_connect_waterfall(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *waterfall = python_lv_get_obj(obj);
 
-        lv_msg_subsribe(MSG_FREQ_FFT_SHIFT, waterfall_msg_cb, waterfall);
-        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, waterfall_msg_cb, waterfall);
-        lv_msg_subsribe(MSG_WATERFALL_AUTO, waterfall_msg_cb, waterfall);
-        lv_msg_subsribe(MSG_BAND_CHANGED, waterfall_msg_cb, waterfall);
-        lv_msg_subsribe(MSG_WATERFALL_DATA, waterfall_msg_cb, waterfall);
+        brass_msg_subscribe(MSG_FREQ_FFT_SHIFT, waterfall_msg_cb, waterfall);
+        brass_msg_subscribe(MSG_RATE_FFT_CHANGED, waterfall_msg_cb, waterfall);
+        brass_msg_subscribe(MSG_WATERFALL_AUTO, waterfall_msg_cb, waterfall);
+        brass_msg_subscribe(MSG_BAND_CHANGED, waterfall_msg_cb, waterfall);
+        brass_msg_subscribe(MSG_WATERFALL_DATA, waterfall_msg_cb, waterfall);
     }
 
     Py_RETURN_NONE;
@@ -186,10 +186,10 @@ static PyObject * trx_connect_waterfall(PyObject *self, PyObject *args) {
 
 /* Finder */
 
-static void finder_event_cb(void *s, lv_msg_t *m) {
-    lv_obj_t *finder = lv_msg_get_user_data(m);
+static void finder_event_cb(void *s, brass_msg_t *m) {
+    lv_obj_t *finder = brass_msg_get_user_data(m);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_FILTER_CHANGED: {
             int32_t from, to;
 
@@ -199,21 +199,21 @@ static void finder_event_cb(void *s, lv_msg_t *m) {
         } break;
 
         case MSG_RATE_FFT_CHANGED: {
-            const uint8_t *zoom = lv_msg_get_payload(m);
+            const uint8_t *zoom = brass_msg_get_payload(m);
 
             lv_finder_set_span(finder, 100000 / *zoom);
             lv_obj_invalidate(finder);
         } break;
 
         case MSG_FREQ_FFT_CHANGED: {
-            const uint64_t  *freq = lv_msg_get_payload(m);
+            const uint64_t  *freq = brass_msg_get_payload(m);
 
             lv_finder_set_center(finder, *freq);
             lv_obj_invalidate(finder);
         } break;
 
         case MSG_FINDER_CURSOR: {
-            const msg_finder_cursor_t *msg = lv_msg_get_payload(m);
+            const msg_finder_cursor_t *msg = brass_msg_get_payload(m);
 
             lv_finder_set_cursor_num(finder, msg->num);
             lv_finder_set_cursor(finder, 1, msg->cursor[0]);
@@ -226,12 +226,12 @@ static void finder_event_cb(void *s, lv_msg_t *m) {
     }
 }
 
-static void rx_finder_event_cb(void *s, lv_msg_t *m) {
-    lv_obj_t *finder = lv_msg_get_user_data(m);
+static void rx_finder_event_cb(void *s, brass_msg_t *m) {
+    lv_obj_t *finder = brass_msg_get_user_data(m);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_FREQ_RX_CHANGED: {
-            const uint64_t *freq = lv_msg_get_payload(m);
+            const uint64_t *freq = brass_msg_get_payload(m);
 
             lv_finder_set_value(finder, *freq);
         } break;
@@ -241,12 +241,12 @@ static void rx_finder_event_cb(void *s, lv_msg_t *m) {
     }
 }
 
-static void tx_finder_event_cb(void *s, lv_msg_t *m) {
-    lv_obj_t *finder = lv_msg_get_user_data(m);
+static void tx_finder_event_cb(void *s, brass_msg_t *m) {
+    lv_obj_t *finder = brass_msg_get_user_data(m);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_FREQ_TX_CHANGED: {
-            const uint64_t *freq = lv_msg_get_payload(m);
+            const uint64_t *freq = brass_msg_get_payload(m);
 
             lv_finder_set_value(finder, *freq);
         } break;
@@ -264,11 +264,11 @@ static PyObject * trx_connect_rx_finder(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *finder = python_lv_get_obj(obj);
 
-        lv_msg_subsribe(MSG_FILTER_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FINDER_CURSOR, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FREQ_RX_CHANGED, rx_finder_event_cb, finder);
+        brass_msg_subscribe(MSG_FILTER_CHANGED, finder_event_cb, finder);
+        brass_msg_subscribe(MSG_RATE_FFT_CHANGED, finder_event_cb, finder);
+        brass_msg_subscribe(MSG_FREQ_FFT_CHANGED, finder_event_cb, finder);
+        brass_msg_subscribe(MSG_FINDER_CURSOR, finder_event_cb, finder);
+        brass_msg_subscribe(MSG_FREQ_RX_CHANGED, rx_finder_event_cb, finder);
     }
 
     Py_RETURN_NONE;
@@ -282,12 +282,12 @@ static PyObject * trx_connect_tx_finder(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *finder = python_lv_get_obj(obj);
 
-        lv_msg_subsribe(MSG_FILTER_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_RATE_FFT_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FREQ_FFT_CHANGED, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FINDER_CURSOR, finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FREQ_TX_CHANGED, tx_finder_event_cb, finder);
-        lv_msg_subsribe(MSG_FINDER_CURSOR, tx_finder_event_cb, finder);
+        brass_msg_subscribe(MSG_FILTER_CHANGED, finder_event_cb, finder);
+        brass_msg_subscribe(MSG_RATE_FFT_CHANGED, finder_event_cb, finder);
+        brass_msg_subscribe(MSG_FREQ_FFT_CHANGED, finder_event_cb, finder);
+        brass_msg_subscribe(MSG_FINDER_CURSOR, finder_event_cb, finder);
+        brass_msg_subscribe(MSG_FREQ_TX_CHANGED, tx_finder_event_cb, finder);
+        brass_msg_subscribe(MSG_FINDER_CURSOR, tx_finder_event_cb, finder);
     }
 
     Py_RETURN_NONE;
@@ -295,19 +295,19 @@ static PyObject * trx_connect_tx_finder(PyObject *self, PyObject *args) {
 
 /* X-Meter */
 
-static void xmeter_msg_cb(void *s, lv_msg_t *m) {
-    lv_obj_t *xmeter = lv_msg_get_user_data(m);
+static void xmeter_msg_cb(void *s, brass_msg_t *m) {
+    lv_obj_t *xmeter = brass_msg_get_user_data(m);
 
-    switch (lv_msg_get_id(m)) {
+    switch (brass_msg_get_id(m)) {
         case MSG_SPECTRUM_AUTO: {
-            const msgs_auto_t *msg = lv_msg_get_payload(m);
+            const msgs_auto_t *msg = brass_msg_get_payload(m);
 
             lv_xmeter_set_part(xmeter, 0, msg->min);
         } break;
 
         case MSG_MIC_METER:
         case MSG_SMETER: {
-            const float *msg = lv_msg_get_payload(m);
+            const float *msg = brass_msg_get_payload(m);
 
             lv_xmeter_set_value(xmeter, *msg);
         }
@@ -322,8 +322,8 @@ static PyObject * trx_connect_smeter(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *xmeter = python_lv_get_obj(obj);
 
-        lv_msg_subsribe(MSG_SPECTRUM_AUTO, xmeter_msg_cb, xmeter);
-        lv_msg_subsribe(MSG_SMETER, xmeter_msg_cb, xmeter);
+        brass_msg_subscribe(MSG_SPECTRUM_AUTO, xmeter_msg_cb, xmeter);
+        brass_msg_subscribe(MSG_SMETER, xmeter_msg_cb, xmeter);
     }
 
     Py_RETURN_NONE;
@@ -337,7 +337,7 @@ static PyObject * trx_connect_mic_meter(PyObject *self, PyObject *args) {
     if (PyArg_ParseTuple(args, "O", &obj)) {
         lv_obj_t *xmeter = python_lv_get_obj(obj);
 
-        lv_msg_subsribe(MSG_MIC_METER, xmeter_msg_cb, xmeter);
+        brass_msg_subscribe(MSG_MIC_METER, xmeter_msg_cb, xmeter);
     }
 
     Py_RETURN_NONE;
