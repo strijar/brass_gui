@@ -19,6 +19,7 @@
 #include "dialog_settings.h"
 #include "dialog_swrscan.h"
 #include "dialog_ft8.h"
+#include "dialog_sstv.h"
 #include "dialog_freq.h"
 #include "dialog_gps.h"
 #include "dialog_msg_cw.h"
@@ -147,8 +148,8 @@ static button_item_t    buttons[] = {
 
     { .label = "RF\nSettings",      .press = button_app_page_cb,    .data = APP_RF_SETTINGS },
     { .label = "BlueTooth",         .press = button_app_page_cb,    .data = APP_BLUETOOTH },
+    { .label = "SSTV",              .press = button_app_page_cb,    .data = APP_SSTV },
     { .label = "Exit",              .press = button_exit_cb },
-    { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
     { .label = "",                  .press = NULL },
 };

@@ -39,6 +39,7 @@
 #include "dialog_recorder.h"
 #include "dialog_callsign.h"
 #include "dialog_bluetooth.h"
+#include "dialog_sstv.h"
 #include "backlight.h"
 #include "buttons.h"
 #include "recorder.h"
@@ -188,6 +189,11 @@ void main_screen_app(app_t app) {
         case APP_BLUETOOTH:
             dialog_construct(dialog_bluetooth, obj);
             voice_say_text_fmt("BlueTooth window");
+            break;
+
+        case APP_SSTV:
+            dialog_construct(dialog_sstv, obj);
+            voice_say_text_fmt("S S T V window");
             break;
 
         default:
