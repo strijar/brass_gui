@@ -605,13 +605,19 @@ void radio_update_pa_meter(int mv, int ma) {
     static uint64_t delay = 0;
 
     if (state == RADIO_TX) {
-        avr_ma = 0.9f * avr_ma + 0.1f * ma;
-
         uint64_t now = get_time();
 
-        if (now > delay) {
-            msg_set_text_fmt("PA current: %.1f mA", avr_ma);
-            delay = now + 250;
+        if (rf->mode == RF_SILENCE && now > delay) {
+            if (avr_ma < 100) {
+                avr_ma = ma;
+            } else {
+                avr_ma = 0.5f * avr_ma + 0.5f * ma;
+            }
+
+            msg_set_text_fmt("PA current: %.0f mA", avr_ma);
+            delay = now + 200;
         }
+    } else {
+        avr_ma = 0;
     }
 }
