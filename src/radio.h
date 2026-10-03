@@ -101,3 +101,5 @@ void radio_poweroff();
 void radio_set_ptt(bool on);
 void radio_stop_tx();
 void radio_set_morse_key(bool on);
+
+void radio_update_pa_meter(int mv, int ma);

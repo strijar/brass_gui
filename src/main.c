@@ -40,6 +40,7 @@
 #include "vt.h"
 #include "hw/gpio.h"
 #include "hw/iio.h"
+#include "hw/power_meter.h"
 #include "settings/bands.h"
 #include "settings/modes.h"
 #include "settings/options.h"
@@ -101,6 +102,7 @@ int main(void) {
     event_init();
     gpio_init();
     iio_init();
+    power_meter_init();
     bands_init();
     dbus_init();
 

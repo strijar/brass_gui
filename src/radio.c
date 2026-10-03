@@ -599,3 +599,19 @@ void radio_stop_tx() {
 
 void radio_set_morse_key(bool on) {
 }
+
+void radio_update_pa_meter(int mv, int ma) {
+    static float    avr_ma = 0;
+    static uint64_t delay = 0;
+
+    if (state == RADIO_TX) {
+        avr_ma = 0.9f * avr_ma + 0.1f * ma;
+
+        uint64_t now = get_time();
+
+        if (now > delay) {
+            msg_set_text_fmt("PA current: %.1f mA", avr_ma);
+            delay = now + 250;
+        }
+    }
+}
