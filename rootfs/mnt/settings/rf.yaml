@@ -49,3 +49,62 @@ ref_pwr: 10.0
 pwr: 10.0
 ant: 1
 atu: false
+
+swr:
+  fwd_offset: -1
+  rev_offset: -1
+  calibrate:
+  - {adc: 2, vpp: 2.6}
+  - {adc: 3, vpp: 2.8}
+  - {adc: 4, vpp: 3.2}
+  - {adc: 6, vpp: 3.6}
+  - {adc: 7, vpp: 3.7}
+  - {adc: 8, vpp: 3.9}
+  - {adc: 9, vpp: 4}
+  - {adc: 10, vpp: 4.2}
+  - {adc: 12, vpp: 4.3}
+  - {adc: 15, vpp: 4.5}
+  - {adc: 22, vpp: 4.8}
+  - {adc: 38, vpp: 5.8}
+  - {adc: 54, vpp: 6.5}
+  - {adc: 69, vpp: 7.2}
+  - {adc: 84, vpp: 7.8}
+  - {adc: 97, vpp: 8.4}
+  - {adc: 110, vpp: 8.8}
+  - {adc: 121, vpp: 9.3}
+  - {adc: 131, vpp: 9.7}
+  - {adc: 222, vpp: 14}
+  - {adc: 288, vpp: 16.4}
+  - {adc: 344, vpp: 18.4}
+  - {adc: 393, vpp: 20}
+  - {adc: 440, vpp: 21.6}
+  - {adc: 483, vpp: 23.2}
+  - {adc: 525, vpp: 24.8}
+  - {adc: 559, vpp: 25.6}
+  - {adc: 593, vpp: 27.2}
+  - {adc: 625, vpp: 28.4}
+  - {adc: 657, vpp: 29.6}
+  - {adc: 685, vpp: 30.4}
+  - {adc: 715, vpp: 31.2}
+  - {adc: 737, vpp: 32.4}
+  - {adc: 770, vpp: 33.4}
+  - {adc: 795, vpp: 34}
+  - {adc: 823, vpp: 34.4}
+  - {adc: 845, vpp: 36}
+  - {adc: 869, vpp: 36.8}
+  - {adc: 977, vpp: 40}
+  - {adc: 1072, vpp: 44}
+  - {adc: 1149, vpp: 46.4}
+  - {adc: 1213, vpp: 48.4}
+  - {adc: 1268, vpp: 50.4}
+  - {adc: 1317, vpp: 52.8}
+  - {adc: 1361, vpp: 53.6}
+  - {adc: 1400, vpp: 55.8}
+  - {adc: 1435, vpp: 56.8}
+  - {adc: 1469, vpp: 57.6}
+  - {adc: 1500, vpp: 59.2}
+  - {adc: 1529, vpp: 60}
+  - {adc: 1553, vpp: 60.4}
+  - {adc: 1576, vpp: 61.2}
+  - {adc: 1602, vpp: 62.8}
+  - {adc: 1624, vpp: 63.2}

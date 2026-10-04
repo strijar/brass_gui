@@ -18,6 +18,7 @@
 #include "main_screen.h"
 #include "styles.h"
 #include "radio.h"
+#include "swr.h"
 #include "dsp.h"
 #include "util.h"
 #include "keyboard.h"
@@ -72,6 +73,7 @@ void main_exit() {
     settings_bands_save();
     settings_modes_save();
     settings_options_save();
+    settings_rf_save();
     vt_enable();
     exit(1);
 }
@@ -101,6 +103,7 @@ int main(void) {
     queue_init();
     event_init();
     gpio_init();
+    swr_init();
     iio_init();
     power_meter_init();
     bands_init();

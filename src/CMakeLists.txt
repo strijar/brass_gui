@@ -5,7 +5,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     styles.c radio.c dsp.c util.c 
     rotary.c keyboard.c encoder.c device_monitor.c
     events.c msg.c msg_tiny.c brass_msg.c keypad.c
-    hkey.c
+    hkey.c swr.c
     audio.c mfk.c cw.c cw_decoder.c pannel.c
     rtty.c screenshot.c backlight.c gps.c
 

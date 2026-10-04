@@ -306,6 +306,8 @@ static void xmeter_msg_cb(void *s, brass_msg_t *m) {
         } break;
 
         case MSG_MIC_METER:
+        case MSG_SWR_METER:
+        case MSG_PWR_METER:
         case MSG_SMETER: {
             const float *msg = brass_msg_get_payload(m);
 
@@ -343,6 +345,34 @@ static PyObject * trx_connect_mic_meter(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject * trx_connect_swr_meter(PyObject *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        lv_obj_t *xmeter = python_lv_get_obj(obj);
+
+        brass_msg_subscribe_obj_cb(MSG_SWR_METER, xmeter, xmeter_msg_cb);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * trx_connect_pwr_meter(PyObject *self, PyObject *args) {
+    LV_LOG_INFO("begin");
+
+    PyObject    *obj = NULL;
+
+    if (PyArg_ParseTuple(args, "O", &obj)) {
+        lv_obj_t *xmeter = python_lv_get_obj(obj);
+
+        brass_msg_subscribe_obj_cb(MSG_PWR_METER, xmeter, xmeter_msg_cb);
+    }
+
+    Py_RETURN_NONE;
+}
+
 /* * */
 
 static PyObject * trx_connect_button(PyObject *self, PyObject *args) {
@@ -371,6 +401,8 @@ static PyMethodDef trx_methods[] = {
     { "connect_button", (PyCFunction) trx_connect_button, METH_VARARGS, "" },
     { "connect_smeter", (PyCFunction) trx_connect_smeter, METH_VARARGS, "" },
     { "connect_mic_meter", (PyCFunction) trx_connect_mic_meter, METH_VARARGS, "" },
+    { "connect_swr_meter", (PyCFunction) trx_connect_swr_meter, METH_VARARGS, "" },
+    { "connect_pwr_meter", (PyCFunction) trx_connect_pwr_meter, METH_VARARGS, "" },
     { NULL }
 };
 
@@ -415,6 +447,8 @@ PyMODINIT_FUNC PyInit_trx() {
     PyModule_AddObjectRef(m, "MSG_SPLIT_CHANGED",       PyLong_FromLong(MSG_SPLIT_CHANGED));
     PyModule_AddObjectRef(m, "MSG_MIC_METER",           PyLong_FromLong(MSG_MIC_METER));
     PyModule_AddObjectRef(m, "MSG_MIC",                 PyLong_FromLong(MSG_MIC));
+    PyModule_AddObjectRef(m, "MSG_SWR_METER",           PyLong_FromLong(MSG_SWR_METER));
+    PyModule_AddObjectRef(m, "MSG_PWR_METER",           PyLong_FromLong(MSG_PWR_METER));
 
     /* Modes */
 

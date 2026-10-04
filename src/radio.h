@@ -103,3 +103,4 @@ void radio_stop_tx();
 void radio_set_morse_key(bool on);
 
 void radio_update_pa_meter(int mv, int ma);
+void radio_update_swr_meter(int fwd, int rev);

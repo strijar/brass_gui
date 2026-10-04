@@ -5,6 +5,7 @@ from lv_const import *
 from info import *
 from smeter import *
 from mic_meter import *
+from pwr_meter import *
 from clock import *
 from tx_reflex import *
 
@@ -24,6 +25,11 @@ class Top(lv.obj):
 		mic_meter = MicMeter(self)
 		mic_meter.add_flag(LV_OBJ_FLAG_HIDDEN)
 		self.mic_meter = mic_meter
+		self.msg_subscribe(trx.MSG_MIC, self.msg_mic)
+
+		pwr_meter = PwrMeter(self)
+		pwr_meter.add_flag(LV_OBJ_FLAG_HIDDEN)
+		self.pwr_meter = pwr_meter
 
 		clock = Clock(self)
 		self.clock = clock
@@ -33,14 +39,23 @@ class Top(lv.obj):
 
 		self.msg_subscribe(trx.MSG_TX, self.msg_tx)
 		self.msg_subscribe(trx.MSG_RX, self.msg_rx)
-		self.msg_subscribe(trx.MSG_MIC, self.msg_mic)
 
 	def msg_tx(self, msg, payload = None):
 		self.smeter.add_flag(LV_OBJ_FLAG_HIDDEN)
-		self.mic_meter.clear_flag(LV_OBJ_FLAG_HIDDEN)
+
+		if False:
+			self.mic_meter.clear_flag(LV_OBJ_FLAG_HIDDEN)
+
+		if True:
+			self.pwr_meter.clear_flag(LV_OBJ_FLAG_HIDDEN)
 
 	def msg_rx(self, msg, payload = None):
-		self.mic_meter.add_flag(LV_OBJ_FLAG_HIDDEN)
+		if False:
+			self.mic_meter.add_flag(LV_OBJ_FLAG_HIDDEN)
+
+		if True:
+			self.pwr_meter.add_flag(LV_OBJ_FLAG_HIDDEN)
+
 		self.smeter.clear_flag(LV_OBJ_FLAG_HIDDEN)
 
 	def msg_mic(self, msg, enabled = None):

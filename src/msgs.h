@@ -56,4 +56,6 @@ typedef enum {
     MSG_SPLIT_CHANGED,          /* op_work->split */
     MSG_MIC_METER,              /* float */
     MSG_MIC,                    /* bool */
+    MSG_SWR_METER,              /* float */
+    MSG_PWR_METER,              /* float */
 } msgs_t;

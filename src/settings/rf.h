@@ -23,6 +23,18 @@ typedef enum {
 } rf_mode_t;
 
 typedef struct {
+    int     adc;
+    float   vpp;
+} rf_calibrate_t;
+
+typedef struct {
+    int             fwd_offset;
+    int             rev_offset;
+    rf_calibrate_t  *calibrate;
+    unsigned        count;
+} rf_swr_t;
+
+typedef struct {
     rf_mode_t       mode;
     uint16_t        pa_bias[2];
     uint16_t        two_tone[2];
@@ -38,6 +50,7 @@ typedef struct {
     uint8_t         ant;
     bool            atu;
     bool            atu_loaded;
+    rf_swr_t        swr;
 } rf_t;
 
 extern rf_t   *rf;

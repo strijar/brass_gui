@@ -20,6 +20,10 @@ typedef void (*brass_msg_cb_t)(void *subscriber, brass_msg_t *msg);
 
 #define BRASS_EVENT_MSG_RECEIVED ((lv_event_code_t) (LV_EVENT_LAST + 1))
 
+/* Synchronous dispatch: payload is borrowed for the duration of this call.
+ * The bus is not thread-safe. Dispatch to UI subscribers from the LVGL thread
+ * (e.g. a timer callback), or while holding brass_lv_lock() outside rendering.
+ */
 void brass_msg_send(uint32_t id, const void *payload);
 brass_msg_subscription_t *brass_msg_subscribe(uint32_t id, brass_msg_cb_t callback, void *user_data);
 brass_msg_subscription_t *brass_msg_subscribe_obj(uint32_t id, lv_obj_t *obj, void *user_data);

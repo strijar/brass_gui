@@ -13,23 +13,26 @@
 #include "lvgl/lvgl.h"
 #include "iio.h"
 #include "src/hkey.h"
+#include "src/swr.h"
 
 static struct iio_channel  *vref = NULL;
 static struct iio_channel  *hkeys_x = NULL;
 static struct iio_channel  *hkeys_y = NULL;
-static struct iio_channel  *pwr_ref = NULL;
+static struct iio_channel  *pwr_rev = NULL;
 static struct iio_channel  *pwr_fwd = NULL;
 
 static void * iio_thread(void *arg) {
     while (true) {
-        long long x, y, ref, fwd;
+        long long x, y, rev, fwd;
 
         iio_channel_attr_read_longlong(hkeys_x, "raw", &x);
         iio_channel_attr_read_longlong(hkeys_y, "raw", &y);
-        iio_channel_attr_read_longlong(pwr_ref, "raw", &ref);
+        iio_channel_attr_read_longlong(pwr_rev, "raw", &rev);
         iio_channel_attr_read_longlong(pwr_fwd, "raw", &fwd);
 
         hkey_put(x, y);
+        swr_update(fwd, rev);
+
         usleep(200);
     }
 }
@@ -77,15 +80,15 @@ void iio_init() {
             LV_LOG_ERROR("Find ads1015 channel");
         }
 
-        pwr_ref = iio_device_find_channel(dev, "voltage2", false);
+        pwr_fwd = iio_device_find_channel(dev, "voltage2", false);
 
-        if (pwr_ref == NULL) {
+        if (pwr_fwd == NULL) {
             LV_LOG_ERROR("Find ads1015 channel");
         }
 
-        pwr_fwd = iio_device_find_channel(dev, "voltage3", false);
+        pwr_rev = iio_device_find_channel(dev, "voltage3", false);
 
-        if (pwr_fwd == NULL) {
+        if (pwr_rev == NULL) {
             LV_LOG_ERROR("Find ads1015 channel");
         }
     } else {
