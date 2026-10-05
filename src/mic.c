@@ -3,13 +3,15 @@
  *
  *  TRX Brass LVGL GUI
  *
- *  Copyright (c) 2022-2025 Belousov Oleg aka R1CBU
+ *  Copyright (c) 2022-2026 Belousov Oleg aka R1CBU
  */
 
 #include <stdlib.h>
 #include <liquid/liquid.h>
 #include <math.h>
 #include <pthread.h>
+#include <stdatomic.h>
+#include <string.h>
 
 #include "mic.h"
 #include "dsp.h"
@@ -17,48 +19,67 @@
 #include "msgs.h"
 #include "util.h"
 #include "fpga/dac.h"
-#include "dsp/firdes.h"
+#include "dsp/eq.h"
 #include "dsp/agc.h"
-#include "dsp/biquad.h"
 #include "dialog_msg_voice.h"
 #include "settings/options.h"
 
-#define DECIM   441
-#define INTER   128
+#define DECIM 441
+#define INTER 128
+#define OUT_SIZE (DAC_RATE / 4)
 
-static bool             on_air = false;
-static bool             enabled = false;
-static firfilt_rrrf     dc_block;
-static cbufferf         in_buf;
-static rresamp_rrrf     resamp;
-static float            resamp_buf[INTER];
-static cbufferf         out_buf;
-static agc_t            *agc;
-static size_t           filter_len = 0;
-static float            *filter_taps = NULL;
-static bool             filter_need_update = false;
-static firfilt_rrrf     filter = NULL;
+_Static_assert(DAC_RATE * DECIM == AUDIO_CAPTURE_RATE * INTER, "resampler ratio");
 
-static uint8_t          meter_count = 0;
-static float            meter_sum = 0.0f;
-static float            meter_avr = 0.0f;
-static lv_timer_t       *meter_timer = NULL;
-static pthread_mutex_t  meter_mux;
+static _Atomic bool         on_air;
+static _Atomic unsigned     stream_epoch;
 
-static bool             mic_equalizer_update = true;
-static biquad_t         mic_equalizer[EQUALIZER_NUM];
+static bool                 enabled;
+static eq_t                 *equalizer;
+static agc_t                *agc;
+static rresamp_rrrf         resamp, record_resamp;
+static float                input[DECIM];
+static size_t               input_fill;
+static unsigned             audio_epoch;
+static bool                 was_active, was_recording;
+
+/* The capture thread owns DSP state. Only the bounded output queue is shared
+ * with the modulation thread; never hold its mutex during DSP or file I/O. */
+
+static float                output[OUT_SIZE];
+static size_t               output_read, output_count;
+static pthread_mutex_t      output_mux = PTHREAD_MUTEX_INITIALIZER;
+static float                meter_sum, meter_avr;
+static size_t               meter_count;
+static pthread_mutex_t      meter_mux = PTHREAD_MUTEX_INITIALIZER;
 
 static void meter_timer_cb(lv_timer_t *t);
 
 void mic_init() {
-    dc_block = firfilt_rrrf_create_dc_blocker(25, 30.0f);
-    in_buf = cbufferf_create(AUDIO_CAPTURE_RATE / 4);
-    resamp = rresamp_rrrf_create_default(INTER, DECIM);     /* DAC_RATE <- AUDIO_CAPTURE_RATE */
-    out_buf = cbufferf_create(DAC_RATE / 4);
+    settings_mic_validate(&options->audio.mic);
+
+    eq_config_t config = settings_mic_eq_config(&options->audio.mic);
+
+    equalizer = eq_create(&config);
+
+    /* liquid 1.6.0 bandwidth is relative to INPUT rate even when decimating.
+     * 5 kHz cutoff, m=64, Kaiser 80 dB: transition finishes before 6.4 kHz.
+     * Override the library's energy normalization to preserve amplitude. */
+
+    float bw = 5000.0f / AUDIO_CAPTURE_RATE;
+
+    resamp = rresamp_rrrf_create_kaiser(INTER, DECIM, 64, bw, 80);
+
+    if (resamp) 
+        rresamp_rrrf_set_scale(resamp, 2 * bw);
+
+    record_resamp = rresamp_rrrf_create_kaiser(DECIM, INTER, 16, 0.45f, 80);
+
+    if (record_resamp) 
+        rresamp_rrrf_set_scale(record_resamp, 0.9f);
 
     agc = agc_create(
         AGC_FAST,               /* mode */
-        AUDIO_CAPTURE_RATE,     /* sample rate */
+        DAC_RATE,               /* sample rate */
         0.001f,                 /* tau_attack */
         0.250f,                 /* tau_decay */
         4,                      /* n_tau */
@@ -77,111 +98,165 @@ void mic_init() {
         0.100f                  /* tau_hang_decay */
     );
 
-    pthread_mutex_init(&meter_mux, NULL);
-    meter_timer = lv_timer_create(meter_timer_cb, 1000 / 10, NULL);
+    if (!equalizer || !resamp || !record_resamp || !agc) {
+        LV_LOG_ERROR("Cannot initialize microphone DSP");
+    }
 
-    mic_update_filter();
+    lv_timer_create(meter_timer_cb, 1000 / 10, NULL);
 }
 
 void mic_update_filter() {
-    size_t len = firdes_compute_taps_len(44100.0f, options->audio.mic.filter.transition, 40.0f);
+    eq_config_t config = settings_mic_eq_config(&options->audio.mic);
 
-    if (filter_len != len) {
-        filter_taps = realloc(filter_taps, len * sizeof(float));
-        filter_len = len;
-    }
-
-    firdes_band_pass(1.0f, 44100.0f, options->audio.mic.filter.low, options->audio.mic.filter.high, filter_taps, filter_len);
-    filter_need_update = true;
+    if (!eq_update(equalizer, &config)) 
+        LV_LOG_WARN("Invalid microphone filter/EQ update");
 }
 
 void mic_update_equalizer() {
-    mic_equalizer_update = true;
+    mic_update_filter(); 
 }
 
 size_t mic_modulate(float complex *data, size_t max_size, radio_mode_t mode) {
-    size_t size = 0;
+    float   block[INTER];
+    size_t  n = max_size < INTER ? max_size : INTER;
 
-    uint32_t part = INTER;
+    pthread_mutex_lock(&output_mux);
 
-    if (cbufferf_size(out_buf) > part) {
-        uint32_t n;
-        float *buf;
+    if (!on_air)
+        n = 0;
 
-        cbufferf_read(out_buf, part, &buf, &n);
+    if (n > output_count)
+        n = output_count;
 
-        for (uint32_t i = 0; i < n; i++) {
-            data[i] = dsp_modulate(buf[i], mode);
-        }
+    for (size_t i = 0; i < n; i++)
+        block[i] = output[(output_read + i) % OUT_SIZE];
 
-        cbufferf_release(out_buf, n);
-        size = n;
-    }
+    output_read = (output_read + n) % OUT_SIZE;
+    output_count -= n;
 
-    return size;
+    pthread_mutex_unlock(&output_mux);
+
+    for (size_t i = 0; i < n; i++)
+        data[i] = dsp_modulate(block[i], mode);
+
+    return n;
 }
 
 void mic_on_air(bool on) {
-    on_air = on;
+    pthread_mutex_lock(&output_mux);
+
+    if (on_air != on) {
+        on_air = on;
+        stream_epoch++;
+        output_read = output_count = 0;
+    }
+
+    pthread_mutex_unlock(&output_mux);
 }
 
 void mic_enabled(bool on) {
     enabled = on;
+    stream_epoch++;
     brass_msg_send(MSG_MIC, &enabled);
 }
 
 static void meter_timer_cb(lv_timer_t *t) {
     pthread_mutex_lock(&meter_mux);
 
-    lpf(&meter_avr, meter_sum / meter_count, 0.2f);
-    brass_msg_send(MSG_MIC_METER, &meter_avr);
+    float peak = meter_count ? meter_sum / meter_count : 0;
 
     meter_count = 0;
     meter_sum = 0;
 
     pthread_mutex_unlock(&meter_mux);
+
+    lpf(&meter_avr, peak, 0.2f);
+    brass_msg_send(MSG_MIC_METER, &meter_avr);
+}
+
+static void reset_stream(void) {
+    input_fill = 0;
+    rresamp_rrrf_reset(resamp);
+    rresamp_rrrf_reset(record_resamp);
+    eq_reset(equalizer);
+    agc_flush(agc);
+
+    pthread_mutex_lock(&output_mux);
+    output_read = output_count = 0;
+    pthread_mutex_unlock(&output_mux);
+}
+
+static void put_output(const float *block, size_t count, unsigned epoch) {
+    pthread_mutex_lock(&output_mux);
+
+    if (on_air && stream_epoch == epoch) {
+        /* Capture cannot wait for a stalled transmitter. Drop oldest samples
+         * on overrun so latency stays bounded; ordinary operation loses none. */
+        if (count > OUT_SIZE - output_count) {
+            size_t discard = count - (OUT_SIZE - output_count);
+
+            output_read = (output_read + discard) % OUT_SIZE;
+            output_count -= discard;
+        }
+
+        for (size_t i = 0; i < count; i++)
+            output[(output_read + output_count + i) % OUT_SIZE] = block[i];
+
+        output_count += count;
+    }
+
+    pthread_mutex_unlock(&output_mux);
 }
 
 void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
-    if (filter_need_update) {
-        if (filter) {
-            filter = firfilt_rrrf_recreate(filter, filter_taps, filter_len);
-        } else {
-            filter = firfilt_rrrf_create(filter_taps, filter_len);
-        }
-        filter_need_update = false;
+    if (!equalizer || !resamp || !record_resamp || !agc) 
+        return;
+
+    bool        recording = dialog_msg_voice_get_state() == MSG_VOICE_RECORD;
+    bool        active = on_air || recording;
+    unsigned    epoch = stream_epoch;
+
+    if (epoch != audio_epoch || active != was_active || recording != was_recording) {
+        reset_stream();
+        audio_epoch = epoch;
+        was_active = active;
+        was_recording = recording;
     }
 
-    if (mic_equalizer_update) {
-        for (int i = 0; i < EQUALIZER_NUM; i++) {
-            const equalizer_item_t *item = &options->audio.mic.eq[i];
+    float peak = 0;
 
-            biquad_peak_eq(&mic_equalizer[i], item->freq, item->q * 0.5f, item->gain, 44100);
-        }
+    if (active) {
+        for (size_t i = 0; i < nsamples; i++) {
+            input[input_fill++] = samples ? samples[i] / 32768.0f : 0;
 
-        mic_equalizer_update = false;
-    }
+            if (input_fill != DECIM) 
+                continue;
 
-    float   peak = 0.0f;
-    float   a, b;
-    bool    rec_msg = (dialog_msg_voice_get_state() == MSG_VOICE_RECORD);
+            float converted[INTER], filtered[EQ_HOP_SIZE];
 
-    for (int16_t i = 0; i < nsamples; i++) {
-        firfilt_rrrf_push(dc_block, samples[i] / 32768.0f);
-        firfilt_rrrf_execute(dc_block, &a);
+            rresamp_rrrf_execute(resamp, input, converted);
+            input_fill = 0;
 
-        if (on_air || rec_msg) {
-            for (int n = 0; n < EQUALIZER_NUM; n++) {
-                a = biqiad_apply(&mic_equalizer[n], a);
+            size_t consumed;
+
+            size_t n = eq_process(equalizer, converted, INTER, filtered, EQ_HOP_SIZE, &consumed);
+
+            for (size_t j = 0; j < n; j++) {
+                filtered[j] = agc_apply(agc, filtered[j]);
+                if (fabsf(filtered[j]) > peak) peak = fabsf(filtered[j]);
             }
 
-            firfilt_rrrf_execute_one(filter, a, &b);
-            b = agc_apply(agc, b);
+            if (recording) {
+                /* EQ outputs exactly 256 samples for every second 128-sample
+                 * resampler block. Encode only 44.1-kHz PCM, including MP3. */
+                for (size_t j = 0; j < n; j += INTER) {
+                    float recorded[DECIM];
 
-            cbufferf_push(in_buf, b);
-
-            if (fabs(b) > peak) {
-                peak = fabs(b);
+                    rresamp_rrrf_execute(record_resamp, filtered + j, recorded);
+                    dialog_msg_voice_put_audio_samples(recorded, DECIM);
+                }
+            } else if (n) {
+                put_output(filtered, n, epoch);
             }
         }
     }
@@ -190,36 +265,4 @@ void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
     meter_sum += peak;
     meter_count++;
     pthread_mutex_unlock(&meter_mux);
-
-    unsigned int n;
-    float *buf;
-
-    if (rec_msg) {
-        cbufferf_read(in_buf, nsamples, &buf, &n);
-
-        dialog_msg_voice_put_audio_samples(buf, n);
-        cbufferf_reset(in_buf);
-
-        return;
-    }
-
-    if (!on_air) {
-        if (cbufferf_size(in_buf) > 0) {
-            cbufferf_reset(in_buf);
-        }
-
-        if (cbufferf_size(out_buf) > 0) {
-            cbufferf_reset(out_buf);
-        }
-
-        return;
-    }
-
-    while (cbufferf_size(in_buf) > DECIM) {
-        cbufferf_read(in_buf, DECIM, &buf, &n);
-        rresamp_rrrf_execute(resamp, buf, resamp_buf);
-        cbufferf_release(in_buf, n);
-
-        cbufferf_write(out_buf, resamp_buf, INTER);
-    }
 }

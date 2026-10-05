@@ -13,6 +13,7 @@
 #include <cyaml/cyaml.h>
 
 #include "filter.h"
+#include "../dsp/eq.h"
 
 #define EQUALIZER_NUM   3
 
@@ -24,7 +25,7 @@ typedef struct {
 
 typedef struct {
     filter_t            filter;
-    equalizer_item_t    *eq;
+    eq_point_t          eq[EQ_MAX_POINTS];
 } options_mic_t;
 
 typedef struct {
@@ -77,3 +78,7 @@ typedef struct {
 } options_audio_t;
 
 extern const cyaml_schema_field_t audio_fields_schema[];
+
+/* Replace an invalid microphone profile with the neutral default. */
+bool settings_mic_validate(options_mic_t *mic);
+eq_config_t settings_mic_eq_config(const options_mic_t *mic);

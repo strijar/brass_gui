@@ -11,9 +11,11 @@ audio:
     - {freq: 2000, q: 1, gain: 0}
   mic:
     eq:
-    - {freq: 200, q: 1, gain: 0}
-    - {freq: 1200, q: 1, gain: 0}
-    - {freq: 2000, q: 1, gain: 0}
+    - {freq: 100, gain: 0}
+    - {freq: 300, gain: 0}
+    - {freq: 1000, gain: 0}
+    - {freq: 2000, gain: 0}
+    - {freq: 3000, gain: 0}
     filter: {low: 100, high: 3000, transition: 100}
   rec_format: mp3
   denoise:

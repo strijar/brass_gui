@@ -115,9 +115,13 @@ void agc_destroy(agc_t *a) {
 }
 
 void agc_flush(agc_t *a) {
-    memset((void *) a->ring, 0, sizeof(float) * RB_SIZE * 2);
-    a->ring_max = 0.0;
-    memset ((void *) a->abs_ring, 0, sizeof(float) * RB_SIZE);
+    memset(a->ring, 0, sizeof(float) * a->ring_buffsize);
+    memset(a->abs_ring, 0, sizeof(float) * a->ring_buffsize);
+    a->out_index = 1;
+    a->in_index = a->attack_buffsize + a->out_index;
+    a->ring_max = a->volts = a->save_volts = 0;
+    a->fast_backaverage = a->hang_backaverage = 0;
+    a->hang_counter = a->decay_type = a->state = 0;
 }
 
 float agc_apply(agc_t *a, float in) {

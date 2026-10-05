@@ -197,15 +197,19 @@ static bool create_file() {
 
     sfinfo.samplerate = AUDIO_CAPTURE_RATE;
     sfinfo.channels = 1;
-    sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+
+    bool mp3 = options->audio.rec_format == REC_FORMAT_MP3;
+
+    sfinfo.format = mp3 ? SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III :
+                          SF_FORMAT_WAV | SF_FORMAT_PCM_16;
 
     char        filename[64];
     time_t      now = time(NULL);
     struct tm   *t = localtime(&now);
 
     snprintf(filename, sizeof(filename),
-        "%s/MSG_%04i%02i%02i_%02i%02i%02i.wav",
-        path, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec
+        "%s/MSG_%04i%02i%02i_%02i%02i%02i.%s",
+        path, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, mp3 ? "mp3" : "wav"
     );
 
     file = sf_open(filename, SFM_WRITE, &sfinfo);
@@ -236,14 +240,23 @@ static void open_file() {
     memset(&sfinfo, 0, sizeof(sfinfo));
 
     file = sf_open(filename, SFM_READ, &sfinfo);
+
+    if (file && (sfinfo.samplerate != AUDIO_CAPTURE_RATE || sfinfo.channels != 1)) {
+        LV_LOG_ERROR("Voice message must be mono, 44100 Hz (got %d Hz, %d channels)",
+                     sfinfo.samplerate, sfinfo.channels);
+        sf_close(file);
+        file = NULL;
+    }
 }
 
 static void close_file() {
     pthread_mutex_lock(&file_mux);
+
     if (file != NULL) {
         sf_close(file);
         file = NULL;
     }
+
     pthread_mutex_unlock(&file_mux);
 }
 
@@ -280,6 +293,7 @@ static void * play_thread(void *arg) {
 static void beacon_timer_cb(lv_timer_t *t) {
     beacon_timer = NULL;
     beacon = VOICE_BEACON_PLAY;
+
     send_file();
 }
 
@@ -287,53 +301,71 @@ static void * send_thread(void *arg) {
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
+    pthread_mutex_lock(&mux);
     cbufferf_reset(out_buf);
+    pthread_mutex_unlock(&mux);
+    rresamp_rrrf_reset(resamp);
 
-    state = MSG_VOICE_SEND;
+    bool        eof = false;
+    unsigned    tail = 0;
+    float       buf[DECIM];
 
-    float *buf = (float *) malloc(sizeof(float) * DECIM);
-    if (buf == NULL) {
-        state = MSG_VOICE_OFF;
-        close_file();
-        if (dialog.run) queue_send(dialog.obj, EVENT_VOICE_DONE, NULL);
-        return NULL;
-    }
+    while (state == MSG_VOICE_SEND) {
+        pthread_mutex_lock(&mux);
 
-    while (true) {
-        while (cbufferf_space_available(out_buf) > INTER) {
+        while (state == MSG_VOICE_SEND &&
+               ((eof && !tail) ? cbufferf_size(out_buf) > 0 : cbufferf_space_available(out_buf) < INTER)) {
+            pthread_cond_wait(&cond, &mux);
+        }
+
+        bool done = (eof && !tail) || state != MSG_VOICE_SEND;
+
+        pthread_mutex_unlock(&mux);
+
+        if (done) break;
+
+        unsigned count;
+
+        if (tail) {
+            memset(buf, 0, sizeof(buf));
+            count = tail;
+            tail = 0;
+        } else {
             int res = sf_read_float(file, buf, DECIM);
 
-            if (res < DECIM) {
-                state = MSG_VOICE_OFF;
-                break;
-            } else {
-                rresamp_rrrf_execute(resamp, buf, resamp_buf);
-                cbufferf_write(out_buf, resamp_buf, INTER);
+            if (res < 0) 
+                res = 0;
+
+            memset(buf + res, 0, (DECIM - res) * sizeof(float));
+
+            eof = res < DECIM;
+            /* Drain the full 128-input-sample FIR tail at EOF as well as
+             * the final partial file block before releasing PTT. */
+            count = ((res + (eof ? 128 : 0)) * INTER + DECIM - 1) / DECIM;
+
+            if (count > INTER) {
+                tail = count - INTER;
+                count = INTER;
             }
         }
-
-        if (state == MSG_VOICE_SEND) {
-            pthread_mutex_lock(&mux);
-            pthread_cond_wait(&cond, &mux);
-            pthread_mutex_unlock(&mux);
-        } else {
-            break;
-        }
+        rresamp_rrrf_execute(resamp, buf, resamp_buf);
+        pthread_mutex_lock(&mux);
+        cbufferf_write(out_buf, resamp_buf, count);
+        pthread_mutex_unlock(&mux);
     }
 
-    free(buf);
     close_file();
 
-    if (state == MSG_VOICE_SEND_CANCEL) {
-        state = MSG_VOICE_OFF;
-    }
+    state = MSG_VOICE_OFF;
 
-    if (dialog.run) queue_send(dialog.obj, EVENT_VOICE_DONE, NULL);
+    if (dialog.run) 
+        queue_send(dialog.obj, EVENT_VOICE_DONE, NULL);
 
     return NULL;
 }
 
 static bool send_file() {
+    join_worker();
     open_file();
 
     if (file == NULL) {
@@ -341,20 +373,23 @@ static bool send_file() {
         return false;
     }
 
-    join_worker();
+    state = MSG_VOICE_SEND;
     msg_set_text_fmt("Sending message");
     worker_sending = true;
     dsp_set_mute(true);
     radio_set_ptt(true);
+
     if (pthread_create(&thread, NULL, send_thread, NULL) != 0) {
         radio_set_ptt(false);
         dsp_set_mute(false);
         worker_sending = false;
+        state = MSG_VOICE_OFF;
         close_file();
+
         return false;
     }
-    thread_joinable = true;
 
+    thread_joinable = true;
     return true;
 }
 
@@ -429,11 +464,13 @@ static void worker_done_cb(lv_event_t *e) {
         radio_set_ptt(false);
         worker_sending = false;
     }
+
     dsp_set_mute(false);
 
     if (beacon == VOICE_BEACON_PLAY && state == MSG_VOICE_OFF) {
         beacon = VOICE_BEACON_IDLE;
         beacon_timer = lv_timer_create(beacon_timer_cb, options->msg.voice_period * 1000, NULL);
+
         if (beacon_timer != NULL) {
             lv_timer_set_repeat_count(beacon_timer, 1);
             msg_set_text_fmt("Beacon pause: %i s", options->msg.voice_period);
@@ -474,7 +511,9 @@ static void construct_cb(lv_obj_t *parent) {
     pthread_cond_init(&cond, NULL);
     pthread_mutex_init(&file_mux, NULL);
 
-    resamp = rresamp_rrrf_create_default(INTER, DECIM);     /* DAC_RATE <- AUDIO_CAPTURE_RATE */
+    float bw = 5000.0f / AUDIO_CAPTURE_RATE;
+    resamp = rresamp_rrrf_create_kaiser(INTER, DECIM, 64, bw, 80);
+    rresamp_rrrf_set_scale(resamp, 2 * bw);
     out_buf = cbufferf_create(DAC_RATE / 4);
 
     mkdir(path, 0755);
@@ -509,10 +548,12 @@ static void destruct_cb() {
 
     join_worker();
     queue_cancel(dialog.obj, EVENT_VOICE_DONE, NULL);
+
     if (worker_sending) {
         radio_set_ptt(false);
         worker_sending = false;
     }
+
     dsp_set_mute(false);
 
     textarea_window_close();
@@ -559,25 +600,34 @@ static bool modulate_state_cb() {
 }
 
 static size_t modulate_cb(float complex *data, size_t max_size, radio_mode_t mode) {
+    float samples[INTER];
+
     size_t size = 0;
 
+    if (max_size > INTER) 
+        max_size = INTER;
+
+    pthread_mutex_lock(&mux);
+
     if (cbufferf_size(out_buf) > 0) {
-        uint32_t n;
-        float *buf;
+        uint32_t    n;
+        float       *buf;
 
         cbufferf_read(out_buf, max_size, &buf, &n);
 
         for (uint32_t i = 0; i < n; i++) {
-            data[i] = dsp_modulate(buf[i], mode);
+            samples[i] = buf[i];
         }
 
         cbufferf_release(out_buf, n);
         size = n;
     }
 
-    pthread_mutex_lock(&mux);
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&mux);
+
+    for (size_t i = 0; i < size; ++i) 
+        data[i] = dsp_modulate(samples[i], mode);
 
     return size;
 }
@@ -685,14 +735,17 @@ static void rec_stop_cb(lv_event_t * e) {
 static void play_cb(lv_event_t * e) {
     if (state == MSG_VOICE_OFF) {
         join_worker();
+
         state = MSG_VOICE_PLAY;
         worker_sending = false;
         dsp_set_mute(true);
+
         if (pthread_create(&thread, NULL, play_thread, NULL) != 0) {
             state = MSG_VOICE_OFF;
             dsp_set_mute(false);
             return;
         }
+
         thread_joinable = true;
 
         buttons_unload_page();
@@ -706,6 +759,7 @@ static void play_stop_cb(lv_event_t * e) {
 
 static void rename_cb(lv_event_t * e) {
     const char *item = get_item();
+
     prev_filename = item ? strdup(item) : NULL;
 
     if (prev_filename) {
@@ -736,8 +790,10 @@ msg_voice_state_t dialog_msg_voice_get_state() {
 
 void dialog_msg_voice_put_audio_samples(float *samples, size_t nsamples) {
     pthread_mutex_lock(&file_mux);
+
     if (state == MSG_VOICE_RECORD && file != NULL) {
         sf_write_float(file, samples, nsamples);
     }
+
     pthread_mutex_unlock(&file_mux);
 }

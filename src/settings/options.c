@@ -248,6 +248,10 @@ void settings_options_load() {
         return;
     }
 
+    if (!settings_mic_validate(&options->audio.mic)) {
+        LV_LOG_WARN("Invalid microphone filter/EQ; using neutral defaults");
+    }
+
     qth_update(options->op.qth);
     hkey_mic_update();
 }

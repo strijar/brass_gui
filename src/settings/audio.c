@@ -7,6 +7,7 @@
  */
 
 #include "audio.h"
+#include "../fpga/dac.h"
 
 static const cyaml_schema_field_t equalizer_fields_schema[] = {
     CYAML_FIELD_INT("freq",     CYAML_FLAG_OPTIONAL, equalizer_item_t, freq),
@@ -19,8 +20,18 @@ static const cyaml_schema_value_t equalizer_schema = {
     CYAML_VALUE_MAPPING(CYAML_FLAG_FLOW, equalizer_item_t, equalizer_fields_schema)
 };
 
+static const cyaml_schema_field_t mic_point_fields[] = {
+    CYAML_FIELD_INT("freq", CYAML_FLAG_DEFAULT, eq_point_t, freq),
+    CYAML_FIELD_INT("gain", CYAML_FLAG_DEFAULT, eq_point_t, gain),
+    CYAML_FIELD_END
+};
+
+static const cyaml_schema_value_t mic_point_schema = {
+    CYAML_VALUE_MAPPING(CYAML_FLAG_FLOW, eq_point_t, mic_point_fields)
+};
+
 static const cyaml_schema_field_t mic_fields_schema[] = {
-    CYAML_FIELD_SEQUENCE_FIXED("eq",    CYAML_FLAG_POINTER, options_mic_t, eq, &equalizer_schema, EQUALIZER_NUM),
+    CYAML_FIELD_SEQUENCE_FIXED("eq",    CYAML_FLAG_DEFAULT, options_mic_t, eq, &mic_point_schema, EQ_MAX_POINTS),
     CYAML_FIELD_MAPPING("filter",       CYAML_FLAG_FLOW, options_mic_t, filter, filter_fields_schema),
     CYAML_FIELD_END
 };
@@ -78,3 +89,42 @@ const cyaml_schema_field_t audio_fields_schema[] = {
     CYAML_FIELD_MAPPING("denoise",      CYAML_FLAG_OPTIONAL, options_audio_t, denoise, denoise_fields_schema),
     CYAML_FIELD_END
 };
+
+eq_config_t settings_mic_eq_config(const options_mic_t *mic) {
+    eq_config_t c = {
+        .sample_rate = DAC_RATE,
+        .low = mic->filter.low,
+        .high = mic->filter.high,
+        .transition = mic->filter.transition,
+        .count = EQ_MAX_POINTS
+    };
+
+    for (int i = 0; i < EQ_MAX_POINTS; i++)
+        c.points[i] = mic->eq[i];
+
+    return c;
+}
+
+bool settings_mic_validate(options_mic_t *mic) {
+    eq_config_t c = settings_mic_eq_config(mic);
+
+    if (eq_valid_config(&c))
+        return true;
+
+    *mic = (options_mic_t) {
+        .filter = {
+            .low = 100,
+            .high = 3000,
+            .transition = 100
+        },
+        .eq = {
+            {100, 0},
+            {300, 0},
+            {1000, 0},
+            {2000, 0},
+            {3000, 0}
+        }
+    };
+
+    return false;
+}

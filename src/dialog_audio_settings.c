@@ -28,7 +28,7 @@ typedef enum {
     EQ_MIC
 } eq_sel_t;
 
-static const lv_event_cb_t  eq_update[] = { equalizer_speaker_update_cb, equalizer_mic_update_cb };
+static const lv_event_cb_t  eq_callbacks[] = { equalizer_speaker_update_cb, equalizer_mic_update_cb };
 
 static dialog_t     dialog = {
     .run = false,
@@ -54,8 +54,18 @@ static void equalizer_speaker_update_cb(lv_event_t * e) {
 static void equalizer_mic_update_cb(lv_event_t * e) {
     lv_obj_t        *obj = lv_event_get_target(e);
     int16_t         *x = lv_event_get_user_data(e);
+    int16_t         previous = *x;
 
     *x = lv_spinbox_get_value(obj);
+
+    eq_config_t config = settings_mic_eq_config(&options->audio.mic);
+
+    if (!eq_valid_config(&config)) {
+        *x = previous;
+        lv_spinbox_set_value(obj, previous);
+        return;
+    }
+
     mic_update_equalizer();
 }
 
@@ -102,7 +112,7 @@ static void make_equalizer_item(eq_sel_t sel, uint8_t n, equalizer_item_t *item)
     lv_spinbox_set_digit_format(obj, 1, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
 
-    lv_obj_add_event_cb(obj, eq_update[sel], LV_EVENT_VALUE_CHANGED, &item->q);
+    lv_obj_add_event_cb(obj, eq_callbacks[sel], LV_EVENT_VALUE_CHANGED, &item->q);
 
     /* Gain */
 
@@ -114,7 +124,33 @@ static void make_equalizer_item(eq_sel_t sel, uint8_t n, equalizer_item_t *item)
     lv_spinbox_set_range(obj, -24, 12);
     lv_spinbox_set_digit_format(obj, 2, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
-    lv_obj_add_event_cb(obj, eq_update[sel], LV_EVENT_VALUE_CHANGED, &item->gain);
+    lv_obj_add_event_cb(obj, eq_callbacks[sel], LV_EVENT_VALUE_CHANGED, &item->gain);
+}
+
+static void make_mic_point(uint8_t n) {
+    eq_point_t *point = &options->audio.mic.eq[n];
+
+    dialog_label(&dialog, true, "EQ point %i (Hz/dB)", n + 1);
+
+    lv_obj_t *obj = lv_spinbox_create(dialog.grid);
+
+    dialog_item(&dialog, obj, 3);
+
+    lv_spinbox_set_range(obj, 0, 6399);
+    lv_spinbox_set_digit_format(obj, 4, 0);
+    lv_spinbox_set_value(obj, point->freq);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+    lv_obj_add_event_cb(obj, equalizer_mic_update_cb, LV_EVENT_VALUE_CHANGED, &point->freq);
+
+    obj = lv_spinbox_create(dialog.grid);
+
+    dialog_item(&dialog, obj, 3);
+
+    lv_spinbox_set_range(obj, -24, 12);
+    lv_spinbox_set_digit_format(obj, 2, 0);
+    lv_spinbox_set_value(obj, point->gain);
+    lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
+    lv_obj_add_event_cb(obj, equalizer_mic_update_cb, LV_EVENT_VALUE_CHANGED, &point->gain);
 }
 
 /* Mic filter */
@@ -122,8 +158,18 @@ static void make_equalizer_item(eq_sel_t sel, uint8_t n, equalizer_item_t *item)
 static void mic_filter_update_cb(lv_event_t * e) {
     lv_obj_t        *obj = lv_event_get_target(e);
     uint16_t        *x = lv_event_get_user_data(e);
+    uint16_t        previous = *x;
 
     *x = lv_spinbox_get_value(obj);
+
+    eq_config_t config = settings_mic_eq_config(&options->audio.mic);
+
+    if (!eq_valid_config(&config)) {
+        *x = previous;
+        lv_spinbox_set_value(obj, previous);
+        return;
+    }
+
     mic_update_filter();
 }
 
@@ -318,8 +364,8 @@ static void construct_cb(lv_obj_t *parent) {
 
     make_mic_filter();
 
-    for (uint8_t i = 0; i < EQUALIZER_NUM; i++) {
-        make_equalizer_item(EQ_MIC, i, &options->audio.mic.eq[i]);
+    for (uint8_t i = 0; i < EQ_MAX_POINTS; i++) {
+        make_mic_point(i);
     }
 
     /* * */
