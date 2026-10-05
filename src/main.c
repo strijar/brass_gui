@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+#include <signal.h>
 
 #include "main.h"
 #include "main_screen.h"
@@ -55,6 +56,12 @@ rotary_t                    *vol;
 encoder_t                   *mfk;
 
 static pthread_mutex_t      mux;
+static volatile sig_atomic_t exit_requested;
+
+static void request_exit(int signal_number) {
+    (void) signal_number;
+    exit_requested = 1;
+}
 
 static void lv_log_stderr_cb(lv_log_level_t level, const char *buf) {
     (void) level;
@@ -70,6 +77,7 @@ void brass_lv_unlock() {
 }
 
 void main_exit() {
+    iio_shutdown();
     settings_bands_save();
     settings_modes_save();
     settings_options_save();
@@ -79,6 +87,8 @@ void main_exit() {
 }
 
 int main(void) {
+    signal(SIGINT, request_exit);
+    signal(SIGTERM, request_exit);
     vt_disable();
     pthread_mutex_init(&mux, NULL);
 
@@ -158,7 +168,7 @@ int main(void) {
     lv_scr_load(main_obj);
     bool first_loop = true;
 
-    while (1) {
+    while (!exit_requested) {
         brass_lv_lock();
 
         uint64_t now = get_time();
@@ -176,5 +186,6 @@ int main(void) {
         usleep(100);
     }
 
+    main_exit();
     return 0;
 }

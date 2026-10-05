@@ -23,8 +23,8 @@ static uint64_t         offset_delay = 0;
 static float            swr = 0;
 static float            pwr = 0;
 
-static float            avr_swr = 0;
-static float            avr_pwr = 0;
+static float            peak_swr = 0;
+static float            peak_pwr = 0;
 
 static bool             meter_pending = false;
 static pthread_mutex_t  meter_mux = PTHREAD_MUTEX_INITIALIZER;
@@ -33,18 +33,17 @@ static void meter_timer_cb(lv_timer_t *timer) {
     (void) timer;
 
     pthread_mutex_lock(&meter_mux);
-    bool pending = meter_pending;
 
-    lpf(&avr_swr, swr, 0.7f);
-    lpf(&avr_pwr, pwr, 0.7f);
+    if (meter_pending && radio_get_state() != RADIO_RX) {
+        brass_msg_send(MSG_SWR_METER, &peak_swr);
+        brass_msg_send(MSG_PWR_METER, &peak_pwr);
 
-    meter_pending = false;
-    pthread_mutex_unlock(&meter_mux);
-
-    if (pending && radio_get_state() != RADIO_RX) {
-        brass_msg_send(MSG_SWR_METER, &avr_swr);
-        brass_msg_send(MSG_PWR_METER, &avr_pwr);
+        meter_pending = false;
+        peak_swr = 0;
+        peak_pwr = 0;
     }
+
+    pthread_mutex_unlock(&meter_mux);
 }
 
 void swr_init() {
@@ -136,8 +135,10 @@ void swr_update(int fwd, int rev) {
             rf->swr.fwd_offset = fwd;
             rf->swr.rev_offset = rev;
 
-            avr_swr = 0;
-            avr_pwr = 0;
+            pthread_mutex_lock(&meter_mux);
+            peak_swr = 0;
+            peak_pwr = 0;
+            pthread_mutex_unlock(&meter_mux);
 
             offset_delay = now + 100;
         }
@@ -159,6 +160,15 @@ void swr_update(int fwd, int rev) {
     pthread_mutex_lock(&meter_mux);
     swr = (1.0f + g) / (1.0f - g);
     pwr = (v_rms * v_rms) / 50.0f;
+
+    if (pwr > peak_pwr) {
+        peak_pwr = pwr;
+    }
+
+    if (swr > peak_swr) {
+        peak_swr = swr;
+    }
+
     meter_pending = true;
     pthread_mutex_unlock(&meter_mux);
 }

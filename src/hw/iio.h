@@ -12,5 +12,6 @@
 #include <stdint.h>
 
 void iio_init();
+void iio_shutdown(void);
 
 void iio_set_vref(uint16_t data);
