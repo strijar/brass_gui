@@ -51,6 +51,8 @@ static pthread_mutex_t      output_mux = PTHREAD_MUTEX_INITIALIZER;
 static float                meter_sum, meter_avr;
 static size_t               meter_count;
 static pthread_mutex_t      meter_mux = PTHREAD_MUTEX_INITIALIZER;
+static uint64_t             config_update = 0;
+static pthread_mutex_t      config_mux = PTHREAD_MUTEX_INITIALIZER;
 
 static void meter_timer_cb(lv_timer_t *t);
 
@@ -106,10 +108,9 @@ void mic_init() {
 }
 
 void mic_update_filter() {
-    eq_config_t config = settings_mic_eq_config(&options->audio.mic);
-
-    if (!eq_update(equalizer, &config)) 
-        LV_LOG_WARN("Invalid microphone filter/EQ update");
+    pthread_mutex_lock(&config_mux);
+    config_update = get_time() + 500;
+    pthread_mutex_unlock(&config_mux);
 }
 
 void mic_update_equalizer() {
@@ -224,6 +225,21 @@ void mic_put_audio_samples(size_t nsamples, int16_t *samples) {
     }
 
     float peak = 0;
+
+    pthread_mutex_lock(&config_mux);
+
+    if (active && config_update) {
+        if (get_time() > config_update) {
+            config_update = 0;
+
+            eq_config_t config = settings_mic_eq_config(&options->audio.mic);
+
+            if (!eq_update(equalizer, &config)) 
+               LV_LOG_WARN("Invalid microphone filter/EQ update");
+        }
+    }
+
+    pthread_mutex_unlock(&config_mux);
 
     if (active) {
         for (size_t i = 0; i < nsamples; i++) {
