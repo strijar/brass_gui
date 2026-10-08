@@ -26,11 +26,13 @@ typedef struct {
 typedef struct {
     filter_t            filter;
     eq_point_t          eq[EQ_MAX_POINTS];
+    char                *device;
 } options_mic_t;
 
 typedef struct {
     uint8_t             vol;
     equalizer_item_t    *eq;
+    char                *device;
 } options_speaker_t;
 
 typedef enum {

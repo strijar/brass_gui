@@ -8,6 +8,8 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+#include <stdio.h>
 
 #include "lvgl/lvgl.h"
 #include "dialog.h"
@@ -17,9 +19,11 @@
 #include "keyboard.h"
 #include "dsp.h"
 #include "mic.h"
+#include "audio.h"
 #include "settings/options.h"
 
 static void construct_cb(lv_obj_t *parent);
+static void destruct_cb(void);
 static void equalizer_speaker_update_cb(lv_event_t * e);
 static void equalizer_mic_update_cb(lv_event_t * e);
 
@@ -33,13 +37,122 @@ static const lv_event_cb_t  eq_callbacks[] = { equalizer_speaker_update_cb, equa
 static dialog_t     dialog = {
     .run = false,
     .construct_cb = construct_cb,
-    .destruct_cb = NULL,
+    .destruct_cb = destruct_cb,
     .audio_cb = NULL,
     .buttons = false,
     .key_cb = dialog_key_cb
 };
 
 dialog_t            *dialog_audio_settings = &dialog;
+
+typedef struct {
+    bool                capture;
+    audio_device_list_t devices;
+    uint16_t            selected;
+} device_selector_t;
+
+static device_selector_t mic_selector = { .capture = true };
+static device_selector_t speaker_selector;
+
+static void destruct_cb(void) {
+    audio_free_devices(&mic_selector.devices);
+    audio_free_devices(&speaker_selector.devices);
+    settings_options_save();
+}
+
+static void device_update_cb(lv_event_t *e) {
+    lv_obj_t            *obj = lv_event_get_target(e);
+    device_selector_t   *selector = lv_event_get_user_data(e);
+    uint16_t            selected = lv_dropdown_get_selected(obj);
+
+    if (selected == selector->selected)
+        return;
+
+    /* The final entry can be a saved device which is currently unavailable. */
+
+    if (selected > selector->devices.count) {
+        lv_dropdown_set_selected(obj, selector->selected);
+        return;
+    }
+
+    const char  *name = selected ? selector->devices.items[selected - 1].name : "";
+    char        *device = strdup(name);
+
+    if (!device || !audio_set_device(selector->capture, name)) {
+        free(device);
+        lv_dropdown_set_selected(obj, selector->selected);
+        return;
+    }
+
+    char **setting = selector->capture ? &options->audio.mic.device : &options->audio.speaker.device;
+
+    free(*setting);
+
+    *setting = device;
+    selector->selected = selected;
+}
+
+static bool add_device_option(lv_obj_t *obj, const char *description, const char *name) {
+    size_t  size = strlen(description) + strlen(name) + 4;
+    char    *label = malloc(size);
+
+    if (!label)
+        return false;
+
+    snprintf(label, size, "%s (%s)", description, name);
+
+    /* Each device must occupy exactly one dropdown row. */
+
+    for (char *p = label; *p; p++) {
+        if (*p == '\n' || *p == '\r')
+            *p = ' ';
+    }
+
+    lv_dropdown_add_option(obj, label, LV_DROPDOWN_POS_LAST);
+    free(label);
+    return true;
+}
+
+static void make_device_selector(device_selector_t *selector) {
+    dialog_label(&dialog, true, "Device");
+
+    lv_obj_t *obj = dialog_dropdown(&dialog, 6);
+
+    lv_dropdown_set_options(obj, "Default");
+    selector->selected = 0;
+
+    bool        available = audio_get_devices(selector->capture, &selector->devices);
+    const char  *saved = selector->capture ? options->audio.mic.device : options->audio.speaker.device;
+
+    for (size_t i = 0; i < selector->devices.count; i++) {
+        audio_device_t *device = &selector->devices.items[i];
+
+        if (!add_device_option(obj, device->description, device->name)) {
+            lv_obj_add_state(obj, LV_STATE_DISABLED);
+            return;
+        }
+
+        if (saved && !strcmp(saved, device->name))
+            selector->selected = i + 1;
+    }
+
+    if (saved && *saved && !selector->selected) {
+        if (!add_device_option(obj, "Unavailable", saved)) {
+            lv_obj_add_state(obj, LV_STATE_DISABLED);
+            return;
+        }
+        selector->selected = selector->devices.count + 1;
+    }
+
+    lv_dropdown_set_selected(obj, selector->selected);
+
+    if (!available) {
+        LV_LOG_WARN("Cannot enumerate PulseAudio devices");
+        lv_obj_add_state(obj, LV_STATE_DISABLED);
+    }
+
+    lv_obj_add_event_cb(obj, device_update_cb, LV_EVENT_VALUE_CHANGED, selector);
+}
 
 /* Equalizer item */
 
@@ -361,6 +474,7 @@ static void construct_cb(lv_obj_t *parent) {
     /* * */
 
     dialog_title(&dialog, "Mic");
+    make_device_selector(&mic_selector);
 
     make_mic_filter();
 
@@ -371,6 +485,7 @@ static void construct_cb(lv_obj_t *parent) {
     /* * */
 
     dialog_title(&dialog, "Speaker");
+    make_device_selector(&speaker_selector);
 
     for (uint8_t i = 0; i < EQUALIZER_NUM; i++) {
         make_equalizer_item(EQ_SPEAKER, i, &options->audio.speaker.eq[i]);

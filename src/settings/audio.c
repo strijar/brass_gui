@@ -33,12 +33,14 @@ static const cyaml_schema_value_t mic_point_schema = {
 static const cyaml_schema_field_t mic_fields_schema[] = {
     CYAML_FIELD_SEQUENCE_FIXED("eq",    CYAML_FLAG_DEFAULT, options_mic_t, eq, &mic_point_schema, EQ_MAX_POINTS),
     CYAML_FIELD_MAPPING("filter",       CYAML_FLAG_FLOW, options_mic_t, filter, filter_fields_schema),
+    CYAML_FIELD_STRING_PTR("device",    CYAML_FLAG_POINTER | CYAML_FLAG_OPTIONAL, options_mic_t, device, 0, CYAML_UNLIMITED),
     CYAML_FIELD_END
 };
 
 static const cyaml_schema_field_t speaker_fields_schema[] = {
     CYAML_FIELD_UINT("vol",             CYAML_FLAG_OPTIONAL, options_speaker_t, vol),
     CYAML_FIELD_SEQUENCE_FIXED("eq",    CYAML_FLAG_POINTER, options_speaker_t, eq, &equalizer_schema, 3),
+    CYAML_FIELD_STRING_PTR("device",    CYAML_FLAG_POINTER | CYAML_FLAG_OPTIONAL, options_speaker_t, device, 0, CYAML_UNLIMITED),
     CYAML_FIELD_END
 };
 
@@ -112,6 +114,7 @@ bool settings_mic_validate(options_mic_t *mic) {
         return true;
 
     *mic = (options_mic_t) {
+        .device = mic->device,
         .filter = {
             .low = 100,
             .high = 3000,
