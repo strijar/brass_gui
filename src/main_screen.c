@@ -725,6 +725,11 @@ static void main_screen_key_cb(lv_event_t * e) {
             dialog_bands_change(false);
             break;
 
+        case KEYBOARD_F9:
+            dialog_construct(dialog_freq, obj);
+            voice_say_text_fmt("Enter frequency");
+            break;
+
         case KEYBOARD_F10:
             main_exit();
             break;
