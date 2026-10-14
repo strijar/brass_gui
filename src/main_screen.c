@@ -860,6 +860,7 @@ void main_screen_update_finder() {
         case RADIO_MODE_NFM:
         case RADIO_MODE_CW:
         case RADIO_MODE_CWR:
+        case RADIO_MODE_DMR:
             msg.num = 2;
             msg.cursor[1] = 0;
             break;

@@ -16,6 +16,7 @@
 #include "util.h"
 #include "radio.h"
 #include "dsp.h"
+#include "dmr.h"
 #include "main_screen.h"
 #include "hkey.h"
 #include "events.h"
@@ -181,6 +182,7 @@ void radio_rf_route() {
 }
 
 void radio_freq_update() {
+    dmr_reset();
     uint32_t    shift;
     int32_t     corr;
     uint64_t    freq = op_work->rx;
@@ -389,6 +391,7 @@ void radio_filter_get(int32_t *from_freq, int32_t *to_freq) {
 
         case RADIO_MODE_AM:
         case RADIO_MODE_NFM:
+        case RADIO_MODE_DMR:
             *from_freq = -op_mode->filter.high;
             *to_freq = op_mode->filter.high;
             break;
@@ -433,8 +436,13 @@ void radio_change_mode(radio_change_mode_t select) {
                     break;
 
                 case RADIO_MODE_OLIVIA:
-                    mode = RADIO_MODE_CW;
+                    mode = RADIO_MODE_DMR;
                     voice_say_text_fmt("Olivia modulation");
+                    break;
+
+                case RADIO_MODE_DMR:
+                    mode = RADIO_MODE_CW;
+                    voice_say_text_fmt("D M R modulation");
                     break;
             }
             break;
@@ -477,7 +485,7 @@ uint32_t radio_change_filter_low(int32_t df) {
 
     radio_mode_t    mode = op_work->mode;
 
-    if (mode == RADIO_MODE_AM || mode == RADIO_MODE_NFM) {
+    if (mode == RADIO_MODE_AM || mode == RADIO_MODE_NFM || mode == RADIO_MODE_DMR) {
         return 0;
     }
 
@@ -571,6 +579,10 @@ void radio_poweroff() {
 }
 
 void radio_set_ptt(bool on) {
+    if (!dmr_ptt(on, op_work->mode == RADIO_MODE_DMR && rf->mode == RF_NORMAL)) {
+        if (on) msg_set_text_fmt("Set DMR source_id in modes.yaml before TX");
+        return;
+    }
     if (on) {
         if (current_tx_band) {
             iio_set_vref(current_tx_band->vref);

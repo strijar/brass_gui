@@ -13,6 +13,7 @@
 #include "filter.h"
 #include "src/dsp/agc.h"
 #include "src/radio.h"
+#include "src/dmr.h"
 
 typedef struct {
     filter_t    filter;
@@ -23,6 +24,11 @@ typedef struct {
 } op_mode_t;
 
 typedef struct {
+    op_mode_t       common;
+    dmr_config_t    config;
+} op_dmr_t;
+
+typedef struct {
     op_mode_t   lsb;
     op_mode_t   usb;
     op_mode_t   cw;
@@ -31,6 +37,7 @@ typedef struct {
     op_mode_t   nfm;
     op_mode_t   rtty;
     op_mode_t   olivia;
+    op_dmr_t    dmr;
 } op_modes_t;
 
 extern op_modes_t   *op_modes;

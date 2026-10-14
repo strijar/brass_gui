@@ -7,12 +7,14 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
 #include <math.h>
 #include <specbleach_adenoiser.h>
 
 #include "smeter.h"
 #include "dsp.h"
+#include "dmr.h"
 #include "util.h"
 #include "radio.h"
 #include "audio.h"
@@ -192,14 +194,19 @@ void dsp_init() {
         1
     );
 
+    if (!dmr_init())
+        LV_LOG_ERROR("Cannot initialize DMR DSP");
+
     two_tone_update();
 }
 
 void dsp_reset() {
+    dmr_reset();
     delay = 4;
 }
 
 void dsp_set_filter(filter_t *filter) {
+    dmr_reset();
     size_t len = firdes_compute_taps_len(ADC_RATE, filter->transition, 40.0f);
 
     if (filter_len != len) {
@@ -349,6 +356,10 @@ float complex dsp_modulate(float x, radio_mode_t mode) {
     float complex out = 0;
 
     switch (mode) {
+        case RADIO_MODE_DMR:
+            dmr_tx_audio(x);
+            break;
+
         case RADIO_MODE_USB:
             firhilbf_r2c_execute(mod_ssb, x, &b);
             __real__ out = __real__ b;
@@ -439,11 +450,38 @@ void dsp_adc(float complex *data, uint16_t samples) {
     radio_state_t   state = radio_get_state();
 
     if (state != RADIO_RX) {
+        dmr_receive(false, NULL, NULL, 0);
         return;
     }
 
     radio_mode_t    mode = op_work->mode;
     float           peak = 0.0f;
+
+    dmr_receive(mode == RADIO_MODE_DMR, data, audio_buf, samples);
+
+    if (mode == RADIO_MODE_DMR) {
+        for (size_t i = 0; i < samples; i++) {
+            float level = cabsf(data[i]);
+            float value = audio_buf[i] * 32768.0f * adc_vol;
+
+            if (level > peak)
+                peak = level;
+
+            adc_buf[i] = (int16_t)fmaxf(-32768, fminf(32767, value));
+        }
+
+        audio_adc_play(adc_buf, samples);
+
+        if (recorder_is_on())
+            recorder_put_audio_samples(audio_buf, samples);
+
+        pthread_mutex_lock(&meter_mux);
+        meter_sum_db += 20.0f * log10f(fmaxf(peak, 1e-12f)) - meter_correct_db;
+        meter_count++;
+        pthread_mutex_unlock(&meter_mux);
+
+        return;
+    }
 
     if (filter_need_update) {
         if (filter) {
@@ -681,6 +719,7 @@ size_t dsp_dac(float complex *data, size_t max_size) {
     size_t          size = 0;
 
     if (state == RADIO_RX) {
+        dmr_tx_set_active(false);
         mic_on_air(false);
     } else {
         radio_mode_t mode = op_work->mode;
@@ -698,7 +737,13 @@ size_t dsp_dac(float complex *data, size_t max_size) {
                 break;
         }
 
+        dmr_tx_set_active(mode == RADIO_MODE_DMR && state == RADIO_TX);
+
         switch (mode) {
+            case RADIO_MODE_DMR:
+                size = dmr_transmit(data, max_size);
+                break;
+
             case RADIO_MODE_CW:
                 mic_on_air(false);
                 size = cw_key_generator(data, max_size, false);

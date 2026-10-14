@@ -26,6 +26,8 @@ typedef enum {
     PAGE_OLIVIA_1,
     PAGE_OLIVIA_2,
 
+    PAGE_DMR_1,
+
     PAGE_APP_1,
     PAGE_APP_2,
 } button_page_t;

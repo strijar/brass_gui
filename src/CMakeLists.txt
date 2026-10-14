@@ -2,7 +2,7 @@ add_executable(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME} PUBLIC  
     main.c main_screen.c 
-    styles.c radio.c dsp.c util.c 
+    styles.c radio.c dsp.c dmr.c util.c
     rotary.c keyboard.c encoder.c device_monitor.c
     events.c msg.c msg_tiny.c brass_msg.c keypad.c
     hkey.c swr.c
@@ -13,6 +13,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     dialog_ft8.c dialog_sstv.c dialog_freq.c dialog_gps.c dialog_msg_cw.c
     dialog_msg_voice.c dialog_recorder.c dialog_qth.c dialog_callsign.c
     dialog_audio_settings.c dialog_rf_settings.c dialog_bluetooth.c
+    dialog_num.c
 
     textarea_window.c cw_encoder.c buttons.c vol.c recorder.c
     qth.c voice.cpp gfsk.c generator.c cw_key.c mic.c
@@ -25,6 +26,8 @@ add_subdirectory(sstv)
 add_subdirectory(widgets)
 add_subdirectory(fpga)
 add_subdirectory(dsp)
+add_subdirectory(dmr)
+target_link_libraries(${PROJECT_NAME} PRIVATE brass_dmr_core brass_dmr_vocoder)
 add_subdirectory(python)
 add_subdirectory(settings)
 add_subdirectory(olivia)

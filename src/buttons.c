@@ -31,6 +31,7 @@
 #include "settings/options.h"
 #include "settings/op_work.h"
 #include "olivia/olivia.h"
+#include "dmr.h"
 
 #define BUTTONS     6
 
@@ -48,6 +49,8 @@ static void button_vol_update_cb(lv_event_t * e);
 static void button_mfk_update_cb(lv_event_t * e);
 static void button_mem_load_cb(lv_event_t * e);
 static void button_olivia_preset_cb(lv_event_t * e);
+
+static void button_dmr_config_cb(lv_event_t * e);
 
 static void button_vol_hold_cb(void * ptr);
 static void button_mfk_hold_cb(void * ptr);
@@ -137,6 +140,15 @@ static button_item_t    buttons[] = {
     { .label = "16/500",            .press = button_olivia_preset_cb,   .data = 2 },
     { .label = "32/100",            .press = button_olivia_preset_cb,   .data = 3 },
 
+    /* DMR */
+
+    { .label = "Spectrum\nZoom",    .press = button_mfk_update_cb,  .hold = button_mfk_hold_cb,     .data = MFK_SPECTRUM_FACTOR },
+    { .label = "Src\nID",           .press = button_dmr_config_cb,  .data = DMR_CONFIG_SRC_ID },
+    { .label = "Target\nID",        .press = button_dmr_config_cb,  .data = DMR_CONFIG_TARGET_ID },
+    { .label = "Private\nCall",     .press = button_dmr_config_cb,  .data = DMR_CONFIG_PRIVATE_CALL },
+    { .label = "Color\nCode",       .press = button_dmr_config_cb,  .data = DMR_CONFIG_COLOR_CODE },
+    { .label = "",                  .press = NULL },
+
     /* APP */
 
     { .label = "FT8",               .press = button_app_page_cb,    .data = APP_FT8 },
@@ -178,6 +190,11 @@ static void buttons_load_mode() {
         case RADIO_MODE_OLIVIA:
             buttons_unload_page();
             buttons_load_page(PAGE_OLIVIA_1);
+            break;
+
+        case RADIO_MODE_DMR:
+            buttons_unload_page();
+            buttons_load_page(PAGE_DMR_1);
             break;
     }
 }
@@ -277,6 +294,12 @@ static void button_olivia_preset_cb(lv_event_t * e) {
     button_item_t *item = lv_event_get_user_data(e);
 
     olivia_preset(item->data);
+}
+
+static void button_dmr_config_cb(lv_event_t * e) {
+    button_item_t *item = lv_event_get_user_data(e);
+
+    dmr_config(item->data);
 }
 
 static void button_vol_hold_cb(void * ptr) {

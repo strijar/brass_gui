@@ -460,6 +460,7 @@ PyMODINIT_FUNC PyInit_trx() {
     PyModule_AddObjectRef(m, "RADIO_MODE_NFM",          PyLong_FromLong(RADIO_MODE_NFM));
     PyModule_AddObjectRef(m, "RADIO_MODE_RTTY",         PyLong_FromLong(RADIO_MODE_RTTY));
     PyModule_AddObjectRef(m, "RADIO_MODE_OLIVIA",       PyLong_FromLong(RADIO_MODE_OLIVIA));
+    PyModule_AddObjectRef(m, "RADIO_MODE_DMR",          PyLong_FromLong(RADIO_MODE_DMR));
 
     /* Split */
 
