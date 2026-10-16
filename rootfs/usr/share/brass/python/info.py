@@ -20,7 +20,8 @@ class Info(lv.obj):
 			trx.RADIO_MODE_AM: "AM",
 			trx.RADIO_MODE_NFM: "NFM",
 			trx.RADIO_MODE_RTTY: "RTTY",
-			trx.RADIO_MODE_OLIVIA: "OLIV"
+			trx.RADIO_MODE_OLIVIA: "OLIV",
+			trx.RADIO_MODE_DMR: "DMR"
 		}
 
 		self.split = {
